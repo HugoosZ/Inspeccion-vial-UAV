@@ -1,0 +1,83 @@
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Base de Datos Geoespacial: PostgreSQL + PostGIS + pgRouting
+  # ----------------------------------------------------------------------------
+  db:
+    image: pgrouting/pgrouting:16-3.4-3.6.1
+    container_name: ruteo_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ruteo_db
+      POSTGRES_USER: ruteo_user
+      POSTGRES_PASSWORD: ruteo_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ruteo_user -d ruteo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ruteo_net
+
+  # ----------------------------------------------------------------------------
+  # 2. Módulo ETL: Extracción, Transformación y Carga (Infraestructura, Metadata, Amenazas)
+  # ----------------------------------------------------------------------------
+  etl:
+    build:
+      context: ./docker/etl
+      dockerfile: Dockerfile
+    container_name: ruteo_etl
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ruteo_db
+      DB_USER: ruteo_user
+      DB_PASSWORD: ruteo_pass
+    volumes:
+      - .:/app
+    networks:
+      - ruteo_net
+    # Por defecto se mantiene en espera para permitir ejecuciones manuales o vía 'main.py'
+    command: ["tail", "-f", "/dev/null"]
+
+  # ----------------------------------------------------------------------------
+  # 3. Módulo Web: Servidor y API Geoespacial para Visualizador Leaflet
+  # ----------------------------------------------------------------------------
+  web:
+    build:
+      context: ./docker/web
+      dockerfile: Dockerfile
+    container_name: ruteo_web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ruteo_db
+      DB_USER: ruteo_user
+      DB_PASSWORD: ruteo_pass
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Sitio Web:/app/sitio_web:ro
+      - ./docker/web:/app/server:ro
+    networks:
+      - ruteo_net
+
+networks:
+  ruteo_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
