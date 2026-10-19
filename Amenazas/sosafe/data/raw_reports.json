@@ -1,0 +1,950 @@
+{
+  "success": true,
+  "reports": [
+    {
+      "id": 12035462,
+      "uuid": "09f5fa71-0326-5988-8705-8a3e2d6ae685",
+      "type": 0,
+      "title": "Robo a persona",
+      "is_anonymous": 0,
+      "description": "Estafador contando historias falsas y para sacar plata todos los dias",
+      "location": "Maipú",
+      "interactions": 3,
+      "latitude": -33.510322345632,
+      "longitude": -70.757432357192,
+      "share_url": "https://link.sosafeapp.com/2NwWzisrsPc",
+      "shares_counter": 0,
+      "user_id": 1873408,
+      "created_at": "2026-10-19 21:53:31",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 3,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792446810084_zfEpB.jpg",
+          "type": "image/jpeg"
+        },
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792446810084_xla93.jpg",
+          "type": "image/jpeg"
+        }
+      ],
+      "files_media": [
+        {
+          "name": "media_1792446810084_zfEpB.jpg",
+          "id": 8182025,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792446810084_zfEpB.jpg"
+        },
+        {
+          "name": "media_1792446810084_xla93.jpg",
+          "id": 8182026,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792446810084_xla93.jpg"
+        }
+      ],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r0.png"
+    },
+    {
+      "id": 12035445,
+      "uuid": "ecc4b6f9-11bc-5b17-804f-ac3c4ab91d6d",
+      "type": 1,
+      "title": "Robo de vehículo",
+      "is_anonymous": 0,
+      "description": "Hola si alguien ha visto un auto Hyundai accent hsfs62 ya que hoy se lo robaron a mi tío casi llegando a Olimpo con rinconada los tipos no pudieron hacer andar el vehículo y se lo llevaron tirando por favor si alguien vio algo avisar por favor",
+      "location": "Maipú",
+      "interactions": 5,
+      "latitude": -33.504831197388,
+      "longitude": -70.774079337716,
+      "share_url": "https://link.sosafeapp.com/2NwWw8UphD7",
+      "shares_counter": 2,
+      "user_id": 2746915,
+      "created_at": "2026-10-19 21:50:29",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 5,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792446627445_MFOSNN.jpg",
+          "type": "image/jpeg"
+        },
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792446627445_5BWL7U.jpg",
+          "type": "image/jpeg"
+        }
+      ],
+      "files_media": [
+        {
+          "name": "media_1792446627445_MFOSNN.jpg",
+          "id": 8182008,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792446627445_MFOSNN.jpg"
+        },
+        {
+          "name": "media_1792446627445_5BWL7U.jpg",
+          "id": 8182009,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792446627445_5BWL7U.jpg"
+        }
+      ],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r1.png"
+    },
+    {
+      "id": 12035378,
+      "uuid": "eee39aae-0568-5794-aa7f-2a01195cd7d9",
+      "type": 17,
+      "title": "Security emergency",
+      "is_anonymous": 1,
+      "description": "Señor gritando y haciendo show",
+      "location": "Pudahuel",
+      "interactions": 4,
+      "latitude": -33.459254016799,
+      "longitude": -70.746364644857,
+      "share_url": "https://link.sosafeapp.com/2NwWlTW4dTT",
+      "shares_counter": 0,
+      "user_id": 2226035,
+      "created_at": "2026-10-19 21:41:27",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 4,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/eee39aae-0568-5794-aa7f-2a01195cd7d9.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12035367,
+      "uuid": "7b0e9218-c34d-5ca4-af83-82d605143ead",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 0,
+      "description": "venta de droga 3 hombres y 1 mujer, por favor acudir",
+      "location": "Maipú",
+      "interactions": 12,
+      "latitude": -33.494164522749,
+      "longitude": -70.761742517352,
+      "share_url": "https://link.sosafeapp.com/2NwWhHzAIGZ",
+      "shares_counter": 0,
+      "user_id": 620110,
+      "created_at": "2026-10-19 21:37:54",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 12,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/7b0e9218-c34d-5ca4-af83-82d605143ead.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12035280,
+      "uuid": "b81b2b73-2cda-505c-b789-e23e8e7eb201",
+      "type": 14,
+      "title": "Disturbios",
+      "is_anonymous": 0,
+      "description": "Le pegaron a una pastera en picton",
+      "location": "Maipú",
+      "interactions": 10,
+      "latitude": -33.511110310592,
+      "longitude": -70.789747796953,
+      "share_url": "https://link.sosafeapp.com/2NwWT9mRR2Z",
+      "shares_counter": 0,
+      "user_id": 2929652,
+      "created_at": "2026-10-19 21:25:55",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 10,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/b81b2b73-2cda-505c-b789-e23e8e7eb201.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r14.png"
+    },
+    {
+      "id": 12035250,
+      "uuid": "fd242deb-4dc3-5f66-9e2f-377423943da1",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 0,
+      "description": "Los carabineros tienen a una pareja creo que andaban robando!!!",
+      "location": "Maipú",
+      "interactions": 13,
+      "latitude": -33.468043927964,
+      "longitude": -70.752925565259,
+      "share_url": "https://link.sosafeapp.com/2NwWPkPGYyB",
+      "shares_counter": 0,
+      "user_id": 1825016,
+      "created_at": "2026-10-19 21:23:02",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 13,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/fd242deb-4dc3-5f66-9e2f-377423943da1.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12035138,
+      "uuid": "b2e66cc9-3b99-5828-a838-9f335a66ca7e",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 1,
+      "description": "Ya están atendiendo en la casita de la droga y prostitución, ya hay autos desconocidos estacionados en las casas vecinas",
+      "location": "Maipú",
+      "interactions": 7,
+      "latitude": -33.495934378067,
+      "longitude": -70.752545893192,
+      "share_url": "https://link.sosafeapp.com/2NwW0cSuJg4",
+      "shares_counter": 1,
+      "user_id": 937513,
+      "created_at": "2026-10-19 21:01:45",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 7,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/b2e66cc9-3b99-5828-a838-9f335a66ca7e.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12034957,
+      "uuid": "884707d6-a722-5bba-a5b9-a8b58033f908",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 0,
+      "description": "Qué pasó en koiko están los carabineros? Cerca del bazar creo.",
+      "location": "Pudahuel",
+      "interactions": 5,
+      "latitude": -33.463877616891,
+      "longitude": -70.745677426457,
+      "share_url": "https://link.sosafeapp.com/2NwVN9HGPlB",
+      "shares_counter": 0,
+      "user_id": 1205826,
+      "created_at": "2026-10-19 20:28:18",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 5,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/884707d6-a722-5bba-a5b9-a8b58033f908.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12034872,
+      "uuid": "d5724536-a65d-5437-b008-e44250e26695",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 0,
+      "description": "Cuando sera el dia que llegue carabineros a esa casa que siempre hay peleas y venta de droga pasta base parece",
+      "location": "Maipú",
+      "interactions": 10,
+      "latitude": -33.466747556914,
+      "longitude": -70.75597576797,
+      "share_url": "https://link.sosafeapp.com/2NwV53z2xvV",
+      "shares_counter": 0,
+      "user_id": 1846592,
+      "created_at": "2026-10-19 20:12:59",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 10,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/d5724536-a65d-5437-b008-e44250e26695.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12034754,
+      "uuid": "143c9aa0-57d8-56dc-b6b8-38e74fd73af9",
+      "type": 14,
+      "title": "Disturbios",
+      "is_anonymous": 0,
+      "description": "Hay 4 pendejos tirando limones, piedras, etc a la gente que pasa, me vinieron tirando limones por la calle y luego se fueron por el peladero cerca de la pasarela, andaban con buzos de la U y 1 era Haitiano por si los ven para que anden con cuidado",
+      "location": "Maipú",
+      "interactions": 8,
+      "latitude": -33.491834538982,
+      "longitude": -70.747604012761,
+      "share_url": "https://link.sosafeapp.com/2NwUcatuU0T",
+      "shares_counter": 0,
+      "user_id": 1591584,
+      "created_at": "2026-10-19 19:48:51",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 8,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/143c9aa0-57d8-56dc-b6b8-38e74fd73af9.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r14.png"
+    },
+    {
+      "id": 12034739,
+      "uuid": "c572768c-a42e-5dec-a2e0-4ab3bbeb3d61",
+      "type": 19,
+      "title": "Emergencia de Bomberos",
+      "is_anonymous": 0,
+      "description": "Quema ilegal , cochinos y demás con peligro de propagación",
+      "location": "Maipú",
+      "interactions": 12,
+      "latitude": -33.480072140184,
+      "longitude": -70.744833770394,
+      "share_url": "https://link.sosafeapp.com/2NwUYRZfTwd",
+      "shares_counter": 0,
+      "user_id": 2711850,
+      "created_at": "2026-10-19 19:45:21",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 12,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/c572768c-a42e-5dec-a2e0-4ab3bbeb3d61.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r19.png"
+    },
+    {
+      "id": 12034722,
+      "uuid": "61b8e72e-9ab7-5218-b66e-c5896f24f5ca",
+      "type": 0,
+      "title": "Robo a persona",
+      "is_anonymous": 1,
+      "description": "le hicieron un lanzazo a una cabra, esta era la patente de la micro vpyd31 por si se necesita la cámara pq iba a rostro descubierto y nisiquiera corrió adonde nadie lo persiguió",
+      "location": "Santiago",
+      "interactions": 2,
+      "latitude": -33.471747139685,
+      "longitude": -70.720008015633,
+      "share_url": "https://link.sosafeapp.com/2NwUTlPsw1a",
+      "shares_counter": 0,
+      "user_id": 2770905,
+      "created_at": "2026-10-19 19:41:22",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 2,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/61b8e72e-9ab7-5218-b66e-c5896f24f5ca.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r0.png"
+    },
+    {
+      "id": 12034706,
+      "uuid": "f8bc845c-71a2-5aca-98c0-37d9157bb3fa",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 0,
+      "description": "Nos robaron esta camioneta Jac en esquina blanca con lumen.  Por favor si la ven avisar.",
+      "location": "Maipú",
+      "interactions": 13,
+      "latitude": -33.502578273149,
+      "longitude": -70.738139577979,
+      "share_url": "https://link.sosafeapp.com/2NwUQ2Ncvb1",
+      "shares_counter": 0,
+      "user_id": 3088222,
+      "created_at": "2026-10-19 19:38:13",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 13,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792438692323_4dn1S.jpg",
+          "type": "image/jpeg"
+        },
+        {
+          "source": "https://api.sosafeapp.com/comments/media_1792438946630_1oHwA.jpg",
+          "type": "image/jpeg"
+        }
+      ],
+      "files_media": [
+        {
+          "name": "media_1792438692323_4dn1S.jpg",
+          "id": 8181320,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792438692323_4dn1S.jpg"
+        },
+        {
+          "name": "media_1792438946630_1oHwA.jpg",
+          "id": 2445505,
+          "type": "image/jpeg",
+          "status": 3,
+          "sourceType": "comment",
+          "source": "https://api.sosafeapp.com/comments/media_1792438946630_1oHwA.jpg"
+        }
+      ],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12034668,
+      "uuid": "19a163f4-fb3a-50a8-bcf0-41d39cc6d6e2",
+      "type": 1,
+      "title": "Robo de vehículo",
+      "is_anonymous": 0,
+      "description": "ACABAN DE ROBAR UNA PATENTE A UN VECINO DEL SECTOR DE SU VEHÍCULO. \nSE ESTACIONARON DE LA NADA Y EN MENOS DE 10 SEGUNDOS LA SACARON. \nES UN AUTO BLANCO QUE ANDA HACIENDO LA VUELTA. \nTENGAN CUIDADO.",
+      "location": "Maipú",
+      "interactions": 9,
+      "latitude": -33.527309889138,
+      "longitude": -70.793307758868,
+      "share_url": "https://link.sosafeapp.com/2NwUHTPG8wU",
+      "shares_counter": 1,
+      "user_id": 2130757,
+      "created_at": "2026-10-19 19:30:58",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 9,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/19a163f4-fb3a-50a8-bcf0-41d39cc6d6e2.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r1.png"
+    },
+    {
+      "id": 12034611,
+      "uuid": "28a91b85-e1f1-5fee-99ba-80014a8b5090",
+      "type": 42,
+      "title": "Fuga de agua",
+      "is_anonymous": 0,
+      "description": "Arreglaron? El aire está asquerosoooo!!!",
+      "location": "Maipú",
+      "interactions": 6,
+      "latitude": -33.507078459807,
+      "longitude": -70.796661940159,
+      "share_url": "https://link.sosafeapp.com/2NwU2ekk69I",
+      "shares_counter": 1,
+      "user_id": 2847844,
+      "created_at": "2026-10-19 19:18:24",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 6,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/28a91b85-e1f1-5fee-99ba-80014a8b5090.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r42.png"
+    },
+    {
+      "id": 12034294,
+      "uuid": "3c21fb45-a2ad-5296-b79c-145c1ede2ced",
+      "type": 29,
+      "title": "Alcantarilla sin tapa",
+      "is_anonymous": 0,
+      "description": "Sali hace 3 hrs de mi casa y en rinconada entre galaxia y el conquistador está saliendo  aguas servidas como cataratas",
+      "location": "Maipú",
+      "interactions": 7,
+      "latitude": -33.507467188869,
+      "longitude": -70.797600634396,
+      "share_url": "https://link.sosafeapp.com/2NwSkbDNAv5",
+      "shares_counter": 0,
+      "user_id": 3048357,
+      "created_at": "2026-10-19 18:10:34",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 7,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/3c21fb45-a2ad-5296-b79c-145c1ede2ced.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r29.png"
+    },
+    {
+      "id": 12034288,
+      "uuid": "d7ee00f5-97ba-5e4d-8be6-dd500541751d",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 0,
+      "description": "Buenas tardes vecinos, nesesito de su hayuda, aparecio en nuestro patio una colmena de abejas e llamado a todos lados y nadie responde, que puedo hacer, gracias",
+      "location": "Santiago",
+      "interactions": 25,
+      "latitude": -33.497327309844,
+      "longitude": -70.748309344053,
+      "share_url": "https://link.sosafeapp.com/2NwSj0HFN9H",
+      "shares_counter": 0,
+      "user_id": 1058694,
+      "created_at": "2026-10-19 18:09:13",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 25,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/d7ee00f5-97ba-5e4d-8be6-dd500541751d.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12034099,
+      "uuid": "189fbeb8-ed35-568b-8b07-fb7f9577e52e",
+      "type": 146,
+      "title": "Robo frustrado",
+      "is_anonymous": 0,
+      "description": "anda un tipo en moto negra, mochila de repartidor negra haciéndose ser repartidor intentando quitar celulares cerca del colegio, lo intento pero no pudo quitar un celular",
+      "location": "Maipú",
+      "interactions": 20,
+      "latitude": -33.487180456386,
+      "longitude": -70.738388487473,
+      "share_url": "https://link.sosafeapp.com/2NwRs31kNP3",
+      "shares_counter": 2,
+      "user_id": 2375650,
+      "created_at": "2026-10-19 17:24:21",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 20,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/189fbeb8-ed35-568b-8b07-fb7f9577e52e.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r146.png"
+    },
+    {
+      "id": 12033994,
+      "uuid": "274e6050-afd5-596e-bad4-83cb1174f140",
+      "type": 0,
+      "title": "Robo a persona",
+      "is_anonymous": 1,
+      "description": "Me acaban intentar de asaltar \nTres tipos en una camioneta blanca MG\nEstaba en el paradero de la pasarela",
+      "location": "Cerrillos",
+      "interactions": 22,
+      "latitude": -33.505682655134,
+      "longitude": -70.72981988228,
+      "share_url": "https://link.sosafeapp.com/2NwRVUfXdow",
+      "shares_counter": 3,
+      "user_id": 1848580,
+      "created_at": "2026-10-19 17:03:08",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 22,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/274e6050-afd5-596e-bad4-83cb1174f140.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r0.png"
+    },
+    {
+      "id": 12033890,
+      "uuid": "904f8610-15e3-50c7-9552-7cc27801b425",
+      "type": 1,
+      "title": "Robo de vehículo",
+      "is_anonymous": 0,
+      "description": "Le acaban de robar el auto a mi tío en Olimpo con rinconada por favor si alguien lo ve avisar",
+      "location": "Maipú",
+      "interactions": 19,
+      "latitude": -33.504988593131,
+      "longitude": -70.774118229747,
+      "share_url": "https://link.sosafeapp.com/2NwR50OHFto",
+      "shares_counter": 0,
+      "user_id": 2746915,
+      "created_at": "2026-10-19 16:42:41",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 19,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792428159844_D1NGVE.jpg",
+          "type": "image/jpeg"
+        },
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792428159845_F8DGFW.jpg",
+          "type": "image/jpeg"
+        }
+      ],
+      "files_media": [
+        {
+          "name": "media_1792428159844_D1NGVE.jpg",
+          "id": 8180564,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792428159844_D1NGVE.jpg"
+        },
+        {
+          "name": "media_1792428159845_F8DGFW.jpg",
+          "id": 8180565,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792428159845_F8DGFW.jpg"
+        }
+      ],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r1.png"
+    },
+    {
+      "id": 12033722,
+      "uuid": "5c438c56-9c60-535e-9bfa-fd0d7cad921a",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 1,
+      "description": "Quiero hacer una advertencia.. más que una funa.. hacia el caballero que estaciona autos al frente del colegio de niñas que esta ahí. el otro día yo siendo apodera del colegio, presencia como un chico no tenía para darle propina y el caballero se enojó y prácticamente lo trató de mala manera.. yo tengo entendido que uno como persona, al estacionarse en un lugar que no está NORMALIZADO, NO HAY PARQUÍMETROS, el aporte es voluntario . el no tiene porque exigir que cada persona le de dinero si no le nace, no sé si estoy mal en lo que estoy publicando o no.. pero a mi parecer el caballero se adueñó de ese espacio y cobra por tener autos ahí, eso no debe está nisiquiera legalizado🤷🏻‍♀️",
+      "location": "Santiago",
+      "interactions": 24,
+      "latitude": -33.510777319046,
+      "longitude": -70.750858284256,
+      "share_url": "https://link.sosafeapp.com/2NwQQDrXt9X",
+      "shares_counter": 1,
+      "user_id": 886598,
+      "created_at": "2026-10-19 16:08:15",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 24,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/5c438c56-9c60-535e-9bfa-fd0d7cad921a.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12033060,
+      "uuid": "d8cd271b-8f76-5101-adb6-f640f46beb92",
+      "type": 19,
+      "title": "Emergencia de Bomberos",
+      "is_anonymous": 0,
+      "description": "Amago incendio cocina de restorant",
+      "location": "Maipú",
+      "interactions": 33,
+      "latitude": -33.555265086979,
+      "longitude": -70.794286429882,
+      "share_url": "https://link.sosafeapp.com/2NwNukEkxTv",
+      "shares_counter": 5,
+      "user_id": 534972,
+      "created_at": "2026-10-19 13:56:31",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 33,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792418188579_STMDBT.jpg",
+          "type": "image/jpeg"
+        },
+        {
+          "source": "https://api.sosafeapp.com/comments/media_1792418927214_UKZQCF.jpg",
+          "type": "image/jpeg"
+        },
+        {
+          "source": "https://api.sosafeapp.com/comments/media_1792418436276_ZWVOSM.jpg",
+          "type": "image/jpeg"
+        }
+      ],
+      "files_media": [
+        {
+          "name": "media_1792418188579_STMDBT.jpg",
+          "id": 8179878,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792418188579_STMDBT.jpg"
+        },
+        {
+          "name": "media_1792418927214_UKZQCF.jpg",
+          "id": 2445190,
+          "type": "image/jpeg",
+          "status": 3,
+          "sourceType": "comment",
+          "source": "https://api.sosafeapp.com/comments/media_1792418927214_UKZQCF.jpg"
+        },
+        {
+          "name": "media_1792418436276_ZWVOSM.jpg",
+          "id": 2445183,
+          "type": "image/jpeg",
+          "status": 3,
+          "sourceType": "comment",
+          "source": "https://api.sosafeapp.com/comments/media_1792418436276_ZWVOSM.jpg"
+        }
+      ],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r19.png"
+    },
+    {
+      "id": 12032642,
+      "uuid": "0bdd8037-90c9-5bff-b658-4ab00d56142a",
+      "type": 19,
+      "title": "Emergencia de Bomberos",
+      "is_anonymous": 0,
+      "description": "Auto incendiándose en la Farfana con el rosal",
+      "location": "Santiago",
+      "interactions": 46,
+      "latitude": -33.489382906092,
+      "longitude": -70.774407475471,
+      "share_url": "https://link.sosafeapp.com/2NwLnt7HWbU",
+      "shares_counter": 4,
+      "user_id": 2985123,
+      "created_at": "2026-10-19 12:05:39",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 46,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792411537972_TiF1F.jpg",
+          "type": "image/jpeg"
+        },
+        {
+          "source": "https://api.sosafeapp.com/comments/media_1792412754613_ufz1O.jpg",
+          "type": "image/jpeg"
+        }
+      ],
+      "files_media": [
+        {
+          "name": "media_1792411537972_TiF1F.jpg",
+          "id": 8179475,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792411537972_TiF1F.jpg"
+        },
+        {
+          "name": "media_1792412754613_ufz1O.jpg",
+          "id": 2445109,
+          "type": "image/jpeg",
+          "status": 3,
+          "sourceType": "comment",
+          "source": "https://api.sosafeapp.com/comments/media_1792412754613_ufz1O.jpg"
+        }
+      ],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r19.png"
+    },
+    {
+      "id": 12031798,
+      "uuid": "06fc629f-4889-5f66-a4bc-90a6daa58395",
+      "type": 14,
+      "title": "Disturbios",
+      "is_anonymous": 0,
+      "description": "Pelea con arma blanca, el loco quedó tirado en la esquina, lo apuñalaron.. el atacante es un tal Jeremy un cabro chico",
+      "location": "Maipú",
+      "interactions": 198,
+      "latitude": -33.545605851375,
+      "longitude": -70.767498537898,
+      "share_url": "https://link.sosafeapp.com/2NwCtY5NnBj",
+      "shares_counter": 5,
+      "user_id": 2717332,
+      "created_at": "2026-10-19 04:17:40",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 198,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/06fc629f-4889-5f66-a4bc-90a6daa58395.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r14.png"
+    }
+  ]
+}

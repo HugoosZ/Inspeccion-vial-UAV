@@ -65,10 +65,18 @@ def run_etl_metadata():
 def run_etl_amenazas():
     """Ejecuta los scripts de extracción y transformación en 'Amenazas/'."""
     print("\n" + "=" * 60)
-    print("FASE 3: ETL AMENAZAS (Zonas Hostiles, Clima Severo, Inhibidores Jammers)")
+    print("FASE 3: ETL AMENAZAS (SOSAFE, Zonas Hostiles, Inhibidores)")
     print("=" * 60)
-    # TODO: Invocar scripts en Amenazas/
-    print("[*] Pendiente de implementar scripts en Amenazas/")
+    sosafe_script = os.path.join(
+        os.path.dirname(__file__), "Amenazas", "sosafe", "run.py"
+    )
+    if os.path.exists(sosafe_script):
+        print("[*] Ejecutando módulo de amenazas SOSAFE...")
+        import subprocess
+        subprocess.run([sys.executable, sosafe_script], check=False)
+    else:
+        print("[*] Pendiente de implementar scripts adicionales en Amenazas/")
+
 
 
 def run_db_loader():
