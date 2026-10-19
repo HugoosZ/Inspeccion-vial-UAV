@@ -1,0 +1,181 @@
+{
+  "type": "FeatureCollection",
+  "name": "uav_threat_geofences_maipu",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.744833770394,
+          -33.480072140184
+        ]
+      },
+      "properties": {
+        "id": 12034739,
+        "tipo": "Emergencia de Bomberos",
+        "categoria": "INCENDIO_COLUMNA_TERMICA",
+        "nivel_riesgo": "ALTO",
+        "descripcion": "Quema ilegal , cochinos y demás con peligro de propagación",
+        "justificacion": "Humo denso y columnas térmicas que desestabilizan el control de actitud del dron.",
+        "radio_buffer": 500,
+        "marker_color": "#f77f00",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.739449,
+              -33.480072
+            ],
+            [
+              -70.739552,
+              -33.479196
+            ],
+            [
+              -70.739859,
+              -33.478353
+            ],
+            [
+              -70.740356,
+              -33.477577
+            ],
+            [
+              -70.741026,
+              -33.476896
+            ],
+            [
+              -70.741842,
+              -33.476338
+            ],
+            [
+              -70.742773,
+              -33.475922
+            ],
+            [
+              -70.743783,
+              -33.475667
+            ],
+            [
+              -70.744834,
+              -33.475581
+            ],
+            [
+              -70.745884,
+              -33.475667
+            ],
+            [
+              -70.746895,
+              -33.475922
+            ],
+            [
+              -70.747826,
+              -33.476338
+            ],
+            [
+              -70.748642,
+              -33.476896
+            ],
+            [
+              -70.749311,
+              -33.477577
+            ],
+            [
+              -70.749809,
+              -33.478353
+            ],
+            [
+              -70.750115,
+              -33.479196
+            ],
+            [
+              -70.750219,
+              -33.480072
+            ],
+            [
+              -70.750115,
+              -33.480948
+            ],
+            [
+              -70.749809,
+              -33.481791
+            ],
+            [
+              -70.749311,
+              -33.482568
+            ],
+            [
+              -70.748642,
+              -33.483248
+            ],
+            [
+              -70.747826,
+              -33.483807
+            ],
+            [
+              -70.746895,
+              -33.484222
+            ],
+            [
+              -70.745884,
+              -33.484477
+            ],
+            [
+              -70.744834,
+              -33.484564
+            ],
+            [
+              -70.743783,
+              -33.484477
+            ],
+            [
+              -70.742773,
+              -33.484222
+            ],
+            [
+              -70.741842,
+              -33.483807
+            ],
+            [
+              -70.741026,
+              -33.483248
+            ],
+            [
+              -70.740356,
+              -33.482568
+            ],
+            [
+              -70.739859,
+              -33.481791
+            ],
+            [
+              -70.739552,
+              -33.480948
+            ],
+            [
+              -70.739449,
+              -33.480072
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": 12034739,
+        "geofence_id": "nfz_12034739",
+        "nivel_riesgo": "ALTO",
+        "categoria": "INCENDIO_COLUMNA_TERMICA",
+        "fillColor": "#f77f00",
+        "color": "#f77f00",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 500,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    }
+  ]
+}
