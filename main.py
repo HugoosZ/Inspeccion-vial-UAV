@@ -72,6 +72,19 @@ MODULOS_AMENAZAS = [
 ]
 
 
+# Scripts de carga a la BD (punto 6): un cargar.py por cada JSON/GeoJSON
+CARGADORES_BD = [
+    ("M1 Paraderos", "Metadata/M1/cargar.py"),
+    ("M3 Controles viales OSM", "Metadata/M3/cargar.py"),
+    ("M5 Censo 2024 por manzana", "Metadata/M5/cargar.py"),
+    ("M6 Aeródromos DGAC", "Metadata/M6/cargar.py"),
+    ("T2 Incendios", "Amenazas/incendios/cargar.py"),
+    ("T3 Clima", "Amenazas/clima/cargar.py"),
+    ("T5 Emergencias por lluvia", "Amenazas/lluvias_maipu/cargar.py"),
+    ("T6 SOSAFE", "Amenazas/sosafe/cargar.py"),
+]
+
+
 def _ejecutar(script):
     """Ejecuta un script Python y devuelve True si terminó sin error."""
     import subprocess
@@ -100,14 +113,13 @@ def run_db_loader():
     print("\n" + "=" * 60)
     print("FASE 4: CARGA A BASE DE DATOS (PostGIS / pgRouting)")
     print("=" * 60)
-    for nombre, carpeta in MODULOS_AMENAZAS:
-        carpeta_data = os.path.join(AMENAZAS_DIR, carpeta, "data")
-        if not any(f.endswith(".geojson") for f in os.listdir(carpeta_data)):
-            print(f"[!] {nombre}: no hay GeoJSON para cargar.")
-            continue
-        print(f"[*] Cargando {nombre}...")
-        _ejecutar(os.path.join(AMENAZAS_DIR, carpeta, "cargar.py"))
-    # TODO: Invocar scripts de carga de Infraestructura, Metadata y SOSAFE
+    raiz = os.path.dirname(os.path.abspath(__file__))
+    for nombre, script in CARGADORES_BD:
+        ruta = os.path.join(raiz, script)
+        print(f"\n[*] Cargando {nombre} ({script})")
+        if not _ejecutar(ruta):
+            print(f"[!] {nombre}: la carga falló (¿existe el JSON de entrada?).")
+    # TODO: Invocar el script de carga de Infraestructura cuando exista
 
 
 def main():
