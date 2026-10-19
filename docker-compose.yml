@@ -41,6 +41,8 @@ services:
       DB_NAME: ruteo_db
       DB_USER: ruteo_user
       DB_PASSWORD: ruteo_pass
+      # Clave gratuita de NASA FIRMS (amenaza T2); se lee del archivo .env de la raíz
+      FIRMS_MAP_KEY: ${FIRMS_MAP_KEY:-}
     volumes:
       - .:/app
     networks:

@@ -62,21 +62,37 @@ def run_etl_metadata():
     print("[*] Pendiente de implementar scripts en Metadata/")
 
 
+AMENAZAS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Amenazas")
+
+# Módulos de amenazas con extractor.py (Extract + Transform) y cargar.py (Load)
+MODULOS_AMENAZAS = [
+    ("T2 Incendios (GDACS + NASA FIRMS)", "incendios"),
+    ("T3 Clima (Open-Meteo)", "clima"),
+    ("T5 Emergencias por lluvia (Municipalidad de Maipú)", "lluvias_maipu"),
+]
+
+
+def _ejecutar(script):
+    """Ejecuta un script Python y devuelve True si terminó sin error."""
+    import subprocess
+    resultado = subprocess.run([sys.executable, script], check=False)
+    return resultado.returncode == 0
+
+
 def run_etl_amenazas():
     """Ejecuta los scripts de extracción y transformación en 'Amenazas/'."""
     print("\n" + "=" * 60)
-    print("FASE 3: ETL AMENAZAS (SOSAFE, Zonas Hostiles, Inhibidores)")
+    print("FASE 3: ETL AMENAZAS (Incendios, Clima, Lluvias Maipú, SOSAFE)")
     print("=" * 60)
-    sosafe_script = os.path.join(
-        os.path.dirname(__file__), "Amenazas", "sosafe", "run.py"
-    )
-    if os.path.exists(sosafe_script):
-        print("[*] Ejecutando módulo de amenazas SOSAFE...")
-        import subprocess
-        subprocess.run([sys.executable, sosafe_script], check=False)
-    else:
-        print("[*] Pendiente de implementar scripts adicionales en Amenazas/")
+    for nombre, carpeta in MODULOS_AMENAZAS:
+        print(f"\n[*] {nombre}")
+        if not _ejecutar(os.path.join(AMENAZAS_DIR, carpeta, "extractor.py")):
+            print(f"[!] {nombre}: la extracción falló; se usará el último JSON disponible.")
 
+    sosafe_script = os.path.join(AMENAZAS_DIR, "sosafe", "run.py")
+    if os.path.exists(sosafe_script):
+        print("\n[*] T6 Zona conflictiva (SOSAFE)")
+        _ejecutar(sosafe_script)
 
 
 def run_db_loader():
@@ -84,8 +100,14 @@ def run_db_loader():
     print("\n" + "=" * 60)
     print("FASE 4: CARGA A BASE DE DATOS (PostGIS / pgRouting)")
     print("=" * 60)
-    # TODO: Invocar scripts de carga a la base de datos
-    print("[*] Pendiente de implementar scripts de carga a BD.")
+    for nombre, carpeta in MODULOS_AMENAZAS:
+        carpeta_data = os.path.join(AMENAZAS_DIR, carpeta, "data")
+        if not any(f.endswith(".geojson") for f in os.listdir(carpeta_data)):
+            print(f"[!] {nombre}: no hay GeoJSON para cargar.")
+            continue
+        print(f"[*] Cargando {nombre}...")
+        _ejecutar(os.path.join(AMENAZAS_DIR, carpeta, "cargar.py"))
+    # TODO: Invocar scripts de carga de Infraestructura, Metadata y SOSAFE
 
 
 def main():
