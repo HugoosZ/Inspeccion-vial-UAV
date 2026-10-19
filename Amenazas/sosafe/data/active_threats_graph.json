@@ -1,0 +1,19 @@
+[
+  {
+    "id": 12034739,
+    "uuid": "c572768c-a42e-5dec-a2e0-4ab3bbeb3d61",
+    "categoria": "INCENDIO_COLUMNA_TERMICA",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.480072140184,
+    "longitud": -70.744833770394,
+    "coordenadas": [
+      -33.480072140184,
+      -70.744833770394
+    ],
+    "radio_buffer_metros": 500,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "Quema ilegal , cochinos y demás con peligro de propagación",
+    "justificacion": "Humo denso y columnas térmicas que desestabilizan el control de actitud del dron."
+  }
+]

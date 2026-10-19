@@ -1,8 +1,118 @@
 {
   "success": true,
   "commune": "maipú",
-  "total_filtered": 17,
+  "total_filtered": 18,
   "reports": [
+    {
+      "id": 12035733,
+      "uuid": "986bebae-86f7-5a8d-819c-9ba97bf8491c",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 0,
+      "description": "Bebiendo en la vía pública",
+      "location": "Maipú",
+      "interactions": 5,
+      "latitude": -33.497199954379,
+      "longitude": -70.75328667105,
+      "share_url": "https://link.sosafeapp.com/2NwXmwSfUXQ",
+      "shares_counter": 0,
+      "user_id": 163084,
+      "created_at": "2026-10-19 22:35:13",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 5,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/986bebae-86f7-5a8d-819c-9ba97bf8491c.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12035729,
+      "uuid": "347a3d66-a381-50b7-99a3-5f83494f1687",
+      "type": 17,
+      "title": "Emergencia de Seguridad",
+      "is_anonymous": 0,
+      "description": "Hay un hyundai blanco al lado de un camion en valle de los reyes y hay 2 personas dentro hombre y mujer, se notaba que estaban teniendo relaciones, pase recien y es de dia y se ve todo🙄😡",
+      "location": "Maipú",
+      "interactions": 6,
+      "latitude": -33.533337884836,
+      "longitude": -70.79994305228,
+      "share_url": "https://link.sosafeapp.com/2NwXm3zNTCh",
+      "shares_counter": 1,
+      "user_id": 1967496,
+      "created_at": "2026-10-19 22:34:28",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 6,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://reports-maps-prod.s3.amazonaws.com/347a3d66-a381-50b7-99a3-5f83494f1687.png",
+          "type": "image/png"
+        }
+      ],
+      "files_media": [],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r17.png"
+    },
+    {
+      "id": 12035610,
+      "uuid": "8eeadb41-c7c2-5930-85f9-3fd5cfcf9fdb",
+      "type": 29,
+      "title": "Alcantarilla sin tapa",
+      "is_anonymous": 0,
+      "description": "Mi casa esta con alcantarilla tapada",
+      "location": "Maipú",
+      "interactions": 11,
+      "latitude": -33.524341614331,
+      "longitude": -70.759826749563,
+      "share_url": "https://link.sosafeapp.com/2NwXOlPeE1f",
+      "shares_counter": 0,
+      "user_id": 380056,
+      "created_at": "2026-10-19 22:14:44",
+      "seen": 0,
+      "visible": 1,
+      "company_id": 0,
+      "point_ttl": 11,
+      "user": {
+        "id": 0,
+        "uuid": "",
+        "first_name": "",
+        "cover": ""
+      },
+      "feed_media": [
+        {
+          "source": "https://api.sosafeapp.com/reports/media_1792448613580_S2T14C.jpg",
+          "type": "image/jpeg"
+        }
+      ],
+      "files_media": [
+        {
+          "name": "media_1792448613580_S2T14C.jpg",
+          "id": 8182153,
+          "type": "image/jpeg",
+          "status": 3,
+          "source": "https://api.sosafeapp.com/reports/media_1792448613580_S2T14C.jpg"
+        }
+      ],
+      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r29.png"
+    },
     {
       "id": 12035462,
       "uuid": "09f5fa71-0326-5988-8705-8a3e2d6ae685",
@@ -219,7 +329,7 @@
       "is_anonymous": 1,
       "description": "Ya están atendiendo en la casita de la droga y prostitución, ya hay autos desconocidos estacionados en las casas vecinas",
       "location": "Maipú",
-      "interactions": 7,
+      "interactions": 11,
       "latitude": -33.495934378067,
       "longitude": -70.752545893192,
       "share_url": "https://link.sosafeapp.com/2NwW0cSuJg4",
@@ -229,7 +339,7 @@
       "seen": 0,
       "visible": 1,
       "company_id": 0,
-      "point_ttl": 7,
+      "point_ttl": 11,
       "user": {
         "id": 0,
         "uuid": "",
@@ -470,40 +580,6 @@
       "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r42.png"
     },
     {
-      "id": 12034294,
-      "uuid": "3c21fb45-a2ad-5296-b79c-145c1ede2ced",
-      "type": 29,
-      "title": "Alcantarilla sin tapa",
-      "is_anonymous": 0,
-      "description": "Sali hace 3 hrs de mi casa y en rinconada entre galaxia y el conquistador está saliendo  aguas servidas como cataratas",
-      "location": "Maipú",
-      "interactions": 7,
-      "latitude": -33.507467188869,
-      "longitude": -70.797600634396,
-      "share_url": "https://link.sosafeapp.com/2NwSkbDNAv5",
-      "shares_counter": 0,
-      "user_id": 3048357,
-      "created_at": "2026-10-19 18:10:34",
-      "seen": 0,
-      "visible": 1,
-      "company_id": 0,
-      "point_ttl": 7,
-      "user": {
-        "id": 0,
-        "uuid": "",
-        "first_name": "",
-        "cover": ""
-      },
-      "feed_media": [
-        {
-          "source": "https://reports-maps-prod.s3.amazonaws.com/3c21fb45-a2ad-5296-b79c-145c1ede2ced.png",
-          "type": "image/png"
-        }
-      ],
-      "files_media": [],
-      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r29.png"
-    },
-    {
       "id": 12034099,
       "uuid": "189fbeb8-ed35-568b-8b07-fb7f9577e52e",
       "type": 146,
@@ -589,72 +665,6 @@
         }
       ],
       "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r1.png"
-    },
-    {
-      "id": 12033060,
-      "uuid": "d8cd271b-8f76-5101-adb6-f640f46beb92",
-      "type": 19,
-      "title": "Emergencia de Bomberos",
-      "is_anonymous": 0,
-      "description": "Amago incendio cocina de restorant",
-      "location": "Maipú",
-      "interactions": 33,
-      "latitude": -33.555265086979,
-      "longitude": -70.794286429882,
-      "share_url": "https://link.sosafeapp.com/2NwNukEkxTv",
-      "shares_counter": 5,
-      "user_id": 534972,
-      "created_at": "2026-10-19 13:56:31",
-      "seen": 0,
-      "visible": 1,
-      "company_id": 0,
-      "point_ttl": 33,
-      "user": {
-        "id": 0,
-        "uuid": "",
-        "first_name": "",
-        "cover": ""
-      },
-      "feed_media": [
-        {
-          "source": "https://api.sosafeapp.com/reports/media_1792418188579_STMDBT.jpg",
-          "type": "image/jpeg"
-        },
-        {
-          "source": "https://api.sosafeapp.com/comments/media_1792418927214_UKZQCF.jpg",
-          "type": "image/jpeg"
-        },
-        {
-          "source": "https://api.sosafeapp.com/comments/media_1792418436276_ZWVOSM.jpg",
-          "type": "image/jpeg"
-        }
-      ],
-      "files_media": [
-        {
-          "name": "media_1792418188579_STMDBT.jpg",
-          "id": 8179878,
-          "type": "image/jpeg",
-          "status": 3,
-          "source": "https://api.sosafeapp.com/reports/media_1792418188579_STMDBT.jpg"
-        },
-        {
-          "name": "media_1792418927214_UKZQCF.jpg",
-          "id": 2445190,
-          "type": "image/jpeg",
-          "status": 3,
-          "sourceType": "comment",
-          "source": "https://api.sosafeapp.com/comments/media_1792418927214_UKZQCF.jpg"
-        },
-        {
-          "name": "media_1792418436276_ZWVOSM.jpg",
-          "id": 2445183,
-          "type": "image/jpeg",
-          "status": 3,
-          "sourceType": "comment",
-          "source": "https://api.sosafeapp.com/comments/media_1792418436276_ZWVOSM.jpg"
-        }
-      ],
-      "report_type_image_url": "https://internal-files.sosafeapp.com/report-types/btn_mdpi_r19.png"
     },
     {
       "id": 12031798,
