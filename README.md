@@ -57,3 +57,19 @@ Abrir en el navegador:
 ```text
 http://localhost:8080
 ```
+## Nota sobre los datos del Censo 2024 (Metadata 5)
+
+En la carpeta `Metadata/M5/` encontrarás el archivo `manzanas_maipu_completo.zip`. 
+Este archivo contiene el **GeoJSON final** con la geometría y los datos demográficos de las **5.875 manzanas de Maipú**, cruzados con el Censo 2024.
+
+**¿Cómo usarlo?**
+1. Descarga el archivo `.zip` y descomprímelo en tu computador.
+2. Tendrás un archivo `.geojson` con todos los datos listos para tu algoritmo de ruteo.
+
+**¿Cómo regenerarlo?**
+Si necesitas volver a generarlo (porque actualizaste los datos o quieres ver el proceso), sigue estos pasos:
+1. Abre una terminal y entra a la carpeta:
+   cd Metadata/M5
+2. Ejecuta el script:
+    python procesar_censo.py
+(Asegúrate de tener el GeoPackage original Cartografia_censo2024_Pais.gpkg en la misma carpeta para que el script funcione)
