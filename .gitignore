@@ -64,3 +64,4 @@ docker-compose.override.yml
 *.swo
 *~
 *.gpkg
+Metadata/M5/manzanas_maipu_completo.geojson
