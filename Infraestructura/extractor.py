@@ -8,8 +8,8 @@ Extract:
   - Red vial vehicular (network_type="drive") dentro del límite, con OSMnx
     sobre la API Overpass. Es la red donde están las señales de tránsito que
     el dron debe inspeccionar.
-  - (Opcional) Elevación de cada nodo desde la API de elevación de Open-Meteo
-    (Copernicus DEM 90 m), para el costo energético E(e)=k1*d(e)+k2*Δh⁺(e) de
+  - (Opcional) Elevación de cada nodo desde la API pública de OpenTopoData
+    (SRTM 30 m), para el costo energético E(e)=k1*d(e)+k2*Δh⁺(e) de
     la fase 3.
 Transform:
   - El grafo se convierte en no dirigido: el dron vuela sobre la calle y no
@@ -28,7 +28,7 @@ Uso:
 Variables opcionales:
   INFRA_LUGAR             consulta Nominatim (defecto "Maipú, Provincia de Santiago, Chile")
   INFRA_NETWORK_TYPE      drive (defecto) | drive_service | all
-  INFRA_ELEVACION         1 (defecto) consulta Open-Meteo | 0 deja elevación en 0
+  INFRA_ELEVACION         1 (defecto) consulta OpenTopoData | 0 deja elevación en 0
   INFRA_RESPETAR_SENTIDO  0 (defecto) | 1
 """
 
@@ -51,7 +51,7 @@ SALIDA_ARISTAS = DATA_DIR / "aristas_maipu.geojson"
 COMUNA = "Maipú"
 # Respaldo si Nominatim no responde: rectángulo de la comuna (oeste, sur, este, norte)
 AOI_RESPALDO = (-70.92, -33.62, -70.70, -33.46)
-ELEVACION_API = "https://api.open-meteo.com/v1/elevation"
+ELEVACION_API = "https://api.opentopodata.org/v1/srtm30m"
 VELOCIDAD_DEFECTO = {"motorway": 100, "trunk": 80, "primary": 60, "secondary": 50,
                      "tertiary": 50, "residential": 40, "living_street": 20}
 
@@ -134,22 +134,33 @@ def descargar_grafo(lugar, network_type):
 
 
 def elevaciones(coordenadas):
-    """Elevación (m) para una lista de (lat, lon) en lotes de 100 vía Open-Meteo."""
+    """Elevación (m) para una lista de (lat, lon) vía OpenTopoData (SRTM 30 m).
+
+    La API pública acepta 100 puntos por consulta y 1 consulta por segundo
+    (máx. 1000 consultas al día), así que ~13.000 nodos tardan unos 2-3 minutos.
+    (Open-Meteo cuenta cada coordenada como una llamada y su límite gratuito de
+    600/minuto y 10.000/día no alcanza para toda la red.)
+    """
     resultado = []
     for i in range(0, len(coordenadas), 100):
         lote = coordenadas[i:i + 100]
-        params = {"latitude": ",".join(f"{la:.6f}" for la, _ in lote),
-                  "longitude": ",".join(f"{lo:.6f}" for _, lo in lote)}
-        for intento in range(3):
+        params = {"locations": "|".join(f"{la:.6f},{lo:.6f}" for la, lo in lote)}
+        for intento in range(5):
             try:
                 r = requests.get(ELEVACION_API, params=params, timeout=30)
+                if r.status_code == 429:
+                    raise requests.HTTPError("429 Too Many Requests")
                 r.raise_for_status()
-                resultado += r.json()["elevation"]
+                datos = r.json()
+                if datos.get("status") != "OK":
+                    raise ValueError(datos.get("error", "respuesta sin status OK"))
+                resultado += [p.get("elevation") for p in datos["results"]]
                 break
             except (requests.RequestException, KeyError, ValueError) as error:
-                if intento == 2:
-                    raise RuntimeError(f"Open-Meteo elevation falló: {error}")
+                if intento == 4:
+                    raise RuntimeError(f"OpenTopoData falló en el lote {i // 100 + 1}: {error}")
                 time.sleep(2 ** (intento + 1))
+        time.sleep(1.1)  # límite público: 1 consulta por segundo
         if (i // 100) % 20 == 19:
             print(f"    [*] Elevación: {i + len(lote)}/{len(coordenadas)} nodos")
     return resultado
@@ -162,10 +173,12 @@ def transformar(nodos, aristas, con_elevacion, respetar_sentido):
     osm_a_id = {osm: i for i, osm in enumerate(nodos.index, start=1)}
 
     elev = [0.0] * len(nodos)
+    elevacion_ok = False
     if con_elevacion:
-        print(f"[*] Consultando elevación de {len(nodos)} nodos en Open-Meteo...")
+        print(f"[*] Consultando elevación de {len(nodos)} nodos en OpenTopoData (~1 lote de 100 por segundo)...")
         try:
             elev = elevaciones(list(zip(nodos["y"], nodos["x"])))
+            elevacion_ok = True
         except RuntimeError as error:
             print(f"[!] {error}. Se deja elevación 0.")
 
@@ -208,7 +221,7 @@ def transformar(nodos, aristas, con_elevacion, respetar_sentido):
                 "commune": COMUNA,
             },
         })
-    return features_nodos, features_aristas
+    return features_nodos, features_aristas, elevacion_ok
 
 
 def guardar(ruta, nombre, features, metadatos):
@@ -234,13 +247,13 @@ def main():
     print(f"INFRAESTRUCTURA: red vial '{network_type}' de {lugar}")
     print("=" * 60)
     nodos, aristas, origen = descargar_grafo(lugar, network_type)
-    f_nodos, f_aristas = transformar(nodos, aristas, con_elevacion, respetar_sentido)
+    f_nodos, f_aristas, elevacion_ok = transformar(nodos, aristas, con_elevacion, respetar_sentido)
 
     comunes = {"fuente": "OpenStreetMap vía OSMnx (Overpass API)", "lugar": lugar,
                "origen_limite": origen, "network_type": network_type, "dirigido": False,
                "respetar_sentido": respetar_sentido}
     guardar(SALIDA_NODOS, "infraestructura_nodos_maipu", f_nodos,
-            {**comunes, "elevacion": "Open-Meteo Elevation API (Copernicus DEM 90 m)" if con_elevacion else None})
+            {**comunes, "elevacion": "OpenTopoData SRTM 30 m" if elevacion_ok else None})
     guardar(SALIDA_ARISTAS, "infraestructura_aristas_maipu", f_aristas,
             {**comunes, "longitud_total_km": round(sum(f["properties"]["length_m"] for f in f_aristas) / 1000, 1)})
 

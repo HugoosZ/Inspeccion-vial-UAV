@@ -17,7 +17,7 @@ Punto 1 de la rúbrica: `extractor.py` automatiza la extracción y transformaci�
 |---|---|---|
 | Límite comunal | OpenStreetMap, Nominatim (`ox.geocode_to_gdf`) | Libre |
 | Red vial | OpenStreetMap, Overpass API (`ox.graph_from_polygon`, `network_type="drive"`) | Libre |
-| Elevación de nodos | Open-Meteo Elevation API (Copernicus DEM 90 m), lotes de 100 puntos | Libre |
+| Elevación de nodos | OpenTopoData, conjunto SRTM 30 m (`https://api.opentopodata.org/v1/srtm30m`), lotes de 100 puntos a 1 consulta por segundo | Libre, sin key (máx. 1000 consultas/día) |
 
 Si Nominatim no devuelve el polígono de la comuna, se usa el rectángulo de respaldo `(-70.92, -33.62, -70.70, -33.46)`; `metadata.origen_limite` indica cuál se usó.
 
@@ -34,7 +34,7 @@ $$E(e)=k_1\,d(e)+k_2\,\Delta h^{+}(e),\qquad \Delta h^{+}(e)=\max\{0,\;h(\text{t
 |---|---|---|
 | `INFRA_LUGAR` | `Maipú, Provincia de Santiago, Chile` | Consulta a Nominatim |
 | `INFRA_NETWORK_TYPE` | `drive` | Tipo de red OSMnx |
-| `INFRA_ELEVACION` | `1` | `0` omite la consulta de elevación (más rápido) |
+| `INFRA_ELEVACION` | `1` | `0` omite la consulta de elevación (ahorra 2-3 minutos) |
 | `INFRA_RESPETAR_SENTIDO` | `0` | `1` aplica el sentido del tránsito |
 
 ## Estructura de `nodos_maipu.geojson`
@@ -49,7 +49,7 @@ FeatureCollection de `Point` en EPSG:4326.
 | `comuna`, `total_features` | Comuna y cantidad de nodos |
 | `fuente`, `lugar`, `origen_limite` | Fuente OSM, consulta usada y si el límite vino de Nominatim o del rectángulo |
 | `network_type`, `dirigido`, `respetar_sentido` | Parámetros del grafo |
-| `elevacion` | Fuente de la elevación, o `null` si se omitió |
+| `elevacion` | Fuente de la elevación, o `null` si se omitió o la consulta falló |
 
 ### `properties`
 
