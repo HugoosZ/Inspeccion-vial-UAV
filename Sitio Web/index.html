@@ -89,13 +89,30 @@ const COLOR_NIVEL = { BAJO: "#94a3b8", MEDIO: "#eab308", ALTO: "#f97316", CRITIC
 const fmt = n => Number(n || 0).toLocaleString("es-CL");
 
 const mapa = L.map("mapa", { preferCanvas: true, zoomControl: true }).setView(CENTRO_MAIPU, 13);
-const baseClaro = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-  maxZoom: 20, attribution: "&copy; OpenStreetMap &copy; CARTO" }).addTo(mapa);
-const baseOsm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19, attribution: "&copy; OpenStreetMap" });
-L.control.layers({ "Mapa claro (CARTO)": baseClaro, "OpenStreetMap": baseOsm }, null,
-  { position: "topright" }).addTo(mapa);
 L.control.scale({ imperial: false }).addTo(mapa);
+
+// Mapas base: OpenStreetMap no requiere key. CARTO (más limpio para ver capas
+// encima) exige CARTO_API_KEY en el .env; si no está, se usa OpenStreetMap.
+async function configurarMapaBase() {
+  const bases = {
+    "OpenStreetMap": L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }),
+  };
+  let cartoKey = null;
+  try { cartoKey = (await obtener("/api/config")).carto_api_key; } catch (e) { console.warn(e); }
+  if (cartoKey) {
+    const k = encodeURIComponent(cartoKey);
+    const carto = estilo => L.tileLayer(
+      `https://basemaps.cartocdn.com/rastertiles/${estilo}/{z}/{x}/{y}.png?key=${k}`,
+      { maxZoom: 20, attribution: "&copy; OpenStreetMap contributors, &copy; CARTO" });
+    bases["CARTO claro"] = carto("light_all");
+    bases["CARTO Voyager"] = carto("voyager");
+    bases["CARTO claro"].addTo(mapa);
+  } else {
+    bases["OpenStreetMap"].addTo(mapa);
+  }
+  L.control.layers(bases, null, { position: "topright" }).addTo(mapa);
+}
 
 // Capas superiores para que amenazas queden sobre metadata y red vial
 mapa.createPane("infra").style.zIndex = 410;
@@ -330,6 +347,7 @@ function prepararHoras(capa) {
 // Inicio
 // ---------------------------------------------------------------------------
 (async () => {
+  await configurarMapaBase();
   try {
     const catalogo = await obtener("/api/capas");
     const i = catalogo.infraestructura;

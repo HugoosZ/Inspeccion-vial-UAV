@@ -110,6 +110,17 @@ def health_check():
         return {"status": "degraded", "database_error": str(e)}
 
 
+@app.get("/api/config")
+def get_config():
+    """Configuración pública del sitio.
+
+    CARTO_API_KEY es una key de mapa base que el navegador necesita para pedir
+    las teselas, así que necesariamente queda visible para quien abra el sitio.
+    Se lee del .env (vía docker-compose) para no escribirla en el código.
+    """
+    return {"carto_api_key": os.getenv("CARTO_API_KEY", "").strip() or None}
+
+
 @app.get("/api/capas")
 def get_capas():
     """Catálogo de lo cargado en la BD, para construir el panel de capas del sitio."""
