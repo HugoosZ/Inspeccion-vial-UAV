@@ -39,6 +39,7 @@ Colores de riesgo, comunes a todas las amenazas: BAJO gris, MEDIO amarillo, ALTO
 | Endpoint | Parámetros | Devuelve |
 |---|---|---|
 | `GET /health` | — | Estado de la conexión a la BD |
+| `GET /api/config` | — | Configuración pública del sitio (`carto_api_key` o `null`) |
 | `GET /api/capas` | — | Conteos de la red vial y de cada `fuente_etl` en metadata y amenazas |
 | `GET /api/infraestructura` | `highway`, `simplificar` | Aristas de la red vial |
 | `GET /api/nodos` | — | Nodos de la red vial |
@@ -56,4 +57,19 @@ docker compose exec etl python main.py     # si la BD aún no tiene datos
 # abrir http://localhost:8080
 ```
 
-El sitio requiere conexión a internet para descargar Leaflet y el mapa base (CARTO u OpenStreetMap).
+El sitio requiere conexión a internet para descargar Leaflet y el mapa base.
+
+## Mapa base y `CARTO_API_KEY`
+
+| Mapa base | Requiere key | Cuándo se usa |
+|---|---|---|
+| OpenStreetMap | No | Por defecto, si no hay `CARTO_API_KEY` |
+| CARTO claro / Voyager | Sí | Si `CARTO_API_KEY` está definida (queda como mapa por defecto) |
+
+La key de CARTO Basemaps es gratuita para uso no comercial (hasta 5 millones de teselas al mes) y se pide en https://carto.com/basemaps/apikey; llega por correo. Se agrega al archivo `.env` de la raíz del proyecto, que no se sube a git:
+
+```
+CARTO_API_KEY=pega_aqui_la_key
+```
+
+`docker-compose.yml` la pasa al contenedor `web`, `GET /api/config` la entrega al navegador y el sitio arma las teselas como `https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png?key=...`. Después de editar el `.env` hay que recrear el contenedor: `docker compose up -d web`. Una key de mapa base siempre queda visible para quien abre el sitio, porque el navegador la usa para pedir las teselas.
