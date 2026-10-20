@@ -41,13 +41,16 @@ services:
       DB_NAME: ruteo_db
       DB_USER: ruteo_user
       DB_PASSWORD: ruteo_pass
-      # Clave gratuita de NASA FIRMS (amenaza T2); se lee del archivo .env de la raíz
+      # Indica a main.py que corre dentro del contenedor (modo pipeline)
+      RUTEO_EN_CONTENEDOR: "1"
+      # Clave gratuita de NASA FIRMS (amenaza T2); se lee del archivo .env de la raíz.
+      # El resto de las claves (OHSOME, SOSAFE, GEMINI) las lee main.py desde /app/.env
       FIRMS_MAP_KEY: ${FIRMS_MAP_KEY:-}
     volumes:
       - .:/app
     networks:
       - ruteo_net
-    # Por defecto se mantiene en espera para permitir ejecuciones manuales o vía 'main.py'
+    # Queda en espera; 'python3 main.py' (en el computador) ejecuta aquí el pipeline
     command: ["tail", "-f", "/dev/null"]
 
   # ----------------------------------------------------------------------------
