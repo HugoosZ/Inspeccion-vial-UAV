@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inspección Vial UAV · Maipú</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root {
+    --bg: #ffffff; --panel: #f8fafc; --texto: #0f172a; --suave: #64748b;
+    --borde: #e2e8f0; --acento: #0f766e; --sombra: 0 1px 3px rgba(15,23,42,.12);
+    --bajo: #94a3b8; --medio: #eab308; --alto: #f97316; --critico: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0b1220; --panel: #111a2e; --texto: #e2e8f0; --suave: #94a3b8;
+            --borde: #1e293b; --acento: #2dd4bf; --sombra: 0 1px 3px rgba(0,0,0,.5); }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--texto);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { display: flex; height: 100%; }
+  #panel { width: 340px; flex-shrink: 0; overflow-y: auto; background: var(--panel);
+    border-right: 1px solid var(--borde); padding: 16px 16px 24px; }
+  #mapa { flex: 1; }
+  h1 { font-size: 17px; margin: 0 0 2px; }
+  .sub { color: var(--suave); font-size: 12.5px; margin: 0 0 14px; }
+  .estado { font-size: 12px; padding: 6px 8px; border-radius: 6px; background: var(--bg);
+    border: 1px solid var(--borde); margin-bottom: 14px; }
+  .estado.error { border-color: var(--critico); color: var(--critico); }
+  h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--suave);
+    margin: 18px 0 6px; }
+  .capa { background: var(--bg); border: 1px solid var(--borde); border-radius: 8px;
+    padding: 8px 10px; margin-bottom: 6px; }
+  .capa label.titulo { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+  .capa input[type=checkbox] { accent-color: var(--acento); width: 15px; height: 15px; }
+  .muestra { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .conteo { margin-left: auto; font-weight: 400; color: var(--suave); font-size: 12px; white-space: nowrap; }
+  .detalle { color: var(--suave); font-size: 12px; margin: 3px 0 0 23px; }
+  .opciones { margin: 6px 0 0 23px; font-size: 12.5px; display: grid; gap: 4px; }
+  .opciones select { width: 100%; padding: 3px 4px; border-radius: 5px; border: 1px solid var(--borde);
+    background: var(--panel); color: var(--texto); font: inherit; }
+  .leyenda { margin: 6px 0 0 23px; display: grid; gap: 3px; font-size: 12px; }
+  .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .leyenda i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .leyenda i.cuadro { border-radius: 2px; }
+  .cargando .conteo::after { content: " · cargando…"; }
+  .nota { font-size: 11.5px; color: var(--suave); margin-top: 18px; border-top: 1px solid var(--borde); padding-top: 10px; }
+  .leaflet-popup-content { font-size: 12.5px; max-width: 300px; }
+  .leaflet-popup-content h3 { font-size: 13.5px; margin: 0 0 4px; }
+  .leaflet-popup-content table { border-collapse: collapse; width: 100%; margin-top: 4px; }
+  .leaflet-popup-content td { padding: 2px 4px; border-top: 1px solid #e2e8f0; vertical-align: top; }
+  .leaflet-popup-content td:first-child { color: #64748b; white-space: nowrap; }
+  .nivel { display: inline-block; padding: 0 6px; border-radius: 4px; color: #fff; font-size: 11px; font-weight: 600; }
+  #alternar { display: none; }
+  @media (max-width: 760px) {
+    #app { flex-direction: column; }
+    #panel { width: 100%; height: 45%; border-right: 0; border-bottom: 1px solid var(--borde); }
+    #panel.oculto { display: none; }
+    #alternar { display: block; position: absolute; z-index: 1000; top: 10px; right: 10px;
+      padding: 6px 10px; border-radius: 6px; border: 1px solid var(--borde); background: var(--panel);
+      color: var(--texto); box-shadow: var(--sombra); font: inherit; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="panel">
+    <h1>Inspección vial con flota UAV</h1>
+    <p class="sub">Maipú · Infraestructura, metadata y amenazas cargadas en PostGIS</p>
+    <div id="estado" class="estado">Conectando con la API…</div>
+    <div id="capas"></div>
+    <p class="nota">Fuentes: OpenStreetMap (OSMnx, ohsome), Municipalidad de Maipú, INE Censo 2024,
+      DGAC, GDACS, NASA FIRMS, Open-Meteo y SOSAFE. Haz clic en un elemento del mapa para ver su detalle.</p>
+  </aside>
+  <div id="mapa"></div>
+</div>
+<button id="alternar" type="button">Capas</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+"use strict";
+
+// ---------------------------------------------------------------------------
+// Configuración general
+// ---------------------------------------------------------------------------
+const API = "";                       // misma URL que el sitio (FastAPI en :8080)
+const CENTRO_MAIPU = [-33.5108, -70.7573];
+const COLOR_NIVEL = { BAJO: "#94a3b8", MEDIO: "#eab308", ALTO: "#f97316", CRITICO: "#dc2626" };
+const fmt = n => Number(n || 0).toLocaleString("es-CL");
+
+const mapa = L.map("mapa", { preferCanvas: true, zoomControl: true }).setView(CENTRO_MAIPU, 13);
+const baseClaro = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+  maxZoom: 20, attribution: "&copy; OpenStreetMap &copy; CARTO" }).addTo(mapa);
+const baseOsm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19, attribution: "&copy; OpenStreetMap" });
+L.control.layers({ "Mapa claro (CARTO)": baseClaro, "OpenStreetMap": baseOsm }, null,
+  { position: "topright" }).addTo(mapa);
+L.control.scale({ imperial: false }).addTo(mapa);
+
+// Capas superiores para que amenazas queden sobre metadata y red vial
+mapa.createPane("infra").style.zIndex = 410;
+mapa.createPane("meta").style.zIndex = 420;
+mapa.createPane("amen").style.zIndex = 430;
+
+// ---------------------------------------------------------------------------
+// Popups
+// ---------------------------------------------------------------------------
+const OCULTAR = new Set(["fuente_etl", "motivos", "geometry", "id"]);
+function escapar(v) {
+  return String(v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function popup(p, extra = {}) {
+  const props = Object.assign({}, p.propiedades || {}, extra);
+  const filas = Object.entries(props)
+    .filter(([k, v]) => !OCULTAR.has(k) && v !== null && v !== "" && typeof v !== "object")
+    .slice(0, 14)
+    .map(([k, v]) => `<tr><td>${escapar(k)}</td><td>${escapar(v)}</td></tr>`).join("");
+  const nivel = p.nivel_riesgo
+    ? ` <span class="nivel" style="background:${COLOR_NIVEL[p.nivel_riesgo] || "#64748b"}">${p.nivel_riesgo}</span>` : "";
+  const motivos = Array.isArray(props.motivos) ? `<div>${escapar(props.motivos.join(", "))}</div>` : "";
+  return `<h3>${escapar(p.nombre || p.name || p.tipo || "Elemento")}${nivel}</h3>` +
+         (p.descripcion ? `<div>${escapar(p.descripcion)}</div>` : "") + motivos +
+         (filas ? `<table>${filas}</table>` : "");
+}
+
+// ---------------------------------------------------------------------------
+// Estilos por capa
+// ---------------------------------------------------------------------------
+const ANCHO_VIA = { motorway: 4, trunk: 3.5, primary: 3, secondary: 2.3, tertiary: 1.7 };
+function estiloVia(f) {
+  const h = String(f.properties.highway || "").split(" / ")[0].replace("_link", "");
+  return { color: ANCHO_VIA[h] ? "#334155" : "#64748b",
+           weight: ANCHO_VIA[h] || 0.9, opacity: ANCHO_VIA[h] ? 0.85 : 0.55 };
+}
+
+const COLOR_CONTROL = { senal_pare: "#dc2626", senal_ceda_el_paso: "#f59e0b",
+                        semaforo: "#16a34a", cruce_peatonal: "#7c3aed", control_vial: "#64748b" };
+const NOMBRE_CONTROL = { senal_pare: "PARE", senal_ceda_el_paso: "Ceda el paso",
+                         semaforo: "Semáforo", cruce_peatonal: "Cruce peatonal" };
+
+const RANGOS_VULN = [
+  { hasta: -0.5, color: "#fff7ed", etiqueta: "< −0,5 (menos vulnerable)" },
+  { hasta: 0,    color: "#fed7aa", etiqueta: "−0,5 a 0" },
+  { hasta: 0.5,  color: "#fb923c", etiqueta: "0 a 0,5" },
+  { hasta: 1,    color: "#ea580c", etiqueta: "0,5 a 1" },
+  { hasta: Infinity, color: "#9a3412", etiqueta: "> 1 (más vulnerable)" },
+];
+function colorVuln(v) {
+  if (v === null || v === undefined) return "#cbd5e1";
+  return RANGOS_VULN.find(r => v < r.hasta).color;
+}
+
+const punto = (latlng, color, r = 4, pane = "meta") =>
+  L.circleMarker(latlng, { pane, radius: r, color: "#fff", weight: 1, fillColor: color, fillOpacity: 0.9 });
+
+// ---------------------------------------------------------------------------
+// Definición de capas (una por JSON cargado en la BD)
+// ---------------------------------------------------------------------------
+const CAPAS = [
+  // ----- Infraestructura -----
+  { id: "red", grupo: "Infraestructura", nombre: "Red vial", activa: true, muestra: "#334155",
+    url: "/api/infraestructura", conteo: c => `${fmt(c.infraestructura.aristas)} aristas · ${fmt(c.infraestructura.km)} km`,
+    crear: d => L.geoJSON(d, { pane: "infra", style: estiloVia,
+      onEachFeature: (f, l) => l.bindPopup(popup({ nombre: f.properties.name || "Calle sin nombre" }, {
+        id_arista: f.properties.id, highway: f.properties.highway, largo_m: f.properties.length_m,
+        source: f.properties.source, target: f.properties.target, maxspeed_kmh: f.properties.maxspeed_kmh,
+        sentido_unico: f.properties.oneway })) }),
+    leyenda: [["#334155", "Vías principales (primary, secondary, tertiary)"], ["#64748b", "Vías locales"]] },
+  { id: "nodos", grupo: "Infraestructura", nombre: "Nodos (intersecciones)", muestra: "#475569",
+    url: "/api/nodos", conteo: c => `${fmt(c.infraestructura.nodos)} nodos`,
+    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, "#475569", 2.5, "infra"),
+      onEachFeature: (f, l) => l.bindPopup(popup({ nombre: `Nodo ${f.properties.id}` }, f.properties)) }) },
+
+  // ----- Metadata -----
+  { id: "M1", grupo: "Metadata", nombre: "M1 · Paraderos", muestra: "#2563eb", fuente: "M1_paraderos",
+    url: "/api/metadata?fuente=M1_paraderos",
+    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, "#2563eb", 4),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
+  { id: "M3", grupo: "Metadata", nombre: "M3 · Controles viales (OSM)", muestra: "#dc2626", fuente: "M3_controles_viales",
+    url: "/api/metadata?fuente=M3_controles_viales",
+    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, COLOR_CONTROL[f.properties.tipo] || "#64748b",
+                                                              f.properties.tipo === "cruce_peatonal" ? 2.5 : 4),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
+    leyenda: Object.entries(NOMBRE_CONTROL).map(([k, v]) => [COLOR_CONTROL[k], v]) },
+  { id: "M5", grupo: "Metadata", nombre: "M5 · Vulnerabilidad por manzana", muestra: "#ea580c", fuente: "M5_censo_manzanas",
+    url: "/api/metadata?fuente=M5_censo_manzanas&simplificar=0.00003",
+    crear: d => L.geoJSON(d, { pane: "meta",
+      style: f => ({ color: "#9a3412", weight: 0.3,
+                     fillColor: colorVuln((f.properties.propiedades || {}).indice_vulnerabilidad), fillOpacity: 0.55 }),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
+    leyenda: RANGOS_VULN.map(r => [r.color, r.etiqueta, true]).concat([["#cbd5e1", "Sin dato", true]]) },
+  { id: "M6", grupo: "Metadata", nombre: "M6 · Aeródromos DGAC", muestra: "#0891b2", fuente: "M6_aerodromos",
+    url: "/api/metadata?fuente=M6_aerodromos",
+    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, "#0891b2", 6),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
+
+  // ----- Amenazas -----
+  { id: "T2", grupo: "Amenazas", nombre: "T2 · Incendios (GDACS + FIRMS)", activa: true, muestra: "#ef4444", fuente: "T2_incendios",
+    url: "/api/amenazas?fuente=T2_incendios",
+    crear: d => L.geoJSON(d, { pane: "amen",
+      style: f => ({ color: "#b91c1c", weight: 1.5, fillColor: "#ef4444", fillOpacity: 0.35 }),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
+  { id: "T3", grupo: "Amenazas", nombre: "T3 · Clima severo (Open-Meteo)", activa: true, muestra: "#f97316", fuente: "T3_clima",
+    url: "/api/amenazas?fuente=T3_clima", opciones: "horas",
+    crear: (d, capa) => L.geoJSON(d, { pane: "amen",
+      filter: f => !capa.hora || (f.properties.propiedades || {}).valido_desde === capa.hora,
+      style: f => ({ color: COLOR_NIVEL[f.properties.nivel_riesgo], weight: 1,
+                     fillColor: COLOR_NIVEL[f.properties.nivel_riesgo], fillOpacity: 0.3 }),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
+    leyenda: [["MEDIO", "Medio · penalizar"], ["ALTO", "Alto · bloquear"], ["CRITICO", "Crítico · bloquear"]]
+      .map(([n, t]) => [COLOR_NIVEL[n], t, true]) },
+  { id: "T5", grupo: "Amenazas", nombre: "T5 · Emergencias por lluvia", activa: true, muestra: "#eab308", fuente: "T5_lluvias_maipu",
+    url: "/api/amenazas?fuente=T5_lluvias_maipu", opciones: "historial",
+    crear: (d, capa) => L.geoJSON(d, {
+      filter: f => capa.historial || (f.properties.propiedades || {}).activa,
+      pointToLayer: (f, ll) => {
+        const p = f.properties.propiedades || {};
+        return p.activa
+          ? L.circle(ll, { pane: "amen", radius: p.radio_afectacion_m || 100, color: COLOR_NIVEL[f.properties.nivel_riesgo],
+                           weight: 2, fillOpacity: 0.3 })
+          : punto(ll, COLOR_NIVEL.BAJO, 3, "amen");
+      },
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
+    leyenda: [[COLOR_NIVEL.MEDIO, "Activa (radio de afectación)"], [COLOR_NIVEL.BAJO, "Histórica / controlada"]] },
+  { id: "T6", grupo: "Amenazas", nombre: "T6 · Zona conflictiva (SOSAFE)", activa: true, muestra: "#f77f00", fuente: "T6_sosafe",
+    url: "/api/amenazas?fuente=T6_sosafe",
+    crear: d => L.geoJSON(d, { pane: "amen",
+      style: () => ({ color: "#f77f00", weight: 2, fillColor: "#f77f00", fillOpacity: 0.3 }),
+      pointToLayer: (f, ll) => punto(ll, "#f77f00", 6, "amen"),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
+];
+
+// ---------------------------------------------------------------------------
+// Panel de capas
+// ---------------------------------------------------------------------------
+const contenedor = document.getElementById("capas");
+const estado = document.getElementById("estado");
+
+function conteoDesdeCatalogo(capa, catalogo) {
+  if (capa.conteo) return capa.conteo(catalogo);
+  const lista = capa.grupo === "Metadata" ? catalogo.metadata : catalogo.amenazas;
+  const total = lista.filter(r => r.fuente_etl === capa.fuente).reduce((s, r) => s + Number(r.total), 0);
+  return `${fmt(total)} elementos`;
+}
+
+function construirPanel(catalogo) {
+  let grupoActual = null;
+  CAPAS.forEach(capa => {
+    if (capa.grupo !== grupoActual) {
+      grupoActual = capa.grupo;
+      contenedor.insertAdjacentHTML("beforeend", `<h2>${grupoActual}</h2>`);
+    }
+    const div = document.createElement("div");
+    div.className = "capa";
+    div.innerHTML = `
+      <label class="titulo">
+        <input type="checkbox" ${capa.activa ? "checked" : ""}>
+        <span class="muestra" style="background:${capa.muestra}"></span>
+        ${capa.nombre}
+        <span class="conteo">${conteoDesdeCatalogo(capa, catalogo)}</span>
+      </label>
+      <div class="opciones"></div>
+      ${capa.leyenda ? `<div class="leyenda">${capa.leyenda.map(([c, t, cuadro]) =>
+        `<span><i class="${cuadro ? "cuadro" : ""}" style="background:${c}"></i>${t}</span>`).join("")}</div>` : ""}`;
+    contenedor.appendChild(div);
+    capa.div = div;
+    div.querySelector("input").addEventListener("change", e => alternarCapa(capa, e.target.checked));
+    if (capa.opciones === "historial") {
+      div.querySelector(".opciones").innerHTML =
+        `<label><input type="checkbox"> Mostrar también reportes históricos</label>`;
+      div.querySelector(".opciones input").addEventListener("change", e => {
+        capa.historial = e.target.checked; redibujar(capa);
+      });
+    }
+    if (capa.activa) alternarCapa(capa, true);
+  });
+}
+
+async function obtener(url) {
+  const r = await fetch(API + url);
+  if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  return r.json();
+}
+
+async function alternarCapa(capa, encender) {
+  if (!encender) { if (capa.capa) mapa.removeLayer(capa.capa); return; }
+  if (!capa.datos) {
+    capa.div.classList.add("cargando");
+    try {
+      capa.datos = await obtener(capa.url);
+      if (capa.opciones === "horas") prepararHoras(capa);
+    } catch (e) {
+      capa.div.querySelector(".conteo").textContent = "error al cargar";
+      console.error(capa.id, e);
+      return;
+    } finally {
+      capa.div.classList.remove("cargando");
+    }
+  }
+  redibujar(capa);
+  if (capa.id === "red" && !capa.encuadrada && capa.capa.getLayers().length) {
+    mapa.fitBounds(capa.capa.getBounds(), { padding: [10, 10] });
+    capa.encuadrada = true;
+  }
+}
+
+function redibujar(capa) {
+  if (capa.capa) mapa.removeLayer(capa.capa);
+  if (!capa.datos || !capa.div.querySelector("input").checked) return;
+  capa.capa = capa.crear(capa.datos, capa).addTo(mapa);
+}
+
+// T3: selector de hora (cada feature es una celda-hora con amenaza)
+function prepararHoras(capa) {
+  const horas = [...new Set(capa.datos.features.map(f => (f.properties.propiedades || {}).valido_desde))]
+    .filter(Boolean).sort();
+  const opciones = capa.div.querySelector(".opciones");
+  if (!horas.length) { opciones.textContent = "Sin mal tiempo pronosticado."; return; }
+  const ahora = Date.now();
+  capa.hora = horas.find(h => new Date(h).getTime() + 3600e3 > ahora) || horas[0];
+  const etiqueta = h => new Date(h).toLocaleString("es-CL",
+    { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  opciones.innerHTML = `<label>Hora pronosticada
+      <select>${["", ...horas].map(h => `<option value="${h}" ${h === capa.hora ? "selected" : ""}>
+        ${h ? etiqueta(h) : "Todas las horas (superpuestas)"}</option>`).join("")}</select></label>`;
+  opciones.querySelector("select").addEventListener("change", e => { capa.hora = e.target.value; redibujar(capa); });
+}
+
+// ---------------------------------------------------------------------------
+// Inicio
+// ---------------------------------------------------------------------------
+(async () => {
+  try {
+    const catalogo = await obtener("/api/capas");
+    const i = catalogo.infraestructura;
+    const nMeta = catalogo.metadata.reduce((s, r) => s + Number(r.total), 0);
+    const nAmen = catalogo.amenazas.reduce((s, r) => s + Number(r.total), 0);
+    estado.textContent = `BD conectada · ${fmt(i.aristas)} aristas, ${fmt(nMeta)} registros de metadata, ${fmt(nAmen)} de amenazas`;
+    if (!Number(i.aristas)) estado.textContent += " · la red vial está vacía: ejecuta Infraestructura/cargar.py";
+    construirPanel(catalogo);
+  } catch (e) {
+    estado.classList.add("error");
+    estado.textContent = "No se pudo conectar con la API. ¿Está corriendo el contenedor web y cargada la BD?";
+    console.error(e);
+  }
+})();
+
+document.getElementById("alternar").addEventListener("click", () => {
+  document.getElementById("panel").classList.toggle("oculto");
+  setTimeout(() => mapa.invalidateSize(), 50);
+});
+</script>
+</body>
+</html>
