@@ -1,6 +1,6 @@
 # Sitio Web · Visualizador Leaflet
 
-Punto 7 de la rúbrica: `index.html` crea un sitio con **Leaflet 1.9.4** que muestra la infraestructura, la metadata y las amenazas cargadas en PostGIS. El contenedor `web` (FastAPI) lo sirve en `http://localhost:8080` y le entrega los datos en GeoJSON a través de la API de `docker/web/app.py`.
+`index.html` crea un sitio con **Leaflet 1.9.4** que muestra la infraestructura, la metadata y las amenazas cargadas en PostGIS. El contenedor `web` (FastAPI) lo sirve en `http://localhost:8080` y le entrega los datos en GeoJSON a través de la API de `docker/web/app.py`.
 
 ```
 Navegador ── GET /            ──> FastAPI sirve Sitio Web/index.html
