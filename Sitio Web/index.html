@@ -19,7 +19,7 @@
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--texto);
     font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   #app { display: flex; height: 100%; }
-  #panel { width: 340px; flex-shrink: 0; overflow-y: auto; background: var(--panel);
+  #panel { width: 390px; flex-shrink: 0; overflow-y: auto; background: var(--panel);
     border-right: 1px solid var(--borde); padding: 16px 16px 24px; }
   #mapa { flex: 1; }
   h1 { font-size: 17px; margin: 0 0 2px; }
@@ -51,6 +51,42 @@
   .leaflet-popup-content td { padding: 2px 4px; border-top: 1px solid #e2e8f0; vertical-align: top; }
   .leaflet-popup-content td:first-child { color: #64748b; white-space: nowrap; }
   .nivel { display: inline-block; padding: 0 6px; border-radius: 4px; color: #fff; font-size: 11px; font-weight: 600; }
+
+  /* ---- Planificación de rutas ---- */
+  #ruteo { background: var(--bg); border: 1px solid var(--borde); border-radius: 10px; padding: 10px 12px; }
+  #ruteo h2 { margin-top: 0; }
+  .ayuda { font-size: 12px; color: var(--suave); margin: 0 0 8px; }
+  .puntos { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 12.5px; margin-bottom: 8px; }
+  .puntos b { color: var(--suave); font-weight: 600; }
+  .fila-botones { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  button.btn { font: inherit; font-size: 12.5px; padding: 5px 10px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--borde); background: var(--panel); color: var(--texto); }
+  button.btn.primario { background: var(--acento); border-color: var(--acento); color: #fff; font-weight: 600; }
+  button.btn:disabled { opacity: .5; cursor: not-allowed; }
+  button.btn.activo { outline: 2px solid var(--acento); }
+  details#prefs { font-size: 12.5px; border-top: 1px solid var(--borde); padding-top: 6px; }
+  details#prefs summary { cursor: pointer; font-weight: 600; }
+  .form-prefs { display: grid; grid-template-columns: 1fr auto; gap: 5px 8px; align-items: center; margin-top: 6px; }
+  .form-prefs input[type=number], .form-prefs select, .form-prefs input[type=datetime-local] {
+    width: 120px; padding: 2px 4px; border: 1px solid var(--borde); border-radius: 5px;
+    background: var(--panel); color: var(--texto); font: inherit; }
+  .form-prefs .ancho { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+  .form-prefs .ancho label { display: inline-flex; gap: 4px; align-items: center; }
+  .form-prefs .grupo { grid-column: 1 / -1; color: var(--suave); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .05em; margin-top: 4px; }
+  #resultado { font-size: 12.5px; margin-top: 8px; }
+  #resultado table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+  #resultado th, #resultado td { padding: 3px 4px; border-bottom: 1px solid var(--borde); text-align: right; }
+  #resultado th:first-child, #resultado td:first-child { text-align: left; }
+  #resultado .delta-pos { color: #059669; font-weight: 600; }
+  #resultado .delta-neg { color: var(--critico); font-weight: 600; }
+  #resultado .aviso { color: #b45309; margin: 4px 0; }
+  #resultado .rutas { display: grid; gap: 3px; margin-top: 4px; }
+  #resultado .rutas label { display: flex; gap: 6px; align-items: center; }
+  #resultado .linea { width: 22px; height: 0; border-top-width: 4px; border-top-style: solid; flex-shrink: 0; }
+  .pin { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); display: grid; place-items: center; }
+  .pin span { transform: rotate(45deg); color: #fff; font: 700 12px system-ui; }
   #alternar { display: none; }
   @media (max-width: 760px) {
     #app { flex-direction: column; }
@@ -68,6 +104,25 @@
     <h1>Inspección vial con flota UAV</h1>
     <p class="sub">Maipú · Infraestructura, metadata y amenazas cargadas en PostGIS</p>
     <div id="estado" class="estado">Conectando con la API…</div>
+    <section id="ruteo">
+      <h2>Planificación de rutas · Dijkstra vs TDRPP-GA</h2>
+      <p class="ayuda">Haz clic en el mapa para fijar el <b>inicio</b> y luego el <b>objetivo</b>.
+        Puedes arrastrar los marcadores. Si no cambias las restricciones se usan las por defecto.</p>
+      <div class="puntos">
+        <b>Inicio</b><span id="txtInicio">sin definir</span>
+        <b>Objetivo</b><span id="txtObjetivo">sin definir</span>
+      </div>
+      <details id="prefs">
+        <summary>Restricciones del usuario</summary>
+        <div class="form-prefs" id="formPrefs"></div>
+        <div class="fila-botones"><button type="button" class="btn" id="btnDefecto">Restablecer valores por defecto</button></div>
+      </details>
+      <div class="fila-botones">
+        <button type="button" class="btn primario" id="btnCalcular" disabled>Calcular rutas</button>
+        <button type="button" class="btn" id="btnLimpiar">Limpiar</button>
+      </div>
+      <div id="resultado"></div>
+    </section>
     <div id="capas"></div>
     <p class="nota">Fuentes: OpenStreetMap (OSMnx, ohsome), Municipalidad de Maipú, INE Censo 2024,
       DGAC, GDACS, NASA FIRMS, Open-Meteo y SOSAFE. Haz clic en un elemento del mapa para ver su detalle.</p>
@@ -325,6 +380,222 @@ function prepararHoras(capa) {
 }
 
 // ---------------------------------------------------------------------------
+// Planificación de rutas (rúbrica 8 a 11): Dijkstra k rutas vs TDRPP-GA
+// ---------------------------------------------------------------------------
+mapa.createPane("rutas").style.zIndex = 440;
+const COLORES = {
+  dijkstra: ["#1d4ed8", "#60a5fa", "#1e3a8a", "#93c5fd"],
+  tdrpp_ga: ["#059669", "#c026d3", "#65a30d", "#ea580c"],
+};
+const ruteo = { inicio: null, objetivo: null, marcadores: {}, capas: {}, defecto: null, tipos: [] };
+
+const CAMPOS = [
+  { grupo: "Rutas" },
+  { id: "k", etiqueta: "Rutas por algoritmo (k)", tipo: "select", opciones: [2, 3, 4] },
+  { id: "hora_salida", etiqueta: "Hora de salida (vacío = ahora)", tipo: "datetime" },
+  { grupo: "Restricciones desde la metadata" },
+  { id: "evitar_aerodromos", etiqueta: "Evitar aeródromos (M6)", tipo: "bool" },
+  { id: "radio_aerodromo_m", etiqueta: "Radio de exclusión aeródromo (m)", tipo: "num", paso: 100 },
+  { id: "evitar_paraderos", etiqueta: "Evitar oclusión en paraderos (M1)", tipo: "bool" },
+  { id: "priorizar_vulnerables", etiqueta: "Priorizar manzanas vulnerables (M5)", tipo: "bool" },
+  { id: "tipos_senal", etiqueta: "Señales a inspeccionar (M3)", tipo: "tipos" },
+  { grupo: "Amenazas y operación" },
+  { id: "considerar_clima", etiqueta: "Considerar clima por hora (T3)", tipo: "bool" },
+  { id: "radio_corredor_m", etiqueta: "Ancho del corredor (m)", tipo: "num", paso: 50 },
+  { id: "max_requeridas", etiqueta: "Máx. aristas a inspeccionar", tipo: "num", paso: 1 },
+  { id: "autonomia_km", etiqueta: "Autonomía por dron (km)", tipo: "num", paso: 1 },
+];
+const NOMBRE_TIPO = { senal_pare: "PARE", senal_ceda_el_paso: "Ceda el paso", semaforo: "Semáforo",
+                      cruce_peatonal: "Cruce peatonal" };
+
+function construirFormulario() {
+  const f = document.getElementById("formPrefs");
+  f.innerHTML = CAMPOS.map(c => {
+    if (c.grupo) return `<div class="grupo">${c.grupo}</div>`;
+    if (c.tipo === "bool") return `<label for="p_${c.id}">${c.etiqueta}</label><input type="checkbox" id="p_${c.id}">`;
+    if (c.tipo === "select") return `<label for="p_${c.id}">${c.etiqueta}</label><select id="p_${c.id}">${
+      c.opciones.map(o => `<option value="${o}">${o}</option>`).join("")}</select>`;
+    if (c.tipo === "datetime") return `<label for="p_${c.id}">${c.etiqueta}</label><input type="datetime-local" id="p_${c.id}">`;
+    if (c.tipo === "tipos") return `<div class="grupo">${c.etiqueta}</div><div class="ancho">${
+      ruteo.tipos.map(t => `<label><input type="checkbox" name="p_tipos" value="${t}">${NOMBRE_TIPO[t] || t}</label>`).join("")}</div>`;
+    return `<label for="p_${c.id}">${c.etiqueta}</label><input type="number" id="p_${c.id}" step="${c.paso}">`;
+  }).join("");
+  aplicarDefecto();
+}
+
+function aplicarDefecto() {
+  const d = ruteo.defecto;
+  CAMPOS.filter(c => c.id).forEach(c => {
+    if (c.tipo === "tipos") {
+      document.querySelectorAll('input[name="p_tipos"]').forEach(x => { x.checked = d.tipos_senal.includes(x.value); });
+    } else if (c.tipo === "bool") {
+      document.getElementById(`p_${c.id}`).checked = !!d[c.id];
+    } else if (c.tipo === "datetime") {
+      document.getElementById(`p_${c.id}`).value = "";
+    } else {
+      document.getElementById(`p_${c.id}`).value = d[c.id];
+    }
+  });
+}
+
+/** Solo se envían los valores que el usuario cambió; el resto queda por defecto (rúbrica 6.2). */
+function parametrosUsuario() {
+  const d = ruteo.defecto, params = new URLSearchParams();
+  CAMPOS.filter(c => c.id).forEach(c => {
+    if (c.tipo === "tipos") {
+      const v = [...document.querySelectorAll('input[name="p_tipos"]:checked')].map(x => x.value);
+      if (v.length && v.slice().sort().join() !== d.tipos_senal.slice().sort().join()) params.set("tipos_senal", v.join(","));
+    } else if (c.tipo === "bool") {
+      const v = document.getElementById(`p_${c.id}`).checked;
+      if (v !== !!d[c.id]) params.set(c.id, v);
+    } else if (c.tipo === "datetime") {
+      const v = document.getElementById(`p_${c.id}`).value;
+      if (v) params.set(c.id, new Date(v).toISOString());     // hora local -> UTC
+    } else {
+      const v = document.getElementById(`p_${c.id}`).value;
+      if (v !== "" && Number(v) !== Number(d[c.id])) params.set(c.id, v);
+    }
+  });
+  return params;
+}
+
+function icono(texto, color) {
+  return L.divIcon({ className: "", iconSize: [26, 26], iconAnchor: [13, 26],
+    html: `<div class="pin" style="background:${color}"><span>${texto}</span></div>` });
+}
+
+function fijarPunto(cual, latlng) {
+  ruteo[cual] = latlng;
+  if (ruteo.marcadores[cual]) {
+    ruteo.marcadores[cual].setLatLng(latlng);
+  } else {
+    const m = L.marker(latlng, { draggable: true, icon: icono(cual === "inicio" ? "I" : "O",
+                                 cual === "inicio" ? "#0f766e" : "#b91c1c") }).addTo(mapa);
+    m.on("dragend", e => fijarPunto(cual, e.target.getLatLng()));
+    ruteo.marcadores[cual] = m;
+  }
+  document.getElementById(cual === "inicio" ? "txtInicio" : "txtObjetivo").textContent =
+    `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+  document.getElementById("btnCalcular").disabled = !(ruteo.inicio && ruteo.objetivo);
+}
+
+function limpiarRutas() {
+  Object.values(ruteo.capas).forEach(c => mapa.removeLayer(c));
+  ruteo.capas = {};
+  document.getElementById("resultado").innerHTML = "";
+}
+
+function limpiarTodo() {
+  limpiarRutas();
+  ["inicio", "objetivo"].forEach(c => {
+    if (ruteo.marcadores[c]) mapa.removeLayer(ruteo.marcadores[c]);
+    ruteo.marcadores[c] = null; ruteo[c] = null;
+  });
+  document.getElementById("txtInicio").textContent = "sin definir";
+  document.getElementById("txtObjetivo").textContent = "sin definir";
+  document.getElementById("btnCalcular").disabled = true;
+}
+
+const pct = v => v === null || v === undefined ? "—" : `${(v * 100).toFixed(1)} %`;
+function celdaDelta(v, invertir = false) {
+  if (v === null || v === undefined) return "<td>—</td>";
+  const bueno = invertir ? v < 0 : v > 0;
+  const clase = v === 0 ? "" : (bueno ? "delta-pos" : "delta-neg");
+  return `<td class="${clase}">${v > 0 ? "+" : ""}${(v * 100).toFixed(1)} pp</td>`;
+}
+
+function dibujarResultado(r) {
+  limpiarRutas();
+  ruteo.capas.requeridas = L.geoJSON(r.aristas_requeridas, { pane: "rutas",
+    style: { color: "#facc15", weight: 9, opacity: 0.55 },
+    onEachFeature: (f, l) => l.bindPopup(popup({ nombre: f.properties.nombre || "Arista requerida" }, {
+      id_arista: f.properties.id, senales: f.properties.senales,
+      vulnerabilidad: f.properties.vulnerabilidad, puntaje: f.properties.puntaje })) }).addTo(mapa);
+
+  const algoritmos = [["dijkstra", "pgr_dijkstra", "8 6"], ["tdrpp_ga", "TDRPP-GA", null]];
+  algoritmos.forEach(([clave, nombre, dash]) => {
+    r[clave].rutas.features.forEach((f, i) => {
+      const color = COLORES[clave][i % 4];
+      ruteo.capas[`${clave}_${i}`] = L.geoJSON(f, { pane: "rutas",
+        style: { color, weight: clave === "dijkstra" ? 4 : 5, opacity: 0.9, dashArray: dash },
+        onEachFeature: (ft, l) => l.bindPopup(popup({ nombre: `${nombre} · ruta ${ft.properties.ruta}` },
+          Object.fromEntries(Object.entries(ft.properties).filter(([k]) => !["algoritmo", "ruta"].includes(k))))) }).addTo(mapa);
+    });
+  });
+  const todo = L.featureGroup(Object.values(ruteo.capas));
+  if (todo.getLayers().length) mapa.fitBounds(todo.getBounds(), { padding: [30, 30] });
+
+  const md = r.dijkstra.metricas, mg = r.tdrpp_ga.metricas, d = r.diferencial;
+  const filasRutas = algoritmos.map(([clave, nombre, dash]) => r[clave].rutas.features.map((f, i) => {
+    const p = f.properties;
+    return `<label><input type="checkbox" checked data-capa="${clave}_${i}">
+      <span class="linea" style="border-top-color:${COLORES[clave][i % 4]};border-top-style:${dash ? "dashed" : "solid"}"></span>
+      ${nombre} ${p.ruta}: ${p.longitud_km} km · supervivencia ${pct(p.supervivencia)} · ${p.requeridas_cubiertas} req.
+      ${p.duracion_min !== undefined ? `· ${p.duracion_min} min` : ""}${p.excede_autonomia ? " · ⚠ excede autonomía" : ""}</label>`;
+  }).join("")).join("");
+  const info = r.tdrpp_ga.info;
+  document.getElementById("resultado").innerHTML = `
+    ${r.avisos.map(a => `<div class="aviso">⚠ ${escapar(a)}</div>`).join("")}
+    <div>${r.contexto.aristas_requeridas} aristas a inspeccionar · ${r.contexto.amenazas_en_region} amenazas en la región ·
+      ${r.contexto.aristas_bloqueadas} aristas bloqueadas · salida ${new Date(r.hora_salida).toLocaleString("es-CL")}</div>
+    <table>
+      <tr><th>Métrica</th><th>Dijkstra</th><th>TDRPP-GA</th><th>Δ</th></tr>
+      <tr><td><b>Resiliencia R</b></td><td>${pct(md.R)}</td><td>${pct(mg.R)}</td>${celdaDelta(d.delta_R)}</tr>
+      <tr><td>Supervivencia R<sub>sup</sub></td><td>${pct(md.R_supervivencia)}</td><td>${pct(mg.R_supervivencia)}</td>${celdaDelta(d.delta_R_supervivencia)}</tr>
+      <tr><td>Cobertura C</td><td>${pct(md.cobertura)}</td><td>${pct(mg.cobertura)}</td>${celdaDelta(d.delta_cobertura)}</tr>
+      <tr><td>Solapamiento J</td><td>${pct(md.solapamiento_J)}</td><td>${pct(mg.solapamiento_J)}</td>${celdaDelta(d.delta_solapamiento_J, true)}</tr>
+      <tr><td>Longitud total</td><td>${md.longitud_total_km ?? "—"} km</td><td>${mg.longitud_total_km ?? "—"} km</td><td></td></tr>
+    </table>
+    <div class="rutas">${filasRutas}
+      <label><input type="checkbox" checked data-capa="requeridas">
+        <span class="linea" style="border-top-color:#facc15;border-top-width:8px"></span>Aristas requeridas E<sub>R</sub></label></div>
+    ${info ? `<p class="ayuda">TDRPP-GA: ${info.generaciones} generaciones, población ${info.poblacion},
+      aptitud ${info.aptitud_ga} → ${info.aptitud_final_2opt} tras 2-Opt, ${info.segundos} s.</p>` : ""}
+    <p class="ayuda">R = R<sub>sup</sub> × C. Preferencias por defecto usadas: ${r.preferencias_por_defecto.length}
+      de ${Object.keys(r.preferencias).length}.</p>`;
+  document.querySelectorAll("#resultado input[data-capa]").forEach(chk => chk.addEventListener("change", e => {
+    const capa = ruteo.capas[e.target.dataset.capa];
+    if (capa) e.target.checked ? capa.addTo(mapa) : mapa.removeLayer(capa);
+  }));
+}
+
+async function calcularRutas() {
+  const btn = document.getElementById("btnCalcular");
+  const params = parametrosUsuario();
+  params.set("inicio_lon", ruteo.inicio.lng); params.set("inicio_lat", ruteo.inicio.lat);
+  params.set("objetivo_lon", ruteo.objetivo.lng); params.set("objetivo_lat", ruteo.objetivo.lat);
+  btn.disabled = true; btn.textContent = "Calculando…";
+  document.getElementById("resultado").innerHTML = '<p class="ayuda">Ejecutando pgr_dijkstra y el algoritmo genético (puede tardar unos segundos)…</p>';
+  try {
+    const resp = await fetch(`${API}/api/rutas?${params}`);
+    const datos = await resp.json();
+    if (!resp.ok) throw new Error(datos.detail || resp.statusText);
+    dibujarResultado(datos);
+  } catch (e) {
+    document.getElementById("resultado").innerHTML = `<div class="aviso">⚠ ${escapar(e.message)}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = "Calcular rutas";
+  }
+}
+
+async function iniciarRuteo() {
+  try {
+    const r = await obtener("/api/rutas/preferencias");
+    ruteo.defecto = r.defecto; ruteo.tipos = r.tipos_senal;
+    construirFormulario();
+  } catch (e) {
+    document.getElementById("formPrefs").textContent = "No se pudieron cargar las preferencias por defecto.";
+  }
+  mapa.on("click", e => {
+    if (!ruteo.inicio) fijarPunto("inicio", e.latlng);
+    else if (!ruteo.objetivo) { fijarPunto("objetivo", e.latlng); mapa.closePopup(); }
+  });
+  document.getElementById("btnCalcular").addEventListener("click", calcularRutas);
+  document.getElementById("btnLimpiar").addEventListener("click", limpiarTodo);
+  document.getElementById("btnDefecto").addEventListener("click", aplicarDefecto);
+}
+
+// ---------------------------------------------------------------------------
 // Inicio
 // ---------------------------------------------------------------------------
 (async () => {
@@ -336,6 +607,7 @@ function prepararHoras(capa) {
     estado.textContent = `BD conectada · ${fmt(i.aristas)} aristas, ${fmt(nMeta)} registros de metadata, ${fmt(nAmen)} de amenazas`;
     if (!Number(i.aristas)) estado.textContent += " · la red vial está vacía: ejecuta Infraestructura/cargar.py";
     construirPanel(catalogo);
+    iniciarRuteo();
   } catch (e) {
     estado.classList.add("error");
     estado.textContent = "No se pudo conectar con la API. ¿Está corriendo el contenedor web y cargada la BD?";

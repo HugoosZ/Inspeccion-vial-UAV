@@ -9,11 +9,14 @@ Endpoints (todos devuelven GeoJSON salvo /health y /api/capas):
   GET /api/nodos                  nodos de la red vial (network_nodes)
   GET /api/metadata?fuente=...    filas de temp_metadata (filtrables)
   GET /api/amenazas?fuente=...    filas de temp_amenazas (filtrables)
-  GET /api/route/baseline         ruta pgr_dijkstra por longitud (punto 8)
+  GET /api/route/baseline         ruta pgr_dijkstra por longitud (una ruta)
+  GET /api/rutas                  k rutas pgr_dijkstra vs TDRPP-GA + métrica de resiliencia
+  GET /api/rutas/preferencias     preferencias por defecto (rúbrica 6.2)
 El sitio estático se sirve desde la carpeta "Sitio Web" montada en /app/sitio_web.
 """
 
 import os
+import sys
 
 import psycopg2
 from fastapi import FastAPI, HTTPException, Query
@@ -21,6 +24,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg2.extras import RealDictCursor
+
+# Módulo de ruteo (docker/web/ruteo): Dijkstra k rutas, TDRPP-GA y métrica
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ruteo  # noqa: E402
+from ruteo.preferencias import PREFERENCIAS_DEFECTO, TIPOS_SENAL_VALIDOS  # noqa: E402
 
 app = FastAPI(
     title="Plataforma de Ruteo UAV e Inspección Vial",
@@ -210,6 +218,48 @@ def get_baseline_dijkstra_route(
         LEFT JOIN network_edges e ON d.edge = e.id
         ORDER BY d.seq
     """, (start_node, end_node))
+
+
+@app.get("/api/rutas/preferencias")
+def get_preferencias_defecto():
+    """Preferencias por defecto del usuario (rúbrica 6.2) y tipos de señal válidos."""
+    return {"defecto": PREFERENCIAS_DEFECTO, "tipos_senal": list(TIPOS_SENAL_VALIDOS)}
+
+
+@app.get("/api/rutas")
+def get_rutas(
+    inicio_lon: float, inicio_lat: float, objetivo_lon: float, objetivo_lat: float,
+    k: int = None, hora_salida: str = None,
+    evitar_aerodromos: bool = None, radio_aerodromo_m: float = None,
+    evitar_paraderos: bool = None, priorizar_vulnerables: bool = None,
+    tipos_senal: str = Query(None, description="Lista separada por comas, p. ej. senal_pare,semaforo"),
+    considerar_clima: bool = None, radio_corredor_m: float = None, max_requeridas: int = None,
+    velocidad_crucero_ms: float = None, velocidad_inspeccion_ms: float = None,
+    autonomia_km: float = None, horizonte_h: float = None,
+):
+    """
+    Rúbrica 8 a 11: con el par (inicio, objetivo) y las restricciones del usuario
+    (las omitidas toman su valor por defecto) devuelve k rutas de pgr_dijkstra,
+    k rutas del TDRPP-GA, la métrica de resiliencia de cada conjunto y su diferencial.
+    """
+    entrada = {
+        "k": k, "hora_salida": hora_salida, "evitar_aerodromos": evitar_aerodromos,
+        "radio_aerodromo_m": radio_aerodromo_m, "evitar_paraderos": evitar_paraderos,
+        "priorizar_vulnerables": priorizar_vulnerables, "tipos_senal": tipos_senal,
+        "considerar_clima": considerar_clima, "radio_corredor_m": radio_corredor_m,
+        "max_requeridas": max_requeridas, "velocidad_crucero_ms": velocidad_crucero_ms,
+        "velocidad_inspeccion_ms": velocidad_inspeccion_ms, "autonomia_km": autonomia_km,
+        "horizonte_h": horizonte_h,
+    }
+    conn = get_db_connection()
+    try:
+        return ruteo.planificar(conn, inicio_lon, inicio_lat, objetivo_lon, objetivo_lat, entrada)
+    except ruteo.ErrorRuteo as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+    finally:
+        conn.close()
 
 
 # Sitio estático (Leaflet). Se monta al final para no tapar las rutas /api.

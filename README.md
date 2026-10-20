@@ -19,10 +19,11 @@ El proyecto se estructura de forma modular desacoplando extracción, base de dat
 ├── docker/                  # Definición de imágenes Docker
 │   ├── etl/                 # Contenedor con herramientas geoespaciales (GeoPandas, OSMnx)
 │   └── web/                 # Contenedor con FastAPI y servidor estático Leaflet
+│       └── ruteo/           # Dijkstra k rutas, TDRPP-GA y métrica de resiliencia
 ├── Infraestructura/         # Extracción y transformación de red vial (nodos y aristas)
 ├── Metadata/                # Extracción y transformación de metadatos (MOP, Waze, clima)
 ├── Amenazas/                # Extracción y transformación de amenazas (SOSAFE, clima, zonas hostiles)
-└── Sitio Web/               # Visualizador Leaflet y ruta baseline (pgr_dijkstra)
+└── Sitio Web/               # Visualizador Leaflet y comparación de rutas (pgr_dijkstra vs TDRPP-GA)
 ```
 
 ---
@@ -57,6 +58,9 @@ Abrir en el navegador:
 ```text
 http://localhost:8080
 ```
+
+### 5. Comparar rutas
+En el panel **Planificación de rutas** del sitio, haz clic en el mapa para fijar el inicio y el objetivo, ajusta las restricciones (u ocupa las por defecto) y presiona **Calcular rutas**. Se muestran k rutas de `pgr_dijkstra` (solo distancia) y k rutas del **TDRPP-GA** (algoritmo genético para el Time-Dependent Rural Postman Problem, Xin et al., 2022), con su métrica de resiliencia y el diferencial $\Delta R$. El modelo completo está documentado en [`docker/web/ruteo/README.md`](docker/web/ruteo/README.md).
 
 ---
 
