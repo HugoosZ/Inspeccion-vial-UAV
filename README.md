@@ -6,23 +6,23 @@ Sistema de planificación, ruteo y visualización geoespacial para una flota de 
 
 ## Estructura del Repositorio
 
-Siguiendo la rúbrica de la Fase 2 del curso de Algoritmos de Ruteo (UDP):
+El proyecto se estructura de forma modular desacoplando extracción, base de datos y visualización:
 
 ```text
 ├── .gitignore               # Configuración de exclusión para extra/, SO, cachés e IDEs
 ├── docker-compose.yml       # Orquestador de contenedores (db, etl, web)
-├── main.py                  # Script principal para automatizar el flujo ETL (Punto 9)
+├── main.py                  # Script principal para automatizar el flujo ETL
 ├── README.md                # Documentación general del repositorio
-├── database/                # Punto 0: DDL inicial (.sql) y diagrama ER
+├── database/                # DDL inicial (.sql) y diagrama de base de datos
 │   ├── init.sql
 │   └── README.md
 ├── docker/                  # Definición de imágenes Docker
 │   ├── etl/                 # Contenedor con herramientas geoespaciales (GeoPandas, OSMnx)
 │   └── web/                 # Contenedor con FastAPI y servidor estático Leaflet
-├── Infraestructura/         # Punto 1: Extracción y transformación de red vial (nodos y aristas)
-├── Metadata/                # Punto 2: Extracción y transformación de metadatos (MOP, Waze, clima)
-├── Amenazas/                # Punto 3: Extracción y transformación de amenazas (jammers, zonas hostiles)
-└── Sitio Web/               # Puntos 7 y 8: Visualizador Leaflet y ruta baseline (pgr_dijkstra)
+├── Infraestructura/         # Extracción y transformación de red vial (nodos y aristas)
+├── Metadata/                # Extracción y transformación de metadatos (MOP, Waze, clima)
+├── Amenazas/                # Extracción y transformación de amenazas (SOSAFE, clima, zonas hostiles)
+└── Sitio Web/               # Visualizador Leaflet y ruta baseline (pgr_dijkstra)
 ```
 
 ---
@@ -57,22 +57,6 @@ Abrir en el navegador:
 ```text
 http://localhost:8080
 ```
----
-
-## Correspondencia con la rúbrica de la Fase 2
-
-Cada carpeta contiene, por fuente, el script de extracción y transformación (`extractor.py` o equivalente), el JSON/GeoJSON resultante, el archivo que explica su estructura (`README.md` o `.md`) y el script que lo carga a la base de datos (`cargar.py`). Así, cada JSON queda junto a su documentación y a su cargador.
-
-| Punto | Qué pide | Dónde está |
-|---|---|---|
-| 0 | Diagrama de la BD + `.sql` de creación | `database/README.md` (diagrama ER) y `database/init.sql` |
-| 1 | Extracción y transformación de la infraestructura (nodos y aristas) a JSON | `Infraestructura/extractor.py` → `Infraestructura/data/nodos_maipu.geojson`, `aristas_maipu.geojson` |
-| 2 | Un archivo de extracción y transformación por fuente de metadata | `Metadata/M1`, `M3`, `M5`, `M6` |
-| 3 | Un archivo de extracción y transformación por fuente de amenaza | `Amenazas/incendios`, `clima`, `lluvias_maipu`, `sosafe` |
-| 4 | Explicación de la estructura de cada JSON | `README.md` de cada carpeta |
-| 6 | Un archivo de carga a la BD por cada JSON | `cargar.py` de cada carpeta (`Infraestructura/`, `Metadata/M*/`, `Amenazas/*/`) |
-| 7–8 | Sitio Leaflet con infraestructura, metadata, amenazas y ruta `pgr_dijkstra` | `Sitio Web/` + API en `docker/web/app.py` |
-| 9 | `main` que automatiza todo | `main.py` |
 
 ---
 

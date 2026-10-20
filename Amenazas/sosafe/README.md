@@ -20,7 +20,9 @@ Amenazas/sosafe/
     ├── filtered_reports.json     # Reportes pertenecientes a la comuna de Maipú
     ├── classified_threats.json   # Auditoría: amenazas y ruido catalogados con justificación
     ├── active_threats_graph.json # JSON limpio de amenazas activas para el algoritmo de ruteo
-    └── threats_geofences.geojson # Geocercas circulares (No-Fly Zones) para Leaflet y PostGIS
+    ├── active_threats_graph.md   # Documentación y diccionario del JSON
+    ├── threats_geofences.geojson # Geocercas circulares (No-Fly Zones) para Leaflet y PostGIS
+    └── threats_geofences.md      # Documentación y diccionario del GeoJSON
 ```
 
 ---
@@ -57,7 +59,7 @@ El clasificador analiza semánticamente el título y la descripción de cada rep
 * Comercio informal, mascotas extraviadas o personas en situación de calle.
 * Microbasurales, baches o alcantarillas sin tapa a nivel de suelo.
 
-> Para mayor detalle sobre el alcance actual y el tratamiento de señales de tránsito caídas como futura recompensa de inspección, consulta [`ALCANCE.md`](file:///Users/hugo/workspace/10toSemestre/ruteo/Inspeccion-vial-UAV/Amenazas/sosafe/ALCANCE.md).
+> Para mayor detalle sobre el alcance actual y el tratamiento de señales de tránsito caídas como futura recompensa de inspección, consulta `ALCANCE.md`.
 
 ---
 
