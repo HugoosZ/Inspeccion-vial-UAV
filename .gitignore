@@ -65,3 +65,6 @@ docker-compose.override.yml
 *~
 *.gpkg
 Metadata/M5/manzanas_maipu_completo.geojson
+
+# Caché de OSMnx (Infraestructura)
+.cache_osmnx/

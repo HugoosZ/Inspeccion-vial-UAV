@@ -57,6 +57,25 @@ Abrir en el navegador:
 ```text
 http://localhost:8080
 ```
+---
+
+## Correspondencia con la rúbrica de la Fase 2
+
+Cada carpeta contiene, por fuente, el script de extracción y transformación (`extractor.py` o equivalente), el JSON/GeoJSON resultante, el archivo que explica su estructura (`README.md` o `.md`) y el script que lo carga a la base de datos (`cargar.py`). Así, cada JSON queda junto a su documentación y a su cargador.
+
+| Punto | Qué pide | Dónde está |
+|---|---|---|
+| 0 | Diagrama de la BD + `.sql` de creación | `database/README.md` (diagrama ER) y `database/init.sql` |
+| 1 | Extracción y transformación de la infraestructura (nodos y aristas) a JSON | `Infraestructura/extractor.py` → `Infraestructura/data/nodos_maipu.geojson`, `aristas_maipu.geojson` |
+| 2 | Un archivo de extracción y transformación por fuente de metadata | `Metadata/M1`, `M3`, `M5`, `M6` |
+| 3 | Un archivo de extracción y transformación por fuente de amenaza | `Amenazas/incendios`, `clima`, `lluvias_maipu`, `sosafe` |
+| 4 | Explicación de la estructura de cada JSON | `README.md` de cada carpeta |
+| 6 | Un archivo de carga a la BD por cada JSON | `cargar.py` de cada carpeta (`Infraestructura/`, `Metadata/M*/`, `Amenazas/*/`) |
+| 7–8 | Sitio Leaflet con infraestructura, metadata, amenazas y ruta `pgr_dijkstra` | `Sitio Web/` + API en `docker/web/app.py` |
+| 9 | `main` que automatiza todo | `main.py` |
+
+---
+
 ## Nota sobre los datos del Censo 2024 (Metadata 5)
 
 En la carpeta `Metadata/M5/` encontrarás el archivo `manzanas_maipu_completo.zip`. 

@@ -49,8 +49,10 @@ def run_etl_infrastructure():
     print("\n" + "=" * 60)
     print("FASE 1: ETL INFRAESTRUCTURA (Nodos y Aristas OSM)")
     print("=" * 60)
-    # TODO: Invocar script(s) en Infraestructura/
-    print("[*] Pendiente de implementar scripts en Infraestructura/")
+    import subprocess
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Infraestructura", "extractor.py")
+    if subprocess.run([sys.executable, script], check=False).returncode != 0:
+        print("[!] La extracción de infraestructura falló; se usará el último GeoJSON disponible.")
 
 
 def run_etl_metadata():
@@ -74,6 +76,7 @@ MODULOS_AMENAZAS = [
 
 # Scripts de carga a la BD (punto 6): un cargar.py por cada JSON/GeoJSON
 CARGADORES_BD = [
+    ("Infraestructura (nodos y aristas)", "Infraestructura/cargar.py"),
     ("M1 Paraderos", "Metadata/M1/cargar.py"),
     ("M3 Controles viales OSM", "Metadata/M3/cargar.py"),
     ("M5 Censo 2024 por manzana", "Metadata/M5/cargar.py"),
@@ -119,7 +122,6 @@ def run_db_loader():
         print(f"\n[*] Cargando {nombre} ({script})")
         if not _ejecutar(ruta):
             print(f"[!] {nombre}: la carga falló (¿existe el JSON de entrada?).")
-    # TODO: Invocar el script de carga de Infraestructura cuando exista
 
 
 def main():
