@@ -101,7 +101,7 @@ Point en EPSG:4326 (`[longitud, latitud]`), redondeado a 4 decimales.
 | `propiedades` | Todas las `properties` + `fuente_etl = "T5_lluvias_maipu"` |
 | `geom` | Punto |
 
-Carga idempotente: borra antes las filas con `fuente_etl = "T5_lluvias_maipu"`. Aristas afectadas en la fase 3:
+Carga idempotente: borra antes las filas con `fuente_etl = "T5_lluvias_maipu"`. Consulta de aristas afectadas:
 
 ```sql
 SELECT DISTINCT e.id

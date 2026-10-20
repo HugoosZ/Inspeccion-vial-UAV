@@ -25,7 +25,7 @@ python Amenazas/lluvias_maipu/extractor.py  && python Amenazas/lluvias_maipu/car
 
 ## Convención común de `properties`
 
-Para que la fase 3 pueda leer todas las amenazas igual, cada feature de T2, T3 y T5 incluye:
+Para que el módulo de ruteo pueda leer todas las amenazas igual, cada feature de T2, T3 y T5 incluye:
 
 | Campo | Valores |
 |---|---|

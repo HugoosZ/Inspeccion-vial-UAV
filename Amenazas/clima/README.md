@@ -92,7 +92,7 @@ Polygon rectangular de la celda en EPSG:4326 (unos 7 × 6 km cada una con la gri
 | `propiedades` | Todas las `properties` + `fuente_etl = "T3_clima"` |
 | `geom` | Polígono de la celda |
 
-Carga idempotente: borra antes las filas con `fuente_etl = "T3_clima"`. Para la fase 3, la consulta de amenazas vigentes en el instante `t` es:
+Carga idempotente: borra antes las filas con `fuente_etl = "T3_clima"`. La consulta de amenazas vigentes en el instante `t` es:
 
 ```sql
 SELECT * FROM temp_amenazas

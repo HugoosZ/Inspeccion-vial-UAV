@@ -4,7 +4,7 @@ Este directorio contiene la definición de la base de datos para el proyecto de 
 
 ---
 
-## 1. Archivo SQL de Creación desde Cero
+## 1. Script de creación (`init.sql`)
 El archivo [`init.sql`](./init.sql) contiene las sentencias DDL para inicializar la base de datos PostgreSQL con las extensiones **PostGIS** y **pgRouting**. Al iniciar el contenedor de base de datos (`db`) mediante Docker Compose, este script se ejecuta automáticamente en `/docker-entrypoint-initdb.d/`.
 
 ---
@@ -81,8 +81,8 @@ erDiagram
 ## 3. Justificación Técnica del Diseño
 
 1. **Infraestructura (`network_nodes`, `network_edges`)**:
-   - Cumple con la topología estricta requerida por **pgRouting** para ejecutar `pgr_dijkstra`.
-   - El atributo `cost` es la longitud en metros (`length_m`), cumpliendo con la ruta **peor caso** (baseline sin costos multivariables).
+   - Sigue la topología que requiere **pgRouting** (`source`, `target`, `cost`, `reverse_cost`) para ejecutar `pgr_dijkstra`.
+   - El atributo `cost` es la longitud en metros (`length_m`), con lo que `pgr_dijkstra` entrega la ruta de **peor caso** (baseline sin costos multivariables).
 
 2. **Tablas Temporales/Genéricas (`temp_metadata` y `temp_amenazas`)**:
    - **`geom geometry(Geometry, 4326)`**: Permite almacenar puntos (señales, jammers), líneas (tráfico Waze) o polígonos (zonas hostiles, áreas de lluvia) en la misma tabla sin restricciones.

@@ -1,6 +1,6 @@
 # Infraestructura · Red vial de Maipú (nodos y aristas)
 
-Punto 1 de la rúbrica: `extractor.py` automatiza la extracción y transformación de la red vial a GeoJSON. Punto 6: `cargar.py` lleva esos archivos a las tablas `network_nodes` y `network_edges`, que usa `pgr_dijkstra`.
+`extractor.py` automatiza la extracción y transformación de la red vial a GeoJSON, y `cargar.py` lleva esos archivos a las tablas `network_nodes` y `network_edges`, que usa `pgr_dijkstra`.
 
 ## Archivos
 
@@ -25,7 +25,7 @@ Si Nominatim no devuelve el polígono de la comuna, se usa el rectángulo de res
 
 - **Red `drive`:** se descargan las calles vehiculares, que es donde están las señales, semáforos y demarcaciones que el dron inspecciona.
 - **Grafo no dirigido:** el dron vuela sobre la calle y no respeta el sentido del tránsito, así que cada tramo es una sola arista con `reverse_cost = cost`. El dato `oneway` se conserva. Con `INFRA_RESPETAR_SENTIDO=1` las calles de sentido único reciben `reverse_cost = -1`.
-- **Costo de la fase 2:** `cost = length_m` (ruta de peor caso, punto 8). La elevación queda lista para el costo energético de la fase 3:
+- **Costo base:** `cost = length_m` (ruta de peor caso con `pgr_dijkstra`). La elevación queda lista para un costo energético:
 $$E(e)=k_1\,d(e)+k_2\,\Delta h^{+}(e),\qquad \Delta h^{+}(e)=\max\{0,\;h(\text{target})-h(\text{source})\}$$
 
 ## Variables de entorno
