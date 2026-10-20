@@ -93,7 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_temp_amenazas_riesgo ON temp_amenazas (nivel_ries
 CREATE INDEX IF NOT EXISTS idx_temp_amenazas_json ON temp_amenazas USING GIN (propiedades);
 
 -- ------------------------------------------------------------------------------
--- 5. RUTAS Y RESULTADOS BASELINE (Dijkstra - Rúbrica Puntos 7 y 8)
+-- 5. RUTAS Y RESULTADOS BASELINE (Dijkstra)
 -- ------------------------------------------------------------------------------
 
 -- Almacena las rutas calculadas para ser visualizadas en Leaflet

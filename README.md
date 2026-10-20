@@ -6,23 +6,23 @@ Sistema de planificación, ruteo y visualización geoespacial para una flota de 
 
 ## Estructura del Repositorio
 
-Siguiendo la rúbrica de la Fase 2 del curso de Algoritmos de Ruteo (UDP):
+El proyecto se estructura de forma modular desacoplando extracción, base de datos y visualización:
 
 ```text
 ├── .gitignore               # Configuración de exclusión para extra/, SO, cachés e IDEs
 ├── docker-compose.yml       # Orquestador de contenedores (db, etl, web)
-├── main.py                  # Script principal para automatizar el flujo ETL (Punto 9)
+├── main.py                  # Script principal para automatizar el flujo ETL
 ├── README.md                # Documentación general del repositorio
-├── database/                # Punto 0: DDL inicial (.sql) y diagrama ER
+├── database/                # DDL inicial (.sql) y diagrama de base de datos
 │   ├── init.sql
 │   └── README.md
 ├── docker/                  # Definición de imágenes Docker
 │   ├── etl/                 # Contenedor con herramientas geoespaciales (GeoPandas, OSMnx)
 │   └── web/                 # Contenedor con FastAPI y servidor estático Leaflet
-├── Infraestructura/         # Punto 1: Extracción y transformación de red vial (nodos y aristas)
-├── Metadata/                # Punto 2: Extracción y transformación de metadatos (MOP, Waze, clima)
-├── Amenazas/                # Punto 3: Extracción y transformación de amenazas (jammers, zonas hostiles)
-└── Sitio Web/               # Puntos 7 y 8: Visualizador Leaflet y ruta baseline (pgr_dijkstra)
+├── Infraestructura/         # Extracción y transformación de red vial (nodos y aristas)
+├── Metadata/                # Extracción y transformación de metadatos (MOP, Waze, clima)
+├── Amenazas/                # Extracción y transformación de amenazas (SOSAFE, clima, zonas hostiles)
+└── Sitio Web/               # Visualizador Leaflet y ruta baseline (pgr_dijkstra)
 ```
 
 ---
