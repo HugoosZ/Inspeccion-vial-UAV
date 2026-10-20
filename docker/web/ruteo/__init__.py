@@ -1,11 +1,11 @@
 """
-Planificación y comparación de rutas (rúbrica 8 a 11).
+Planificación y comparación de rutas.
 
 planificar() recibe el par (inicio, objetivo) y las preferencias del usuario y
 devuelve, para el mismo E_R y las mismas amenazas:
-  - k rutas de pgr_dijkstra por distancia (peor caso, rúbrica 8),
-  - k rutas del TDRPP-GA con pesos resilientes (rúbrica 9),
-  - la métrica de resiliencia de cada conjunto y su diferencial (rúbrica 10 y 11.2).
+  - k rutas de pgr_dijkstra por distancia (peor caso baseline),
+  - k rutas del TDRPP-GA con pesos resilientes,
+  - la métrica de resiliencia de cada conjunto y su diferencial.
 """
 
 from . import datos, dijkstra_k, metrica, preferencias
@@ -53,14 +53,14 @@ def planificar(conn, lon_inicio, lat_inicio, lon_objetivo, lat_objetivo, entrada
     if not req:
         avisos.append("No hay señales de los tipos elegidos en el corredor: amplía el radio o agrega tipos.")
 
-    # --- Rúbrica 8: k rutas con pgr_dijkstra (solo distancia) ---
+    # --- Algoritmo Baseline: k rutas con pgr_dijkstra (solo distancia) ---
     rutas_dij = dijkstra_k.k_rutas(conn, inicio["id"], objetivo["id"], prefs["k"])
     if not rutas_dij:
         raise ErrorRuteo("pgr_dijkstra no encontró camino entre los puntos (red desconectada).")
     if len(rutas_dij) < prefs["k"]:
         avisos.append(f"Dijkstra solo encontró {len(rutas_dij)} ruta(s) distinta(s).")
 
-    # --- Rúbrica 9: k rutas con TDRPP-GA (pesos resilientes) ---
+    # --- Algoritmo Propuesto: k rutas con TDRPP-GA (pesos resilientes) ---
     G = datos.grafo_completo(conn)
     H = construir_grafo_resiliente(G, bbox, amen, eliminadas, factores)
     if inicio["id"] not in H or objetivo["id"] not in H:
@@ -71,7 +71,7 @@ def planificar(conn, lon_inicio, lat_inicio, lon_objetivo, lat_objetivo, entrada
     avisos += ga.avisos
     rutas_ga = [r["aristas"] for r in resultado_ga["rutas"]] if resultado_ga else []
 
-    # --- Rúbrica 10 / 11.2: métrica y diferencial ---
+    # --- Métrica de resiliencia y cálculo de diferencial ---
     todas = {e for r in rutas_dij + rutas_ga for e in r} | {r["id"] for r in req}
     geoms = datos.geometrias(conn, list(todas))
     largos = {e: g["length_m"] for e, g in geoms.items()}

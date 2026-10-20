@@ -1,6 +1,6 @@
 """
-Acceso a PostGIS para el ruteo: grafo, amenazas por arista (rúbrica 5.2),
-restricciones de metadata (6.1), aristas requeridas y geometrías.
+Acceso a PostGIS para el ruteo: grafo, amenazas por arista,
+restricciones de metadata, aristas requeridas y geometrías.
 """
 
 import json
@@ -14,7 +14,7 @@ import networkx as nx
 # (supuesto de diseño usado por la métrica de resiliencia).
 PROB_NIVEL = {"BAJO": 0.05, "MEDIO": 0.2, "ALTO": 0.5, "CRITICO": 0.8}
 
-# Factor sobre el costo de una arista según la acción de la amenaza (rúbrica 5.2)
+# Factor sobre el costo de una arista según la acción de la amenaza
 FACTOR_ACCION = {"PENALIZAR_ARISTAS": 1.5, "POSTERGAR_ARISTAS": 2.0}
 # El clima ALTO/CRÍTICO se trata como "bloqueo blando": la arista sigue en el
 # grafo pero cruzarla en esa hora cuesta 10 veces más. Así el genético puede
@@ -72,7 +72,7 @@ def bbox_region(a, b, margen_m):
 
 
 # ------------------------------------------------------------------------------
-# Amenazas por arista (rúbrica 5.1 / 5.2)
+# Amenazas por arista
 # ------------------------------------------------------------------------------
 SQL_AMENAZAS_ARISTA = """
 WITH amen AS (
@@ -152,7 +152,7 @@ def amenazas_region(conn, bbox, t0, horizonte_h, considerar_clima):
 
 
 # ------------------------------------------------------------------------------
-# Restricciones derivadas de la metadata (rúbrica 6.1)
+# Restricciones derivadas de la metadata
 # ------------------------------------------------------------------------------
 def restricciones_metadata(conn, bbox, prefs):
     """Devuelve (aristas_eliminadas, factores) según las preferencias del usuario."""

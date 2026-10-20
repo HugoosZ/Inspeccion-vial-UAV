@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS network_edges (
     highway VARCHAR(50) NOT NULL, -- motorway, primary, secondary, tertiary, residential, etc.
     source BIGINT NOT NULL REFERENCES network_nodes(id) ON DELETE CASCADE,
     target BIGINT NOT NULL REFERENCES network_nodes(id) ON DELETE CASCADE,
-    cost DOUBLE PRECISION NOT NULL, -- Longitud métrica (Fase 2: peor caso de Dijkstra)
+    cost DOUBLE PRECISION NOT NULL, -- Longitud métrica (peor caso de Dijkstra baseline)
     reverse_cost DOUBLE PRECISION NOT NULL, -- -1 si es sentido único, longitud si es bidireccional
     length_m DOUBLE PRECISION NOT NULL,
     maxspeed_kmh INTEGER DEFAULT 50,

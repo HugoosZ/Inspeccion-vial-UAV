@@ -74,7 +74,7 @@ MODULOS_AMENAZAS = [
 ]
 
 
-# Scripts de carga a la BD (punto 6): un cargar.py por cada JSON/GeoJSON
+# Scripts de carga a la BD: un cargar.py por cada JSON/GeoJSON
 CARGADORES_BD = [
     ("Infraestructura (nodos y aristas)", "Infraestructura/cargar.py"),
     ("M1 Paraderos", "Metadata/M1/cargar.py"),

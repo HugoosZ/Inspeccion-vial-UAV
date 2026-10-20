@@ -9,9 +9,9 @@ El archivo [`init.sql`](./init.sql) contiene las sentencias DDL para inicializar
 
 ---
 
-## 2. Diagrama Entidad-Relación (Fase 2: Estructura Flexible)
+## 2. Diagrama Entidad-Relación (Estructura Flexible)
 
-Para la Fase 2 (ETL y visualización), la base de datos se diseñó con un núcleo topológico estricto para **pgRouting** y tablas flexibles (`JSONB` + `geometry(Geometry, 4326)`) para **Metadata** y **Amenazas**. Esto permite extraer, transformar y cargar datos de diversas fuentes sin que el equipo quede atado a columnas fijas antes de consolidar el análisis.
+Para el módulo de ETL y visualización, la base de datos se diseñó con un núcleo topológico estricto para **pgRouting** y tablas flexibles (`JSONB` + `geometry(Geometry, 4326)`) para **Metadata** y **Amenazas**. Esto permite extraer, transformar y cargar datos de diversas fuentes sin que el equipo quede atado a columnas fijas antes de consolidar el análisis.
 
 ```mermaid
 erDiagram
@@ -87,7 +87,7 @@ erDiagram
 2. **Tablas Temporales/Genéricas (`temp_metadata` y `temp_amenazas`)**:
    - **`geom geometry(Geometry, 4326)`**: Permite almacenar puntos (señales, jammers), líneas (tráfico Waze) o polígonos (zonas hostiles, áreas de lluvia) en la misma tabla sin restricciones.
    - **`propiedades JSONB`**: Permite cargar cualquier estructura de atributos extraída de APIs o archivos JSON sin necesidad de alterar el esquema SQL por cada nueva fuente.
-   - **Facilidad de transición a Fase 3**: En la siguiente entrega, una vez consensuadas las fuentes definitivas con el equipo, estas tablas se pueden normalizar a tablas especializadas.
+   - **Extensibilidad futura**: Una vez consolidadas las fuentes definitivas con el equipo, estas tablas se pueden normalizar a tablas especializadas.
 
 3. **Ruteo Baseline (`inspection_routes` y `fn_calculate_baseline_dijkstra_route`)**:
    - Implementa la función que resuelve la ruta base con `pgr_dijkstra` para ser consumida y graficada por Leaflet en el sitio web.

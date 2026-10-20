@@ -1,6 +1,6 @@
 """
 ==============================================================================
-API geoespacial + servidor del sitio Leaflet (puntos 7 y 8 de la rúbrica)
+API geoespacial + servidor del sitio Leaflet
 ==============================================================================
 Endpoints (todos devuelven GeoJSON salvo /health y /api/capas):
   GET /health                     estado de la conexión a la BD
@@ -11,7 +11,7 @@ Endpoints (todos devuelven GeoJSON salvo /health y /api/capas):
   GET /api/amenazas?fuente=...    filas de temp_amenazas (filtrables)
   GET /api/route/baseline         ruta pgr_dijkstra por longitud (una ruta)
   GET /api/rutas                  k rutas pgr_dijkstra vs TDRPP-GA + métrica de resiliencia
-  GET /api/rutas/preferencias     preferencias por defecto (rúbrica 6.2)
+  GET /api/rutas/preferencias     preferencias por defecto de navegación
 El sitio estático se sirve desde la carpeta "Sitio Web" montada en /app/sitio_web.
 """
 
@@ -206,7 +206,7 @@ def get_baseline_dijkstra_route(
     end_node: int = Query(..., description="ID del nodo final en network_nodes"),
 ):
     """
-    Rúbrica punto 8: ruta con pgr_dijkstra usando la longitud como costo.
+    Ruta con pgr_dijkstra usando la longitud como costo.
     Es el peor caso (baseline): no considera metadata ni amenazas.
     """
     return feature_collection("""
@@ -222,7 +222,7 @@ def get_baseline_dijkstra_route(
 
 @app.get("/api/rutas/preferencias")
 def get_preferencias_defecto():
-    """Preferencias por defecto del usuario (rúbrica 6.2) y tipos de señal válidos."""
+    """Preferencias por defecto del usuario y tipos de señal válidos."""
     return {"defecto": PREFERENCIAS_DEFECTO, "tipos_senal": list(TIPOS_SENAL_VALIDOS)}
 
 
@@ -238,7 +238,7 @@ def get_rutas(
     autonomia_km: float = None, horizonte_h: float = None,
 ):
     """
-    Rúbrica 8 a 11: con el par (inicio, objetivo) y las restricciones del usuario
+    Planificación de rutas: con el par (inicio, objetivo) y las restricciones del usuario
     (las omitidas toman su valor por defecto) devuelve k rutas de pgr_dijkstra,
     k rutas del TDRPP-GA, la métrica de resiliencia de cada conjunto y su diferencial.
     """

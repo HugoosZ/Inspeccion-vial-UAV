@@ -1,5 +1,5 @@
 """
-Rúbrica 7 y 9: algoritmo genético para el Time-Dependent Rural Postman Problem
+Algoritmo genético para el Time-Dependent Rural Postman Problem
 (TDRPP-GA), adaptado a k drones que salen de un inicio y llegan a un objetivo.
 
 Base: Xin, Yu, D'Ariano, Wang y Wang (2022). "Time-dependent rural postman
@@ -279,7 +279,7 @@ class TDRPPGA:
 
 
 def construir_grafo_resiliente(G, bbox, amenazas, eliminadas_metadata, factores_metadata):
-    """Subgrafo de la región con pesos resilientes estáticos w(e) (rúbrica 5.2 y 6.1).
+    """Subgrafo de la región con pesos resilientes estáticos w(e).
 
     w(e) = d(e)[km] · ρ_amenaza(e) · π_metadata(e); se eliminan las aristas bloqueadas.
     """

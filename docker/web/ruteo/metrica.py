@@ -1,5 +1,5 @@
 """
-Rúbrica 10 y 11.2: métrica de resiliencia de un conjunto de k rutas y
+Métrica de resiliencia de un conjunto de k rutas y
 diferencial entre algoritmos.
 
 Fallas: cada amenaza activa en la ventana [t0, t0 + horizonte] es un evento

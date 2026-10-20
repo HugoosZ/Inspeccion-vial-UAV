@@ -1,6 +1,6 @@
 """
-Restricciones del usuario a partir de la metadata (rúbrica 6.1) y sus valores
-por defecto (rúbrica 6.2).
+Restricciones del usuario a partir de la metadata y sus valores
+por defecto.
 
 Cada preferencia transforma una capa de metadata en una restricción sobre el
 grafo:
@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 TIPOS_SENAL_VALIDOS = ("senal_pare", "senal_ceda_el_paso", "semaforo", "cruce_peatonal")
 
 PREFERENCIAS_DEFECTO = {
-    "k": 2,                                   # rutas por algoritmo (rúbrica: k >= 2)
+    "k": 2,                                   # rutas por algoritmo (mínimo k >= 2)
     "hora_salida": None,                      # None = ahora
     "evitar_aerodromos": True,
     "radio_aerodromo_m": 2000,                # supuesto de diseño; verificar DAN 151 (DGAC)

@@ -2,22 +2,22 @@
 
 Módulo que usa la API (`GET /api/rutas`) y el sitio Leaflet para generar, con el mismo par (inicio, objetivo), las mismas amenazas y el mismo conjunto de aristas a inspeccionar:
 
-- **k rutas con `pgr_dijkstra`**, solo por distancia en km (rúbrica 8),
-- **k rutas con el TDRPP-GA**, con pesos resilientes (rúbrica 9),
-- la **métrica de resiliencia** de cada conjunto y su **diferencial** (rúbrica 10 y 11.2).
+- **k rutas con `pgr_dijkstra`**, solo por distancia en km (peor caso baseline),
+- **k rutas con el TDRPP-GA**, con pesos resilientes,
+- la **métrica de resiliencia** de cada conjunto y su **diferencial**.
 
 | Archivo | Contenido |
 |---|---|
-| `preferencias.py` | Restricciones del usuario y sus valores por defecto (6.1, 6.2) |
+| `preferencias.py` | Restricciones del usuario y sus valores por defecto |
 | `datos.py` | Consultas PostGIS: grafo, amenazas por arista, restricciones de metadata, aristas requeridas |
-| `dijkstra_k.py` | k rutas con `pgr_dijkstra` por penalización iterativa (8) |
-| `tdrpp_ga.py` | Algoritmo genético TDRPP-GA con 2-Opt (7, 9) |
-| `metrica.py` | Resiliencia de k rutas y diferencial (10, 11.2) |
+| `dijkstra_k.py` | k rutas con `pgr_dijkstra` por penalización iterativa |
+| `tdrpp_ga.py` | Algoritmo genético TDRPP-GA con 2-Opt |
+| `metrica.py` | Resiliencia de k rutas y diferencial |
 | `__init__.py` | `planificar()`: orquesta todo y arma la respuesta GeoJSON |
 
 ---
 
-## 5.1 Modelamiento de las fallas
+## 1. Modelamiento de las fallas
 
 Cada amenaza cargada en `temp_amenazas` es un **evento de falla** con zona de afectación, vigencia y nivel de riesgo.
 
@@ -30,7 +30,7 @@ Cada amenaza cargada en `temp_amenazas` es un **evento de falla** con zona de af
 
 Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la zona de $a$ (o está a menos del radio, en T5) y $a$ está vigente en la ventana $[t_0,\,t_0+H]$, con $H$ = `horizonte_h` (2 h por defecto).
 
-## 5.2 Asignación de pesos a las aristas
+## 2. Asignación de pesos a las aristas
 
 $$
 w(e,t)=
@@ -44,12 +44,12 @@ $$
 |---|---|---|
 | $d(e)$ | Largo de la arista en km | `length_m / 1000` |
 | $\rho(e)$ | Amenaza estática | 1,5 si PENALIZAR · 2,0 si POSTERGAR (T5 MEDIO) · 1 si no hay |
-| $\pi(e)$ | Restricción de metadata (6.1) | 1,3 junto a paraderos · ∞ cerca de aeródromos · 1 en otro caso |
+| $\pi(e)$ | Restricción de metadata | 1,3 junto a paraderos · ∞ cerca de aeródromos · 1 en otro caso |
 | $\varphi(e,t)$ | Clima en la hora en que el dron cruza la arista | 1,5 si MEDIO · 10 si ALTO/CRÍTICO ("bloqueo blando") · 1 si no hay |
 
 El clima no elimina aristas, porque una celda de 7 × 6 km con lluvia dejaría a Maipú sin red. Las encarece en esa hora, y el genético puede reordenar la ruta para cruzarlas en otro momento.
 
-## 6.1 Restricciones desde la metadata (preferencias del usuario)
+## 3. Restricciones desde la metadata (preferencias del usuario)
 
 | Preferencia | Metadata | Conversión en restricción |
 |---|---|---|
@@ -61,7 +61,7 @@ El clima no elimina aristas, porque una celda de 7 × 6 km con lluvia dejaría a
 | `considerar_clima` | T3 | Activa o desactiva $\varphi(e,t)$ |
 | `velocidad_*`, `autonomia_km` | — | Parámetros del dron: tiempo de llegada a cada arista y límite de batería |
 
-## 6.2 Preferencias por defecto
+## 4. Preferencias por defecto
 
 Si el usuario no ingresa un valor, se usa este (`GET /api/rutas/preferencias`):
 
@@ -84,7 +84,7 @@ La respuesta de `/api/rutas` incluye `preferencias_por_defecto`, con la lista de
 
 ---
 
-## 7.1 Algoritmo de ruteo y paper
+## 5. Algoritmo de ruteo y paper
 
 **TDRPP-GA**: algoritmo genético para el *Time-Dependent Rural Postman Problem*.
 
@@ -92,7 +92,7 @@ La respuesta de `/api/rutas` incluye `preferencias_por_defecto`, con la lista de
 - **Mejora local 2-Opt:** Croes, G. A. (1958). *A method for solving traveling-salesman problems*. Operations Research, 6(6), 791–812.
 - Las referencias de energía multi-UAV (Wang y Qian) y de arquitectura offline/online (Li et al.) deben completarse con su DOI.
 
-## 7.2 Funcionamiento
+### Funcionamiento del algoritmo
 
 Inspeccionar señalética es un **Rural Postman Problem**: hay que recorrer un subconjunto de aristas obligatorias $E_R$ (las que tienen señales) usando cualquier otra arista para moverse entre ellas. Es *time-dependent* porque el costo de cada arista depende de la hora en que el dron la cruza (clima T3 por hora).
 
@@ -110,7 +110,7 @@ $$
 
 **Por qué es resiliente:** las rutas no cruzan zonas bloqueadas, pagan más por las zonas de riesgo y, al repartir $E_R$, los drones recorren calles distintas. Si una amenaza corta una ruta, las demás siguen operativas.
 
-## 8. k rutas con `pgr_dijkstra` (peor caso)
+## 6. k rutas con `pgr_dijkstra` (baseline)
 
 1. $P_1$ = `pgr_dijkstra` con `cost = length_m / 1000`, solo distancia en km.
 2. Las aristas ya usadas multiplican su costo por $3^{n}$, donde $n$ es el número de rutas previas que las usaron, y se vuelve a ejecutar `pgr_dijkstra`.
@@ -118,7 +118,7 @@ $$
 
 No usa metadata ni amenazas: es la línea base de comparación.
 
-## 10. Métrica de resiliencia de k rutas
+## 7. Métrica de resiliencia de k rutas
 
 Cada amenaza vigente en la ventana es un evento independiente que ocurre con probabilidad $p_a$: BAJO 0,05 · MEDIO 0,2 · ALTO 0,5 · CRÍTICO 0,8 (supuesto de diseño). Las celdas de clima cuentan como un evento por celda.
 
@@ -142,7 +142,7 @@ $$
 - $J$: solapamiento entre rutas (0 = totalmente distintas).
 - $R$: índice de resiliencia; una ruta que sobrevive pero no inspecciona no cumple la misión.
 
-## 11.2 Diferencial de resiliencia
+## 8. Diferencial de resiliencia
 
 $$
 \Delta R = R_{\text{TDRPP-GA}}-R_{\text{Dijkstra}}

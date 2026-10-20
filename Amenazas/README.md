@@ -1,6 +1,6 @@
 # Amenazas
 
-Cada subcarpeta automatiza la extracción y transformación de una fuente de amenaza a un JSON/GeoJSON (punto 3 de la rúbrica), documenta su estructura en un `README.md` (punto 4) y trae un `cargar.py` que la inserta en la tabla `temp_amenazas` (punto 6).
+Cada subcarpeta automatiza la extracción y transformación de una fuente de amenaza a un JSON/GeoJSON, documenta su estructura en su respectivo `.md` y contiene un `cargar.py` que la inserta en la tabla `temp_amenazas`.
 
 | # | Amenaza | Carpeta | Fuente | Geometría | Efecto en el grafo | Acceso |
 |---|---|---|---|---|---|---|

@@ -1,5 +1,5 @@
 """
-Rúbrica 8: k rutas distintas usando solo pgr_dijkstra y la distancia en km.
+Generación de k rutas distintas usando solo pgr_dijkstra y la distancia en km.
 
 Método de penalización iterativa:
   1. Ruta 1 = pgr_dijkstra con cost = length_m / 1000 (km).
