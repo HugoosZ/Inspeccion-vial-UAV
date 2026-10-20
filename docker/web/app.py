@@ -142,7 +142,7 @@ def get_baseline_dijkstra_route(
     end_node: int = Query(..., description="ID del nodo final en network_nodes")
 ):
     """
-    Rúbrica Punto 8: Calcula una ruta con pgr_dijkstra usando longitud como costo.
+    Calcula una ruta con pgr_dijkstra usando longitud como costo.
     Representa el peor caso (baseline) ya que no considera metadata ni amenazas.
     """
     try:

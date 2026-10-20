@@ -90,4 +90,4 @@ erDiagram
    - **Facilidad de transición a Fase 3**: En la siguiente entrega, una vez consensuadas las fuentes definitivas con el equipo, estas tablas se pueden normalizar a tablas especializadas.
 
 3. **Ruteo Baseline (`inspection_routes` y `fn_calculate_baseline_dijkstra_route`)**:
-   - Implementa la función que resuelve la ruta base con `pgr_dijkstra` para ser consumida y graficada por Leaflet en el sitio web (Puntos 7 y 8 de la rúbrica).
+   - Implementa la función que resuelve la ruta base con `pgr_dijkstra` para ser consumida y graficada por Leaflet en el sitio web.
