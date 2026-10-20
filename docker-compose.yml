@@ -68,8 +68,6 @@ services:
       DB_NAME: ruteo_db
       DB_USER: ruteo_user
       DB_PASSWORD: ruteo_pass
-      # Key de CARTO Basemaps (opcional); se lee del archivo .env de la raíz
-      CARTO_API_KEY: ${CARTO_API_KEY:-}
     ports:
       - "8080:8080"
     volumes:
