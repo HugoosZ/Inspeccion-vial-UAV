@@ -53,39 +53,44 @@ EXTRACTORES = [
      "script": "Infraestructura/extractor.py", "timeout": 1800},
     {"grupo": "Metadata", "nombre": "M1 Paraderos (ArcGIS DTPM)",
      "script": "Metadata/M1/extractor.py", "cwd": "Metadata/M1"},
-    {"grupo": "Metadata", "nombre": "M3 Controles viales (ohsome)",
-     "script": "Metadata/M3/controles_viales.py", "requiere_env": "OHSOME_API_KEY"},
-    {"grupo": "Metadata", "nombre": "M5 Censo 2024 por manzana",
-     "script": "Metadata/M5/procesar_censo.py", "cwd": "Metadata/M5",
-     "requiere_archivo": "Metadata/M5/Cartografia_censo2024_Pais.gpkg",
+    {"grupo": "Metadata", "nombre": "M2 Controles viales (ohsome)",
+     "script": "Metadata/M2/controles_viales.py", "requiere_env": "OHSOME_API_KEY"},
+    {"grupo": "Metadata", "nombre": "M3 Censo 2024 por manzana",
+     "script": "Metadata/M3/procesar_censo.py", "cwd": "Metadata/M3",
+     "requiere_archivo": "Metadata/M3/Cartografia_censo2024_Pais.gpkg",
      "nota": "usa el ZIP versionado manzanas_maipu_completo.zip"},
-    {"grupo": "Amenazas", "nombre": "T2 Incendios (GDACS + NASA FIRMS)",
-     "script": "Amenazas/incendios/extractor.py"},
-    {"grupo": "Amenazas", "nombre": "T3 Clima (Open-Meteo)",
-     "script": "Amenazas/clima/extractor.py"},
-    {"grupo": "Amenazas", "nombre": "T5 Emergencias por lluvia (Maipú)",
-     "script": "Amenazas/lluvias_maipu/extractor.py"},
-    {"grupo": "Amenazas", "nombre": "T6 SOSAFE + clasificación",
-     "script": "Amenazas/sosafe/run.py"},
-    {"grupo": "Amenazas", "nombre": "T7 Waze (Calles cerradas y obras)",
-     "script": "Amenazas/waze/run.py"},
+    {"grupo": "Amenazas", "nombre": "A1 Incendios (GDACS + NASA FIRMS)",
+     "script": "Amenazas/A1/extractor.py"},
+    {"grupo": "Amenazas", "nombre": "A2 Clima (Open-Meteo)",
+     "script": "Amenazas/A2/extractor.py"},
+    {"grupo": "Amenazas", "nombre": "A3 SOSAFE + clasificación",
+     "script": "Amenazas/A3/run.py"},
+    {"grupo": "Amenazas", "nombre": "A4 Waze (Calles cerradas y obras)",
+     "script": "Amenazas/A4/run.py"},
 ]
-# M6 Aeródromos (aerodromos.geojson, DGAC) es una fuente estática versionada en el repositorio.
+# M4 Aeródromos (aerodromos.geojson, DGAC) es una fuente estática versionada en el repositorio.
 
 # Cargadores (Load): un cargar.py por cada JSON/GeoJSON.
 CARGADORES = [
     {"grupo": "Infraestructura", "nombre": "Nodos y aristas", "script": "Infraestructura/cargar.py",
      "critico": True},
     {"grupo": "Metadata", "nombre": "M1 Paraderos", "script": "Metadata/M1/cargar.py"},
-    {"grupo": "Metadata", "nombre": "M3 Controles viales", "script": "Metadata/M3/cargar.py"},
-    {"grupo": "Metadata", "nombre": "M5 Censo 2024", "script": "Metadata/M5/cargar.py"},
-    {"grupo": "Metadata", "nombre": "M6 Aeródromos", "script": "Metadata/M6/cargar.py"},
-    {"grupo": "Amenazas", "nombre": "T2 Incendios", "script": "Amenazas/incendios/cargar.py"},
-    {"grupo": "Amenazas", "nombre": "T3 Clima", "script": "Amenazas/clima/cargar.py"},
-    {"grupo": "Amenazas", "nombre": "T5 Lluvias", "script": "Amenazas/lluvias_maipu/cargar.py"},
-    {"grupo": "Amenazas", "nombre": "T6 SOSAFE", "script": "Amenazas/sosafe/cargar.py"},
-    {"grupo": "Amenazas", "nombre": "T7 Waze", "script": "Amenazas/waze/cargar.py"},
+    {"grupo": "Metadata", "nombre": "M2 Controles viales", "script": "Metadata/M2/cargar.py"},
+    {"grupo": "Metadata", "nombre": "M3 Censo 2024", "script": "Metadata/M3/cargar.py"},
+    {"grupo": "Metadata", "nombre": "M4 Aeródromos", "script": "Metadata/M4/cargar.py"},
+    {"grupo": "Amenazas", "nombre": "A1 Incendios", "script": "Amenazas/A1/cargar.py"},
+    {"grupo": "Amenazas", "nombre": "A2 Clima", "script": "Amenazas/A2/cargar.py"},
+    {"grupo": "Amenazas", "nombre": "A3 SOSAFE", "script": "Amenazas/A3/cargar.py"},
+    {"grupo": "Amenazas", "nombre": "A4 Waze", "script": "Amenazas/A4/cargar.py"},
 ]
+
+# fuente_etl de versiones anteriores (antes de renombrar a M1-M4 y A1-A4, y de quitar
+# las lluvias de Maipú). Se borran antes de cargar para que una BD ya existente no
+# conserve capas duplicadas ni amenazas que el ruteo ya no sabe interpretar.
+FUENTES_OBSOLETAS = {
+    "temp_metadata": ("M3_controles_viales", "M5_censo_manzanas", "M6_aerodromos"),
+    "temp_amenazas": ("T2_incendios", "T3_clima", "T5_lluvias_maipu", "T6_sosafe", "T7_waze"),
+}
 
 
 # ------------------------------------------------------------------------------
@@ -184,6 +189,14 @@ def ejecutar_etapa(nombre_etapa, pasos, aviso_fallo):
     return resultados
 
 
+def limpiar_fuentes_obsoletas(conn):
+    with conn, conn.cursor() as cur:
+        for tabla, fuentes in FUENTES_OBSOLETAS.items():
+            cur.execute(f"DELETE FROM {tabla} WHERE propiedades->>'fuente_etl' = ANY(%s)", (list(fuentes),))
+            if cur.rowcount:
+                print(f"[~] {cur.rowcount} filas con fuente_etl obsoleta borradas de {tabla}.")
+
+
 def resumen_bd(conn):
     titulo("VERIFICACIÓN DE LA BASE DE DATOS")
     with conn.cursor() as cur:
@@ -207,6 +220,7 @@ def modo_pipeline(sin_descarga):
     if conn is None:
         print("[!] No se pudo conectar a la base de datos.")
         return 1
+    limpiar_fuentes_obsoletas(conn)
 
     resultados = []
     if sin_descarga:

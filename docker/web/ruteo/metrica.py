@@ -4,7 +4,7 @@ diferencial entre algoritmos.
 
 Fallas: cada amenaza activa en la ventana [t0, t0 + horizonte] es un evento
 independiente a que se materializa con probabilidad p_a según su nivel
-(BAJO 0,05 · MEDIO 0,2 · ALTO 0,5 · CRÍTICO 0,8). Las celdas de clima T3 se
+(BAJO 0,05 · MEDIO 0,2 · ALTO 0,5 · CRÍTICO 0,8). Las celdas de clima A2 se
 agrupan por celda (un evento por celda, con el nivel máximo de la ventana).
 
   A(P)      = amenazas que toca la ruta P

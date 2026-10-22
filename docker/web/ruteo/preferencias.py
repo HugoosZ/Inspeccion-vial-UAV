@@ -6,13 +6,13 @@ Cada preferencia transforma una capa de metadata en una restricción sobre el
 grafo:
 
   Preferencia               Metadata   Efecto en el grafo
-  evitar_aerodromos         M6         aristas a menos de radio_aerodromo_m -> eliminadas (w = ∞)
+  evitar_aerodromos         M4         aristas a menos de radio_aerodromo_m -> eliminadas (w = ∞)
   evitar_paraderos          M1         aristas a menos de 25 m de un paradero -> w × factor_paradero
                                        (los buses tapan la señalética al detenerse)
-  priorizar_vulnerables     M5         aristas junto a manzanas con V_m > 0 suben de prioridad
+  priorizar_vulnerables     M3         aristas junto a manzanas con V_m > 0 suben de prioridad
                                        al elegir las aristas a inspeccionar
-  tipos_senal               M3         qué controles viales definen las aristas requeridas E_R
-  considerar_clima          T3         si se aplica la penalización horaria del clima
+  tipos_senal               M2         qué controles viales definen las aristas requeridas E_R
+  considerar_clima          A2         si se aplica la penalización horaria del clima
 
 Los parámetros operacionales del dron (velocidades y autonomía) también se
 pueden ajustar, pero tienen valores por defecto razonables.

@@ -85,8 +85,6 @@ WITH amen AS (
            COALESCE(NULLIF(propiedades->>'radio_afectacion_m', '')::float, 0) AS radio
     FROM temp_amenazas
     WHERE COALESCE(propiedades->>'accion_grafo', 'BLOQUEAR_ARISTAS') <> 'NINGUNA'
-      AND (propiedades->>'fuente_etl' <> 'T5_lluvias_maipu'
-           OR COALESCE((propiedades->>'activa')::boolean, false))
       AND geom && ST_MakeEnvelope(%(xmin)s, %(ymin)s, %(xmax)s, %(ymax)s, 4326)
 )
 SELECT e.id AS edge_id, a.id AS amenaza_id, a.fuente, a.id_celda, a.nivel_riesgo,
@@ -105,10 +103,10 @@ WHERE (a.hasta IS NULL OR a.hasta > %(t0)s)
 class Amenazas:
     """Amenazas que afectan a cada arista dentro de la ventana [t0, t1].
 
-    - bloqueadas: aristas con una amenaza dura (T2 incendio, T5 activa ALTO/CRÍTICO,
-      T6 SOSAFE) -> se eliminan del grafo del algoritmo resiliente.
-    - factor_estatico: penalización permanente en la ventana (T5 POSTERGAR, etc.).
-    - temporales: intervalos (desde, hasta, factor) del clima (T3), que dependen
+    - bloqueadas: aristas con una amenaza dura (A1 incendio, A3 SOSAFE,
+      A4 Waze) -> se eliminan del grafo del algoritmo resiliente.
+    - factor_estatico: penalización permanente en la ventana (PENALIZAR, POSTERGAR).
+    - temporales: intervalos (desde, hasta, factor) del clima (A2), que dependen
       de la hora a la que el dron cruza la arista.
     - eventos: para la métrica, cada arista -> {clave_evento: probabilidad}.
     """
@@ -118,12 +116,12 @@ class Amenazas:
         self.n_amenazas = len({f["amenaza_id"] for f in filas})
         for f in filas:
             e, nivel, accion = f["edge_id"], f["nivel_riesgo"] or "MEDIO", f["accion"]
-            clave = ("T3", f["id_celda"]) if f["fuente"] == "T3_clima" else ("A", f["amenaza_id"])
+            clave = ("A2", f["id_celda"]) if f["fuente"] == "A2_clima" else ("A", f["amenaza_id"])
             p = PROB_NIVEL.get(nivel, 0.2)
             self.eventos.setdefault(e, {})
             self.eventos[e][clave] = max(p, self.eventos[e].get(clave, 0))
 
-            if f["fuente"] == "T3_clima":
+            if f["fuente"] == "A2_clima":
                 if not considerar_clima:
                     continue
                 factor = FACTOR_CLIMA_BLOQUEO if accion == "BLOQUEAR_ARISTAS" else FACTOR_ACCION.get(accion, 1.5)
@@ -162,7 +160,7 @@ def restricciones_metadata(conn, bbox, prefs):
         radio = float(prefs["radio_aerodromo_m"])
         for f in _filas(conn, """
             SELECT DISTINCT e.id FROM network_edges e
-            JOIN temp_metadata m ON m.propiedades->>'fuente_etl' = 'M6_aerodromos'
+            JOIN temp_metadata m ON m.propiedades->>'fuente_etl' = 'M4_aerodromos'
              AND m.geom && ST_Expand(e.geom, %(grados)s)
              AND ST_DWithin(e.geom::geography, m.geom::geography, %(radio)s)
             WHERE e.geom && ST_MakeEnvelope(%(xmin)s, %(ymin)s, %(xmax)s, %(ymax)s, 4326)
@@ -184,7 +182,7 @@ def aristas_requeridas(conn, inicio, objetivo, prefs, excluidas):
     """Aristas a inspeccionar (E_R) dentro del corredor inicio-objetivo.
 
     Una arista es candidata si tiene al menos una señal de los tipos elegidos
-    (M3) a menos de 15 m. Se ordenan por puntaje = n° de señales (+2 si está
+    (M2) a menos de 15 m. Se ordenan por puntaje = n° de señales (+2 si está
     junto a una manzana vulnerable y la preferencia está activa) y se toman las
     max_requeridas mejores que no estén bloqueadas.
     """
@@ -202,13 +200,13 @@ def aristas_requeridas(conn, inicio, objetivo, prefs, excluidas):
         )
         SELECT c.id, c.source, c.target, c.length_m, c.name,
                (SELECT count(*) FROM temp_metadata s
-                 WHERE s.propiedades->>'fuente_etl' = 'M3_controles_viales'
+                 WHERE s.propiedades->>'fuente_etl' = 'M2_controles_viales'
                    AND s.tipo = ANY(%(tipos)s)
                    AND s.geom && ST_Expand(c.geom, 0.0002)
                    AND ST_DWithin(c.geom::geography, s.geom::geography, 15)) AS n_senales,
                (SELECT max(NULLIF(m.propiedades->>'indice_vulnerabilidad', '')::float)
                   FROM temp_metadata m
-                 WHERE m.propiedades->>'fuente_etl' = 'M5_censo_manzanas'
+                 WHERE m.propiedades->>'fuente_etl' = 'M3_censo_manzanas'
                    AND m.geom && ST_Expand(c.geom, 0.0002)
                    AND ST_DWithin(c.geom::geography, m.geom::geography, 15)) AS vulnerabilidad
         FROM cand c

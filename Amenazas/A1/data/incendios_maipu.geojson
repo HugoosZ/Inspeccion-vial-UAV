@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "name": "amenaza_a1_incendios_maipu",
+  "metadata": {
+    "generado_utc": "2026-10-19T23:19:41+00:00",
+    "comuna": "Maipú",
+    "total_features": 0,
+    "amenaza": "A1 - Incendios forestales y de pastizales",
+    "fuentes_consultadas": [
+      "GDACS",
+      "FIRMS"
+    ],
+    "gdacs_desde": "2025-10-19",
+    "gdacs_alcance": "region",
+    "radio_exclusion_m": 2000,
+    "aoi_maipu_bbox": [
+      -70.92,
+      -33.62,
+      -70.7,
+      -33.46
+    ]
+  },
+  "features": []
+}

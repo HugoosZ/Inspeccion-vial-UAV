@@ -229,32 +229,32 @@ const CAPAS = [
     url: "/api/metadata?fuente=M1_paraderos",
     crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, "#2563eb", 4),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
-  { id: "M3", grupo: "Metadata", nombre: "M3 · Controles viales (OSM)", muestra: "#dc2626", fuente: "M3_controles_viales",
-    url: "/api/metadata?fuente=M3_controles_viales",
+  { id: "M2", grupo: "Metadata", nombre: "M2 · Controles viales (OSM)", muestra: "#dc2626", fuente: "M2_controles_viales",
+    url: "/api/metadata?fuente=M2_controles_viales",
     crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, COLOR_CONTROL[f.properties.tipo] || "#64748b",
                                                               f.properties.tipo === "cruce_peatonal" ? 2.5 : 4),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
     leyenda: Object.entries(NOMBRE_CONTROL).map(([k, v]) => [COLOR_CONTROL[k], v]) },
-  { id: "M5", grupo: "Metadata", nombre: "M5 · Vulnerabilidad por manzana", muestra: "#ea580c", fuente: "M5_censo_manzanas",
-    url: "/api/metadata?fuente=M5_censo_manzanas&simplificar=0.00003",
+  { id: "M3", grupo: "Metadata", nombre: "M3 · Vulnerabilidad por manzana", muestra: "#ea580c", fuente: "M3_censo_manzanas",
+    url: "/api/metadata?fuente=M3_censo_manzanas&simplificar=0.00003",
     crear: d => L.geoJSON(d, { pane: "meta",
       style: f => ({ color: "#9a3412", weight: 0.3,
                      fillColor: colorVuln((f.properties.propiedades || {}).indice_vulnerabilidad), fillOpacity: 0.55 }),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
     leyenda: RANGOS_VULN.map(r => [r.color, r.etiqueta, true]).concat([["#cbd5e1", "Sin dato", true]]) },
-  { id: "M6", grupo: "Metadata", nombre: "M6 · Aeródromos DGAC", muestra: "#0891b2", fuente: "M6_aerodromos",
-    url: "/api/metadata?fuente=M6_aerodromos",
+  { id: "M4", grupo: "Metadata", nombre: "M4 · Aeródromos DGAC", muestra: "#0891b2", fuente: "M4_aerodromos",
+    url: "/api/metadata?fuente=M4_aerodromos",
     crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, "#0891b2", 6),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
 
   // ----- Amenazas -----
-  { id: "T2", grupo: "Amenazas", nombre: "T2 · Incendios (GDACS + FIRMS)", activa: true, muestra: "#ef4444", fuente: "T2_incendios",
-    url: "/api/amenazas?fuente=T2_incendios",
+  { id: "A1", grupo: "Amenazas", nombre: "A1 · Incendios (GDACS + FIRMS)", activa: true, muestra: "#ef4444", fuente: "A1_incendios",
+    url: "/api/amenazas?fuente=A1_incendios",
     crear: d => L.geoJSON(d, { pane: "amen",
       style: f => ({ color: "#b91c1c", weight: 1.5, fillColor: "#ef4444", fillOpacity: 0.35 }),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
-  { id: "T3", grupo: "Amenazas", nombre: "T3 · Clima severo (Open-Meteo)", activa: true, muestra: "#f97316", fuente: "T3_clima",
-    url: "/api/amenazas?fuente=T3_clima", opciones: "horas",
+  { id: "A2", grupo: "Amenazas", nombre: "A2 · Clima severo (Open-Meteo)", activa: true, muestra: "#f97316", fuente: "A2_clima",
+    url: "/api/amenazas?fuente=A2_clima", opciones: "horas",
     crear: (d, capa) => L.geoJSON(d, { pane: "amen",
       filter: f => !capa.hora || (f.properties.propiedades || {}).valido_desde === capa.hora,
       style: f => ({ color: COLOR_NIVEL[f.properties.nivel_riesgo], weight: 1,
@@ -262,27 +262,14 @@ const CAPAS = [
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
     leyenda: [["MEDIO", "Medio · penalizar"], ["ALTO", "Alto · bloquear"], ["CRITICO", "Crítico · bloquear"]]
       .map(([n, t]) => [COLOR_NIVEL[n], t, true]) },
-  { id: "T5", grupo: "Amenazas", nombre: "T5 · Emergencias por lluvia", activa: true, muestra: "#eab308", fuente: "T5_lluvias_maipu",
-    url: "/api/amenazas?fuente=T5_lluvias_maipu", opciones: "historial",
-    crear: (d, capa) => L.geoJSON(d, {
-      filter: f => capa.historial || (f.properties.propiedades || {}).activa,
-      pointToLayer: (f, ll) => {
-        const p = f.properties.propiedades || {};
-        return p.activa
-          ? L.circle(ll, { pane: "amen", radius: p.radio_afectacion_m || 100, color: COLOR_NIVEL[f.properties.nivel_riesgo],
-                           weight: 2, fillOpacity: 0.3 })
-          : punto(ll, COLOR_NIVEL.BAJO, 3, "amen");
-      },
-      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
-    leyenda: [[COLOR_NIVEL.MEDIO, "Activa (radio de afectación)"], [COLOR_NIVEL.BAJO, "Histórica / controlada"]] },
-  { id: "T6", grupo: "Amenazas", nombre: "T6 · Zona conflictiva (SOSAFE)", activa: true, muestra: "#f77f00", fuente: "T6_sosafe",
-    url: "/api/amenazas?fuente=T6_sosafe",
+  { id: "A3", grupo: "Amenazas", nombre: "A3 · Zona conflictiva (SOSAFE)", activa: true, muestra: "#f77f00", fuente: "A3_sosafe",
+    url: "/api/amenazas?fuente=A3_sosafe",
     crear: d => L.geoJSON(d, { pane: "amen",
       style: () => ({ color: "#f77f00", weight: 2, fillColor: "#f77f00", fillOpacity: 0.3 }),
       pointToLayer: (f, ll) => punto(ll, "#f77f00", 6, "amen"),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
-  { id: "T7", grupo: "Amenazas", nombre: "T7 · Calles cerradas y obras (Waze)", activa: true, muestra: "#d90429", fuente: "T7_waze",
-    url: "/api/amenazas?fuente=T7_waze",
+  { id: "A4", grupo: "Amenazas", nombre: "A4 · Calles cerradas y obras (Waze)", activa: true, muestra: "#d90429", fuente: "A4_waze",
+    url: "/api/amenazas?fuente=A4_waze",
     crear: d => L.geoJSON(d, { pane: "amen",
       style: f => ({ color: (f.properties && f.properties.marker_color) || "#d90429", weight: 2, fillColor: (f.properties && f.properties.marker_color) || "#d90429", fillOpacity: 0.35 }),
       pointToLayer: (f, ll) => punto(ll, (f.properties && f.properties.marker_color) || "#d90429", 6, "amen"),
@@ -324,13 +311,6 @@ function construirPanel(catalogo) {
     contenedor.appendChild(div);
     capa.div = div;
     div.querySelector("input").addEventListener("change", e => alternarCapa(capa, e.target.checked));
-    if (capa.opciones === "historial") {
-      div.querySelector(".opciones").innerHTML =
-        `<label><input type="checkbox"> Mostrar también reportes históricos</label>`;
-      div.querySelector(".opciones input").addEventListener("change", e => {
-        capa.historial = e.target.checked; redibujar(capa);
-      });
-    }
     if (capa.activa) alternarCapa(capa, true);
   });
 }
@@ -369,7 +349,7 @@ function redibujar(capa) {
   capa.capa = capa.crear(capa.datos, capa).addTo(mapa);
 }
 
-// T3: selector de hora (cada feature es una celda-hora con amenaza)
+// A2: selector de hora (cada feature es una celda-hora con amenaza)
 function prepararHoras(capa) {
   const horas = [...new Set(capa.datos.features.map(f => (f.properties.propiedades || {}).valido_desde))]
     .filter(Boolean).sort();
@@ -400,13 +380,13 @@ const CAMPOS = [
   { id: "k", etiqueta: "Rutas por algoritmo (k)", tipo: "select", opciones: [2, 3, 4] },
   { id: "hora_salida", etiqueta: "Hora de salida (vacío = ahora)", tipo: "datetime" },
   { grupo: "Restricciones desde la metadata" },
-  { id: "evitar_aerodromos", etiqueta: "Evitar aeródromos (M6)", tipo: "bool" },
+  { id: "evitar_aerodromos", etiqueta: "Evitar aeródromos (M4)", tipo: "bool" },
   { id: "radio_aerodromo_m", etiqueta: "Radio de exclusión aeródromo (m)", tipo: "num", paso: 100 },
   { id: "evitar_paraderos", etiqueta: "Evitar oclusión en paraderos (M1)", tipo: "bool" },
-  { id: "priorizar_vulnerables", etiqueta: "Priorizar manzanas vulnerables (M5)", tipo: "bool" },
-  { id: "tipos_senal", etiqueta: "Señales a inspeccionar (M3)", tipo: "tipos" },
+  { id: "priorizar_vulnerables", etiqueta: "Priorizar manzanas vulnerables (M3)", tipo: "bool" },
+  { id: "tipos_senal", etiqueta: "Señales a inspeccionar (M2)", tipo: "tipos" },
   { grupo: "Amenazas y operación" },
-  { id: "considerar_clima", etiqueta: "Considerar clima por hora (T3)", tipo: "bool" },
+  { id: "considerar_clima", etiqueta: "Considerar clima por hora (A2)", tipo: "bool" },
   { id: "radio_corredor_m", etiqueta: "Ancho del corredor (m)", tipo: "num", paso: 50 },
   { id: "max_requeridas", etiqueta: "Máx. aristas a inspeccionar", tipo: "num", paso: 1 },
   { id: "autonomia_km", etiqueta: "Autonomía por dron (km)", tipo: "num", paso: 1 },

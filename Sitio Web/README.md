@@ -24,14 +24,13 @@ Cada capa corresponde a uno de los JSON cargados en la BD y se descarga solo al 
 | Infraestructura | Red vial | `/api/infraestructura` | `network_edges` | Líneas; vías principales más gruesas |
 | Infraestructura | Nodos | `/api/nodos` | `network_nodes` | Puntos (apagada por defecto) |
 | Metadata | M1 · Paraderos | `/api/metadata?fuente=M1_paraderos` | `temp_metadata` | Puntos azules |
-| Metadata | M3 · Controles viales | `/api/metadata?fuente=M3_controles_viales` | `temp_metadata` | PARE, Ceda el paso, semáforos y cruces por color |
-| Metadata | M5 · Vulnerabilidad | `/api/metadata?fuente=M5_censo_manzanas&simplificar=0.00003` | `temp_metadata` | Coropleta del índice $V_m$ por manzana |
-| Metadata | M6 · Aeródromos | `/api/metadata?fuente=M6_aerodromos` | `temp_metadata` | Puntos |
-| Amenazas | T2 · Incendios | `/api/amenazas?fuente=T2_incendios` | `temp_amenazas` | Polígonos de exclusión |
-| Amenazas | T3 · Clima severo | `/api/amenazas?fuente=T3_clima` | `temp_amenazas` | Celdas por nivel de riesgo, con selector de hora |
-| Amenazas | T5 · Lluvias | `/api/amenazas?fuente=T5_lluvias_maipu` | `temp_amenazas` | Círculo con el radio de afectación (activas); historial opcional |
-| Amenazas | T6 · SOSAFE | `/api/amenazas?fuente=T6_sosafe` | `temp_amenazas` | Geocerca y punto del reporte |
-| Amenazas | T7 · Waze | `/api/amenazas?fuente=T7_waze` | `temp_amenazas` | Geocercas de exclusión por calles cerradas y obras |
+| Metadata | M2 · Controles viales | `/api/metadata?fuente=M2_controles_viales` | `temp_metadata` | PARE, Ceda el paso, semáforos y cruces por color |
+| Metadata | M3 · Vulnerabilidad | `/api/metadata?fuente=M3_censo_manzanas&simplificar=0.00003` | `temp_metadata` | Coropleta del índice $V_m$ por manzana |
+| Metadata | M4 · Aeródromos | `/api/metadata?fuente=M4_aerodromos` | `temp_metadata` | Puntos |
+| Amenazas | A1 · Incendios | `/api/amenazas?fuente=A1_incendios` | `temp_amenazas` | Polígonos de exclusión |
+| Amenazas | A2 · Clima severo | `/api/amenazas?fuente=A2_clima` | `temp_amenazas` | Celdas por nivel de riesgo, con selector de hora |
+| Amenazas | A3 · SOSAFE | `/api/amenazas?fuente=A3_sosafe` | `temp_amenazas` | Geocerca y punto del reporte |
+| Amenazas | A4 · Waze | `/api/amenazas?fuente=A4_waze` | `temp_amenazas` | Geocercas de exclusión por calles cerradas y obras |
 
 Colores de riesgo, comunes a todas las amenazas: BAJO gris, MEDIO amarillo, ALTO naranjo, CRÍTICO rojo.
 

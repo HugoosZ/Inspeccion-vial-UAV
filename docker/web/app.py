@@ -164,7 +164,7 @@ def get_nodos():
 
 @app.get("/api/metadata")
 def get_metadata(
-    fuente: str = Query(None, description="fuente_etl: M1_paraderos, M3_controles_viales, M5_censo_manzanas, M6_aerodromos"),
+    fuente: str = Query(None, description="fuente_etl: M1_paraderos, M2_controles_viales, M3_censo_manzanas, M4_aerodromos"),
     tipo: str = None,
     comuna: str = None,
     simplificar: float = Query(0, description="Tolerancia de simplificación en grados"),
@@ -184,7 +184,7 @@ def get_metadata(
 
 @app.get("/api/amenazas")
 def get_amenazas(
-    fuente: str = Query(None, description="fuente_etl: T2_incendios, T3_clima, T5_lluvias_maipu, T6_sosafe, T7_waze"),
+    fuente: str = Query(None, description="fuente_etl: A1_incendios, A2_clima, A3_sosafe, A4_waze"),
     tipo: str = None,
     riesgo: str = None,
 ):

@@ -23,20 +23,19 @@ Cada amenaza cargada en `temp_amenazas` es un **evento de falla** con zona de af
 
 | Fuente | Zona de afectación | Vigencia | Tipo de falla |
 |---|---|---|---|
-| T2 Incendios (GDACS, FIRMS) | Polígono de exclusión | Del evento o de la detección | Dura: bloquea |
-| T3 Clima (Open-Meteo) | Celda de la grilla 3 × 3 | Una hora (`valido_desde`, `valido_hasta`) | Dependiente del tiempo |
-| T5 Lluvias (Municipalidad) | Punto + `radio_afectacion_m` | Solo reportes activos | Dura (ALTO/CRÍTICO) o blanda (POSTERGAR) |
-| T6 SOSAFE | Geocerca circular | Mientras el reporte esté vigente | Dura: bloquea |
-| T7 Waze (Cierres y obras) | Geocerca circular (50--60 m) | Mientras la alerta esté activa | Dura: bloquea |
+| A1 Incendios (GDACS, FIRMS) | Polígono de exclusión | Del evento o de la detección | Dura: bloquea |
+| A2 Clima (Open-Meteo) | Celda de la grilla 3 × 3 | Una hora (`valido_desde`, `valido_hasta`) | Dependiente del tiempo |
+| A3 SOSAFE | Geocerca circular | Mientras el reporte esté vigente | Dura: bloquea |
+| A4 Waze (Cierres y obras) | Geocerca circular (50--60 m) | Mientras la alerta esté activa | Dura: bloquea |
 
-Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la zona de $a$ (o está a menos del radio, en T5) y $a$ está vigente en la ventana $[t_0,\,t_0+H]$, con $H$ = `horizonte_h` (2 h por defecto).
+Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la zona de $a$ (o está a menos de `radio_afectacion_m`, si la amenaza lo define) y $a$ está vigente en la ventana $[t_0,\,t_0+H]$, con $H$ = `horizonte_h` (2 h por defecto).
 
 ## 2. Asignación de pesos a las aristas
 
 $$
 w(e,t)=
 \begin{cases}
-\infty & \text{si } e \text{ toca una amenaza dura (T2, T6, T7, T5 ALTO/CRÍTICO)}\\
+\infty & \text{si } e \text{ toca una amenaza dura (A1, A3, A4)}\\
 d(e)\cdot\rho(e)\cdot\pi(e)\cdot\varphi(e,t) & \text{en otro caso}
 \end{cases}
 $$
@@ -44,7 +43,7 @@ $$
 | Factor | Significado | Valores |
 |---|---|---|
 | $d(e)$ | Largo de la arista en km | `length_m / 1000` |
-| $\rho(e)$ | Amenaza estática | 1,5 si PENALIZAR · 2,0 si POSTERGAR (T5 MEDIO) · 1 si no hay |
+| $\rho(e)$ | Amenaza estática | 1,5 si PENALIZAR · 2,0 si POSTERGAR · 1 si no hay |
 | $\pi(e)$ | Restricción de metadata | 1,3 junto a paraderos · ∞ cerca de aeródromos · 1 en otro caso |
 | $\varphi(e,t)$ | Clima en la hora en que el dron cruza la arista | 1,5 si MEDIO · 10 si ALTO/CRÍTICO ("bloqueo blando") · 1 si no hay |
 
@@ -54,12 +53,12 @@ El clima no elimina aristas, porque una celda de 7 × 6 km con lluvia dejaría a
 
 | Preferencia | Metadata | Conversión en restricción |
 |---|---|---|
-| `evitar_aerodromos` + `radio_aerodromo_m` | M6 Aeródromos DGAC | Se eliminan las aristas a menos del radio ($\pi=\infty$) |
+| `evitar_aerodromos` + `radio_aerodromo_m` | M4 Aeródromos DGAC | Se eliminan las aristas a menos del radio ($\pi=\infty$) |
 | `evitar_paraderos` | M1 Paraderos | Aristas a menos de 25 m de un paradero: $\pi = 1{,}3$, porque los buses detenidos tapan la señalética |
-| `priorizar_vulnerables` | M5 Censo, índice $V_m$ | Las aristas junto a manzanas con $V_m>0$ suman +2 al puntaje para entrar en $E_R$ |
-| `tipos_senal` | M3 Controles viales OSM | Define qué aristas se deben inspeccionar: las que tienen una señal de esos tipos a menos de 15 m |
+| `priorizar_vulnerables` | M3 Censo, índice $V_m$ | Las aristas junto a manzanas con $V_m>0$ suman +2 al puntaje para entrar en $E_R$ |
+| `tipos_senal` | M2 Controles viales OSM | Define qué aristas se deben inspeccionar: las que tienen una señal de esos tipos a menos de 15 m |
 | `radio_corredor_m`, `max_requeridas` | — | Ancho del corredor inicio–objetivo donde se buscan aristas y tope de $\lvert E_R\rvert$ |
-| `considerar_clima` | T3 | Activa o desactiva $\varphi(e,t)$ |
+| `considerar_clima` | A2 | Activa o desactiva $\varphi(e,t)$ |
 | `velocidad_*`, `autonomia_km` | — | Parámetros del dron: tiempo de llegada a cada arista y límite de batería |
 
 ## 4. Preferencias por defecto
@@ -95,7 +94,7 @@ La respuesta de `/api/rutas` incluye `preferencias_por_defecto`, con la lista de
 
 ### Funcionamiento del algoritmo
 
-Inspeccionar señalética es un **Rural Postman Problem**: hay que recorrer un subconjunto de aristas obligatorias $E_R$ (las que tienen señales) usando cualquier otra arista para moverse entre ellas. Es *time-dependent* porque el costo de cada arista depende de la hora en que el dron la cruza (clima T3 por hora).
+Inspeccionar señalética es un **Rural Postman Problem**: hay que recorrer un subconjunto de aristas obligatorias $E_R$ (las que tienen señales) usando cualquier otra arista para moverse entre ellas. Es *time-dependent* porque el costo de cada arista depende de la hora en que el dron la cruza (clima A2 por hora).
 
 1. **Aristas requeridas.** Se toman las aristas del corredor inicio–objetivo con señales de los tipos elegidos, ordenadas por puntaje (señales + vulnerabilidad) y descartando las bloqueadas, hasta `max_requeridas`.
 2. **Fase offline: caminos de transición.** Se calculan los caminos de costo mínimo $w$ entre todos los extremos de $E_R$, el inicio y el objetivo. Por la propiedad de optimalidad del paper (con tiempos FIFO, la transición óptima entre dos aristas requeridas es un camino mínimo), el genético solo decide el **orden** y el **sentido** de las aristas requeridas.

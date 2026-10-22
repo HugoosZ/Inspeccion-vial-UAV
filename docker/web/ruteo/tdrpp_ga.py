@@ -13,7 +13,7 @@ Extensiones del equipo:
   - k drones: el cromosoma también reparte las aristas requeridas entre drones
     (cortes sobre la permutación). Cada dron va de inicio a objetivo.
   - Dependencia del tiempo: el costo de una arista depende de la hora a la que
-    el dron la cruza (amenazas de clima T3 por hora).
+    el dron la cruza (amenazas de clima A2 por hora).
   - Restricción de autonomía (batería) por dron y balance entre drones.
   - Mejora local 2-Opt sobre la mejor solución (Croes, 1958).
   - Arquitectura offline/online: los caminos de transición se calculan una vez

@@ -43,7 +43,7 @@ services:
       DB_PASSWORD: ruteo_pass
       # Indica a main.py que corre dentro del contenedor (modo pipeline)
       RUTEO_EN_CONTENEDOR: "1"
-      # Clave gratuita de NASA FIRMS (amenaza T2); se lee del archivo .env de la raíz.
+      # Clave gratuita de NASA FIRMS (amenaza A1); se lee del archivo .env de la raíz.
       # El resto de las claves (OHSOME, SOSAFE, GEMINI) las lee main.py desde /app/.env
       FIRMS_MAP_KEY: ${FIRMS_MAP_KEY:-}
     volumes:

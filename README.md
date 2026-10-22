@@ -21,8 +21,8 @@ El proyecto se estructura de forma modular desacoplando extracción, base de dat
 │   └── web/                 # Contenedor con FastAPI y servidor estático Leaflet
 │       └── ruteo/           # Dijkstra k rutas, TDRPP-GA y métrica de resiliencia
 ├── Infraestructura/         # Extracción y transformación de red vial (nodos y aristas)
-├── Metadata/                # Extracción y transformación de metadatos (MOP, Waze, clima)
-├── Amenazas/                # Extracción y transformación de amenazas (SOSAFE, clima, zonas hostiles)
+├── Metadata/                # Metadatos: M1 paraderos, M2 controles viales, M3 censo, M4 aeródromos
+├── Amenazas/                # Extracción y transformación de amenazas (incendios, clima, SOSAFE, Waze)
 └── Sitio Web/               # Visualizador Leaflet y comparación de rutas (pgr_dijkstra vs TDRPP-GA)
 ```
 
@@ -55,7 +55,7 @@ python3 main.py
 | Paso | Qué hace | Dónde corre |
 |---|---|---|
 | 1. Contenedores | `docker compose up -d --build db etl` | Computador |
-| 2. Descarga | Extractores de Infraestructura, Metadata (M1, M3, M5) y Amenazas (T2, T3, T5, T6, T7) que escriben los JSON/GeoJSON | Contenedor `etl` |
+| 2. Descarga | Extractores de Infraestructura, Metadata (M1, M2, M3) y Amenazas (A1, A2, A3, A4) que escriben los JSON/GeoJSON | Contenedor `etl` |
 | 3. Importación | Un `cargar.py` por cada JSON/GeoJSON hacia PostGIS, y conteo de filas por tabla y fuente | Contenedor `etl` |
 | 4. Web | Levanta `web`, espera a que `/health` responda, verifica las capas y la API de ruteo, y abre el navegador | Computador |
 
@@ -80,16 +80,16 @@ http://localhost:8080/docs     # documentación de la API
 ```
 
 ### 4. Fuentes estáticas
-M5 (Censo 2024) se carga desde `Metadata/M5/manzanas_maipu_completo.zip`; para regenerarlo hace falta la cartografía del INE (`Cartografia_censo2024_Pais.gpkg`, no versionada por su tamaño). M6 (aeródromos DGAC) se carga desde `Metadata/M6/aerodromos.geojson`.
+M3 (Censo 2024) se carga desde `Metadata/M3/manzanas_maipu_completo.zip`; para regenerarlo hace falta la cartografía del INE (`Cartografia_censo2024_Pais.gpkg`, no versionada por su tamaño). M4 (aeródromos DGAC) se carga desde `Metadata/M4/aerodromos.geojson`.
 
 ### 5. Comparar rutas
 En el panel **Planificación de rutas** del sitio, haz clic en el mapa para fijar el inicio y el objetivo, ajusta las restricciones (u ocupa las por defecto) y presiona **Calcular rutas**. Se muestran k rutas de `pgr_dijkstra` (solo distancia) y k rutas del **TDRPP-GA** (algoritmo genético para el Time-Dependent Rural Postman Problem, Xin et al., 2022), con su métrica de resiliencia y el diferencial $\Delta R$. El modelo completo está documentado en [`docker/web/ruteo/README.md`](docker/web/ruteo/README.md).
 
 ---
 
-## Nota sobre los datos del Censo 2024 (Metadata 5)
+## Nota sobre los datos del Censo 2024 (Metadata 3)
 
-En la carpeta `Metadata/M5/` encontrarás el archivo `manzanas_maipu_completo.zip`. 
+En la carpeta `Metadata/M3/` encontrarás el archivo `manzanas_maipu_completo.zip`. 
 Este archivo contiene el **GeoJSON final** con la geometría y los datos demográficos de las **5.875 manzanas de Maipú**, cruzados con el Censo 2024.
 
 **¿Cómo usarlo?**
@@ -99,7 +99,7 @@ Este archivo contiene el **GeoJSON final** con la geometría y los datos demogr�
 **¿Cómo regenerarlo?**
 Si necesitas volver a generarlo (porque actualizaste los datos o quieres ver el proceso), sigue estos pasos:
 1. Abre una terminal y entra a la carpeta:
-   cd Metadata/M5
+   cd Metadata/M3
 2. Ejecuta el script:
     python procesar_censo.py
 (Asegúrate de tener el GeoPackage original Cartografia_censo2024_Pais.gpkg en la misma carpeta para que el script funcione)
