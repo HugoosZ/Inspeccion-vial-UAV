@@ -100,7 +100,7 @@ Representa el epicentro geográfico del incidente reportado.
 | **`properties.categoria`** | `String` | `"INCENDIO_COLUMNA_TERMICA"` | Categoría aeronáutica asignada por la IA tras análisis semántico. Valores posibles: `PIROTECNIA_FUEGOS_ARTIFICIALES`, `DISPAROS_BALACERA`, `OBSTACULO_CABLES_POSTES`, `AERONAVE_EMERGENCIA`, `INCENDIO_COLUMNA_TERMICA`. |
 | **`properties.nivel_riesgo`** | `String` | `"ALTO"` | Severidad para la aeronave UAV: `CRITICO` (riesgo inminente de destrucción o colisión), `ALTO` (humo denso y térmicas), `MEDIO` (precaución). |
 | **`properties.descripcion`** | `String` | `"Quema ilegal..."` | Texto original escrito por el ciudadano en la aplicación comunitaria. |
-| **`properties.justificacion`** | `String` | `"Humo denso..."` | Explicación técnica redactada por la IA que justifica por qué el evento pone en riesgo el vuelo a 30-120 m de altura. |
+| **`properties.justificacion`** | `String` | `"Humo denso..."` | Explicación técnica redactada por la IA que justifica por qué el evento pone en riesgo el vuelo a 20 m de altura. |
 | **`properties.radio_buffer`** | `Integer` | `500` | Radio de seguridad asignado a la amenaza expresado en **metros**. |
 | **`properties.marker_color`** | `String (HEX)` | `"#f77f00"` | Código hexadecimal para pintar el icono en Leaflet: Rojo (`#d90429`), Naranja (`#f77f00`), Amarillo (`#fcbf49`). |
 | **`properties.tipo_geometria`** | `String` | `"amenaza_punto"` | Discriminador de tipo. Permite al frontend de Leaflet filtrar y aplicar funciones de marcador (`L.circleMarker` o `L.marker`). |

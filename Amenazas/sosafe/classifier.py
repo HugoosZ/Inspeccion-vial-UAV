@@ -32,15 +32,15 @@ DATA_DIR = CURRENT_DIR / "data"
 # ==============================================================================
 SYSTEM_INSTRUCTION = """
 Eres un especialista en seguridad operacional aeronáutica y navegación de Vehículos Aéreos No Tripulados (UAVs / Drones).
-Tu misión es analizar reportes ciudadanos comunitarios urbanos y discriminar con criterio técnico estricto si un evento representa una amenaza real para una aeronave volando entre 30 y 120 metros de altitud.
+Tu misión es analizar reportes ciudadanos comunitarios urbanos y discriminar con criterio técnico estricto si un evento representa una amenaza real para una aeronave volando a muy baja cota (20 metros de altitud) para inspección de elementos viales.
 
 CRITERIO DE AMENAZA REAL (es_amenaza = true):
 Debes clasificar como amenaza ÚNICAMENTE eventos con riesgo cinético, térmico, electromagnético o de espacio aéreo:
-1. PIROTECNIA_FUEGOS_ARTIFICIALES: Cualquier mención de fuegos artificiales, fuegos de artificio, petardos de altura o bengalas. (Riesgo: proyectiles explosivos que alcanzan la cota de 30-100m).
+1. PIROTECNIA_FUEGOS_ARTIFICIALES: Cualquier mención de fuegos artificiales, fuegos de artificio, petardos o bengalas. (Riesgo: proyectiles explosivos que detonan entre 15 y 50m e impactan directamente a la aeronave a 20m de altura).
 2. DISPAROS_BALACERA: Detonaciones de armas de fuego, disparos al aire, tiroteos o balaceras activas. (Riesgo: proyectiles balísticos ascendentes/descendentes).
-3. OBSTACULO_CABLES_POSTES: Cables de tendido eléctrico arrancados, colgando, buses/camiones enganchados con cables, postes o semáforos caídos. (Riesgo: colisión física fatal con hélices).
-4. INCENDIO_COLUMNA_TERMICA: Incendios estructurales, vehiculares o de pastizales con fuego activo o humo negro/cenizas denso. (Riesgo: corrientes ascendentes violentas, ceguera de sensores ópticos).
-5. AERONAVE_EMERGENCIA: Presencia de helicópteros policiales (Carabineros) o de rescate a baja cota. (Riesgo: colisión en vuelo; obligación de aterrizaje inmediato).
+3. OBSTACULO_CABLES_POSTES: Cables de tendido eléctrico arrancados, colgando, buses/camiones enganchados con cables, postes o semáforos caídos. (Riesgo CRÍTICO: a 20 metros de altitud el dron navega a la misma altura del tendido aéreo urbano, con riesgo fatal de colisión con rotores).
+4. INCENDIO_COLUMNA_TERMICA: Incendios estructurales, vehiculares o de pastizales con fuego activo o humo denso/cenizas. (Riesgo: corrientes ascendentes térmicas y ceguera inmediata de sensores ópticos).
+5. AERONAVE_EMERGENCIA: Presencia de helicópteros policiales (Carabineros) o de rescate operando a baja cota o aterrizando en calzada. (Riesgo: turbulencia severa de rotor downwash que derriba al dron y obligación normativa de despeje inmediato).
 
 CRITERIO DE EXCLUSIÓN / RUIDO (es_amenaza = false):
 Debes clasificar como NO amenaza (es_amenaza = false, nivel_riesgo = NINGUNO):
@@ -124,7 +124,7 @@ def classify_with_rule_based_fallback(reports):
             nivel = "CRITICO"
             categoria = "PIROTECNIA_FUEGOS_ARTIFICIALES"
             buffer_m = 400
-            justificacion = "Pirotecnia explosiva a 30-100m de altura; riesgo directo de destrucción por impacto."
+            justificacion = "Pirotecnia explosiva a cota de 20m; riesgo directo de destrucción por impacto."
         # 2. Disparos
         elif any(k in full_text for k in keywords_disparos):
             es_amenaza = True
@@ -138,14 +138,14 @@ def classify_with_rule_based_fallback(reports):
             nivel = "CRITICO"
             categoria = "OBSTACULO_CABLES_POSTES"
             buffer_m = 300
-            justificacion = "Cables cortados o postes en caída representan colisión física fatal con rotores."
+            justificacion = "A 20m de altitud, cables cortados o postes representan colisión física fatal con rotores."
         # 4. Aeronaves a baja cota
         elif any(k in full_text for k in keywords_aeronave):
             es_amenaza = True
             nivel = "CRITICO"
             categoria = "AERONAVE_EMERGENCIA"
             buffer_m = 500
-            justificacion = "Presencia de helicóptero a baja cota; obligación normativa de descender."
+            justificacion = "Helicóptero operando a baja cota; turbulencia de rotor downwash y obligación normativa."
         # 5. Incendios
         elif any(k in full_text for k in keywords_incendio) and r.get("type") == 19:
             es_amenaza = True

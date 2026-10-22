@@ -45,14 +45,14 @@ Campos principales en `.env`:
 
 ## 3. Criterio del Prompt de Sistema (Seguridad de Vuelo UAV)
 
-El clasificador analiza semánticamente el título y la descripción de cada reporte bajo un criterio técnico estricto para drones volando entre 30 y 120 metros:
+El clasificador analiza semánticamente el título y la descripción de cada reporte bajo un criterio técnico estricto para drones volando a muy baja cota urbana (20 metros de altitud para inspección cercana):
 
 ### Amenazas Reales Confirmadas (`es_amenaza: true`)
-1. **`PIROTECNIA_FUEGOS_ARTIFICIALES`**: Fuegos artificiales o pirotecnia (alcanzan de 30 a 100 m de altitud con detonación destructiva). Buffer: 400 m.
+1. **`PIROTECNIA_FUEGOS_ARTIFICIALES`**: Fuegos artificiales o pirotecnia (detonan entre 15 y 50 m de altitud con impacto destructivo directo sobre el dron). Buffer: 400 m.
 2. **`DISPAROS_BALACERA`**: Balaceras activas y disparos de arma de fuego con proyectiles balísticos. Buffer: 400 m.
-3. **`OBSTACULO_CABLES_POSTES`**: Cables eléctricos cortados o colgando, postes caídos o vehículos enganchados. Buffer: 300 m.
-4. **`AERONAVE_EMERGENCIA`**: Helicópteros policiales (Carabineros) o de rescate a baja cota. Buffer: 500 m.
-5. **`INCENDIO_COLUMNA_TERMICA`**: Incendios activos con columnas térmicas violentas y humo negro denso. Buffer: 500 m.
+3. **`OBSTACULO_CABLES_POSTES`**: Cables eléctricos cortados o colgando, postes caídos o vehículos enganchados (riesgo crítico: a 20 m el dron vuela a la altura directa del tendido aéreo urbano). Buffer: 300 m.
+4. **`AERONAVE_EMERGENCIA`**: Helicópteros policiales o de rescate operando a baja cota o aterrizando en calzada (turbulencia severa de rotor downwash y obligación normativa). Buffer: 500 m.
+5. **`INCENDIO_COLUMNA_TERMICA`**: Incendios activos con columnas térmicas violentas y humo negro denso a nivel de calle. Buffer: 500 m.
 
 ### Ruido Comunitario Descartado (`es_amenaza: false`)
 * Disputas vecinales, música fuerte o niños jugando ("niños tirando limones").

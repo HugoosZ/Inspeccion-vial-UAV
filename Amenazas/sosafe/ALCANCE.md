@@ -7,7 +7,7 @@ Este documento define con precisión técnica el **alcance actual** y el **alcan
 
 ## 1. Contexto y Objetivos Operacionales
 
-El objetivo primordial del proyecto es la **inspección visual automatizada de la red vial urbana mediante drones**. Durante la navegación autónoma (a altitudes de crucero entre 30 y 120 metros), la aeronave debe convivir con el dinamismo del entorno urbano.
+El objetivo primordial del proyecto es la **inspección visual automatizada de la red vial urbana mediante drones**. Durante la navegación autónoma (a una altitud de crucero de 20 metros para captura detallada de señales de tránsito y elementos viales), la aeronave debe convivir con el dinamismo del entorno urbano.
 
 Los reportes ciudadanos de SOSAFE aportan información en tiempo real que ningún mapa estático posee. No obstante, la gran mayoría de estos reportes corresponden a quejas comunitarias o incidentes a nivel de suelo que no suponen ningún riesgo para una aeronave en vuelo.
 
@@ -29,10 +29,10 @@ El clasificador (mediante Gemini AI o heurística de respaldo) identifica única
 
 | Categoría | Descripción y Riesgo Aeronáutico | Nivel de Riesgo | Radio Buffer (NFZ) |
 | :--- | :--- | :---: | :---: |
-| **`PIROTECNIA_FUEGOS_ARTIFICIALES`** | Fuegos artificiales, bengalas, petardos o fuegos de artificio. Alcanzan la cota de 30–100 m con trayectoria balística y detonación destructiva. *(Nota: en SOSAFE se reportan bajo tipo 14 o 17)*. | **CRÍTICO** | **400 metros** |
+| **`PIROTECNIA_FUEGOS_ARTIFICIALES`** | Fuegos artificiales, bengalas o petardos. Detonan entre 15 y 50 m con detonación destructiva e impacto directo sobre la aeronave a 20 m de altura. *(Nota: en SOSAFE se reportan bajo tipo 14 o 17)*. | **CRÍTICO** | **400 metros** |
 | **`DISPAROS_BALACERA`** | Balaceras activas, tiroteos o disparos al aire. Peligro de proyectiles balísticos en ascenso/descenso. | **CRÍTICO** | **400 metros** |
-| **`OBSTACULO_CABLES_POSTES`** | Cables de alta tensión arrancados o colgando, postes derribados o camiones enganchados. Peligro fatal de colisión con rotores. | **CRÍTICO** | **300 metros** |
-| **`AERONAVE_EMERGENCIA`** | Presencia de helicópteros de Carabineros o ambulancias a baja cota. Obligación normativa aeronáutica de descender o evitar la zona. | **CRÍTICO** | **500 metros** |
+| **`OBSTACULO_CABLES_POSTES`** | Cables de tendido eléctrico arrancados o colgando, postes derribados o camiones enganchados. Peligro fatal de colisión con rotores (a 20 m el dron vuela a la altura directa del tendido aéreo urbano). | **CRÍTICO** | **300 metros** |
+| **`AERONAVE_EMERGENCIA`** | Helicópteros policiales o de rescate operando a baja cota / aterrizajes de emergencia. Peligro por turbulencia de rotor (*downwash*) y obligación normativa de despeje inmediato. | **CRÍTICO** | **500 metros** |
 | **`INCENDIO_COLUMNA_TERMICA`** | Incendios estructurales, vehiculares o forestales activos con humo denso. Provocan ceguera de sensores y corrientes térmicas violentas. | **ALTO** | **500 metros** |
 
 ### 2.3. Descarte Sistemático de Ruido Comunitario (`RUIDO_IRRELEVANTE`)
@@ -57,7 +57,7 @@ Un reporte comunitario que indique:
 > *"Semáforo roto por choque"*  
 > *"Letrero vial arrancado por el viento"*
 
-**NO constituye una amenaza cinemática ni térmica para un dron que vuela a 50 metros de altitud.**  
+**NO constituye una amenaza cinemática ni térmica para un dron que vuela a 20 metros de altitud.**  
 Si el sistema actual clasificara estos reportes como "amenaza", generaría una geocerca de exclusión (No-Fly Zone) que prohibiría el paso del dron por dicha intersección, impidiendo precisamente lo que el proyecto busca: **inspeccionar la vialidad.**
 
 ### 3.2. Visión para la Siguiente Fase: Nodos de Recompensa (Gain / Reward Nodes)
