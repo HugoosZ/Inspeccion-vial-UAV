@@ -2,7 +2,7 @@
   "type": "FeatureCollection",
   "name": "uav_threat_geofences_waze_maipu",
   "metadata": {
-    "generado_utc": "2026-10-22T21:50:05+00:00",
+    "generado_utc": "2026-10-22T21:53:38+00:00",
     "comuna": "Maipú",
     "fuente": "Waze Live Map",
     "total_features": 12,
@@ -39,8 +39,8 @@
         "radio_metros": 60,
         "marker_color": "#d90429",
         "confianza": 5,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "amenaza_punto"
       }
@@ -206,8 +206,8 @@
         "radio_metros": 60,
         "marker_color": "#d90429",
         "confianza": 5,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "geocerca_exclusion"
       }
@@ -241,8 +241,8 @@
         "radio_metros": 60,
         "marker_color": "#d90429",
         "confianza": 5,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "amenaza_punto"
       }
@@ -408,8 +408,8 @@
         "radio_metros": 60,
         "marker_color": "#d90429",
         "confianza": 5,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "geocerca_exclusion"
       }
@@ -443,8 +443,8 @@
         "radio_metros": 50,
         "marker_color": "#f77f00",
         "confianza": 4,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "amenaza_punto"
       }
@@ -610,8 +610,8 @@
         "radio_metros": 50,
         "marker_color": "#f77f00",
         "confianza": 4,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "geocerca_exclusion"
       }
@@ -645,8 +645,8 @@
         "radio_metros": 50,
         "marker_color": "#f77f00",
         "confianza": 4,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "amenaza_punto"
       }
@@ -812,8 +812,8 @@
         "radio_metros": 50,
         "marker_color": "#f77f00",
         "confianza": 4,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "geocerca_exclusion"
       }
@@ -847,8 +847,8 @@
         "radio_metros": 60,
         "marker_color": "#d90429",
         "confianza": 5,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "amenaza_punto"
       }
@@ -1014,8 +1014,8 @@
         "radio_metros": 60,
         "marker_color": "#d90429",
         "confianza": 5,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "geocerca_exclusion"
       }
@@ -1049,8 +1049,8 @@
         "radio_metros": 50,
         "marker_color": "#f77f00",
         "confianza": 4,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "amenaza_punto"
       }
@@ -1216,8 +1216,8 @@
         "radio_metros": 50,
         "marker_color": "#f77f00",
         "confianza": 4,
-        "valido_desde": "2026-10-22T21:50:05+00:00",
-        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "valido_desde": "2026-10-22T21:53:38+00:00",
+        "valido_hasta": "2026-10-23T21:53:38+00:00",
         "activa": true,
         "tipo_geometria": "geocerca_exclusion"
       }
