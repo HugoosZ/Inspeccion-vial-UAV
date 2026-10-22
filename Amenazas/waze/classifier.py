@@ -139,6 +139,7 @@ def generar_geocercas_y_grafo():
         amenazas_grafo.append({
             "id": id_alerta,
             "uuid": a.get("uuid") or id_alerta,
+            "sector": a.get("sector", "Maipú"),
             "categoria": c["categoria"],
             "nivel_riesgo": c["nivel_riesgo"],
             "latitud": lat,
@@ -158,6 +159,7 @@ def generar_geocercas_y_grafo():
             "id": id_alerta,
             "uuid": a.get("uuid") or id_alerta,
             "fuente": "Waze Live Map",
+            "sector": a.get("sector", "Maipú"),
             "tipo": a.get("type"),
             "subtipo": a.get("subtype"),
             "tipo_amenaza": c["categoria"].lower(),

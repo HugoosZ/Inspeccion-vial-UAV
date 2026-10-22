@@ -42,6 +42,7 @@ El archivo está estructurado como una colección de objetos espaciales (`Featur
 | :--- | :---: | :--- | :--- |
 | **`id_amenaza`** | `String` | `"WAZE_wz-cl-maipu-001"` | Identificador único con prefijo de la fuente para trazabilidad. |
 | **`fuente`** | `String` | `"Waze Live Map"` | Fuente de datos original. |
+| **`sector`** | `String` | `"Plaza de Maipú / Centro Cívico"` | Sector o cuadrante de los 10 definidos en Maipú. |
 | **`tipo_amenaza`** | `String` | `"calle_cerrada"`, `"construccion_vial"` | Tipo estandarizado para la tabla `temp_amenazas`. |
 | **`categoria`** | `String` | `"CALLE_CERRADA"`, `"CONSTRUCCION_VIAL"` | Categoría operacional asignada. |
 | **`nivel_riesgo`** | `String` | `"CRITICO"`, `"ALTO"` | Nivel de severidad operacional. |

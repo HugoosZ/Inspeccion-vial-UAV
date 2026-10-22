@@ -3,6 +3,47 @@
     {
       "id": "wz-cl-maipu-001",
       "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880001",
+      "sector": "Pajaritos Norte / Del Sol / Monte Tabor",
+      "type": "HAZARD",
+      "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+      "street": "Avenida Los Pajaritos",
+      "city": "Maipú",
+      "location": {
+        "x": -70.748200,
+        "y": -33.478500
+      },
+      "pubMillis": 1729382400000,
+      "reportDescription": "Faenas en calzada poniente de Av. Pajaritos; reducción a una pista por obras de conservación vial y maquinaria pesada",
+      "confidence": 5,
+      "reliability": 9,
+      "reportRating": 4,
+      "magvar": 180,
+      "nThumbsUp": 11
+    },
+    {
+      "id": "wz-cl-maipu-002",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880002",
+      "sector": "Pajaritos Norte / Del Sol / Monte Tabor",
+      "type": "ROAD_CLOSED",
+      "subtype": "ROAD_CLOSED_CONSTRUCTION",
+      "street": "Avenida Santa Corina",
+      "city": "Maipú",
+      "location": {
+        "x": -70.735017,
+        "y": -33.470617
+      },
+      "pubMillis": 1729382700000,
+      "reportDescription": "Calle cerrada por obras de recarpeteo asfáltico y arreglo de cámaras subterráneas",
+      "confidence": 5,
+      "reliability": 9,
+      "reportRating": 4,
+      "magvar": 90,
+      "nThumbsUp": 8
+    },
+    {
+      "id": "wz-cl-maipu-003",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880003",
+      "sector": "Plaza de Maipú / Centro Cívico",
       "type": "ROAD_CLOSED",
       "subtype": "ROAD_CLOSED_CONSTRUCTION",
       "street": "Avenida 5 de Abril",
@@ -11,17 +52,38 @@
         "x": -70.753172,
         "y": -33.510403
       },
-      "pubMillis": 1729382400000,
-      "reportDescription": "Calle cerrada por obras viales y repavimentación SERVIU en Av. 5 de Abril",
+      "pubMillis": 1729383000000,
+      "reportDescription": "Cierre total de calzada por obras viales de repavimentación integral SERVIU en Av. 5 de Abril",
       "confidence": 5,
-      "reliability": 9,
-      "reportRating": 4,
-      "magvar": 180,
-      "nThumbsUp": 8
+      "reliability": 10,
+      "reportRating": 5,
+      "magvar": 270,
+      "nThumbsUp": 22
     },
     {
-      "id": "wz-cl-maipu-002",
-      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880002",
+      "id": "wz-cl-maipu-004",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880004",
+      "sector": "Plaza de Maipú / Centro Cívico",
+      "type": "HAZARD",
+      "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+      "street": "Alberto Llona",
+      "city": "Maipú",
+      "location": {
+        "x": -70.758200,
+        "y": -33.512500
+      },
+      "pubMillis": 1729383300000,
+      "reportDescription": "Reparación de soleras y bacheo profundo en paraderos de transporte público",
+      "confidence": 4,
+      "reliability": 8,
+      "reportRating": 3,
+      "magvar": 180,
+      "nThumbsUp": 6
+    },
+    {
+      "id": "wz-cl-maipu-005",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880005",
+      "sector": "Esquina Blanca / Camino Melipilla Oriente / Ferrocarril",
       "type": "ROAD_CLOSED",
       "subtype": "ROAD_CLOSED_CONSTRUCTION",
       "street": "Camino a Melipilla",
@@ -30,36 +92,38 @@
         "x": -70.742309,
         "y": -33.510760
       },
-      "pubMillis": 1729383000000,
-      "reportDescription": "Cierre total de calzada por obras del proyecto Tren Alameda-Melipilla y nuevo paso bajo nivel",
+      "pubMillis": 1729383600000,
+      "reportDescription": "Corte total de calzada por faenas del nuevo paso bajo nivel del proyecto Tren Alameda-Melipilla",
       "confidence": 5,
-      "reliability": 9,
+      "reliability": 10,
       "reportRating": 5,
-      "magvar": 210,
-      "nThumbsUp": 14
+      "magvar": 220,
+      "nThumbsUp": 31
     },
     {
-      "id": "wz-cl-maipu-003",
-      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880003",
+      "id": "wz-cl-maipu-006",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880006",
+      "sector": "Esquina Blanca / Camino Melipilla Oriente / Ferrocarril",
       "type": "HAZARD",
       "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
-      "street": "Avenida Los Pajaritos",
+      "street": "Avenida Esquina Blanca",
       "city": "Maipú",
       "location": {
-        "x": -70.757370,
-        "y": -33.520872
+        "x": -70.728500,
+        "y": -33.508200
       },
-      "pubMillis": 1729383600000,
-      "reportDescription": "Obras y faenas en calzada poniente; reducción de pistas por mantención de colectores y maquinaria pesada",
+      "pubMillis": 1729383900000,
+      "reportDescription": "Obras de canalización de aguas lluvias y maquinaria pesada operando sobre la berma",
       "confidence": 4,
       "reliability": 8,
       "reportRating": 3,
       "magvar": 90,
-      "nThumbsUp": 6
+      "nThumbsUp": 7
     },
     {
-      "id": "wz-cl-maipu-004",
-      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880004",
+      "id": "wz-cl-maipu-007",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880007",
+      "sector": "Rinconada / Hospital El Carmen",
       "type": "HAZARD",
       "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
       "street": "Avenida Rinconada",
@@ -69,88 +133,312 @@
         "y": -33.496784
       },
       "pubMillis": 1729384200000,
-      "reportDescription": "Reparación de calzada y bacheo profundo; retroexcavadora y personal trabajando en la vía",
+      "reportDescription": "Faenas viales de ensanche y bacheo frente al Hospital El Carmen; operarios y retroexcavadora en calzada",
+      "confidence": 5,
+      "reliability": 9,
+      "reportRating": 4,
+      "magvar": 280,
+      "nThumbsUp": 14
+    },
+    {
+      "id": "wz-cl-maipu-008",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880008",
+      "sector": "Rinconada / Hospital El Carmen",
+      "type": "ROAD_CLOSED",
+      "subtype": "ROAD_CLOSED_CONSTRUCTION",
+      "street": "Calle Asunción",
+      "city": "Maipú",
+      "location": {
+        "x": -70.781200,
+        "y": -33.502100
+      },
+      "pubMillis": 1729384500000,
+      "reportDescription": "Calle cerrada por rotura de matriz y reparación de emergencia de red de agua potable SMAPA",
       "confidence": 4,
-      "reliability": 7,
+      "reliability": 8,
+      "reportRating": 4,
+      "magvar": 170,
+      "nThumbsUp": 9
+    },
+    {
+      "id": "wz-cl-maipu-009",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880009",
+      "sector": "El Olimpo / Los Presidentes",
+      "type": "HAZARD",
+      "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+      "street": "Avenida El Olimpo",
+      "city": "Maipú",
+      "location": {
+        "x": -70.772500,
+        "y": -33.518400
+      },
+      "pubMillis": 1729384800000,
+      "reportDescription": "Obras de pavimentación y colocación de soleras; cuadrillas trabajando en calzada",
+      "confidence": 4,
+      "reliability": 8,
       "reportRating": 3,
-      "magvar": 120,
+      "magvar": 190,
       "nThumbsUp": 5
     },
     {
-      "id": "wz-cl-maipu-005",
-      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880005",
+      "id": "wz-cl-maipu-010",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880010",
+      "sector": "El Olimpo / Los Presidentes",
       "type": "ROAD_CLOSED",
       "subtype": "ROAD_CLOSED_EVENT",
+      "street": "Las Tinajas",
+      "city": "Maipú",
+      "location": {
+        "x": -70.768100,
+        "y": -33.524200
+      },
+      "pubMillis": 1729385100000,
+      "reportDescription": "Cierre transitorio por instalación de nuevo cruce semaforizado y canalizaciones viales",
+      "confidence": 4,
+      "reliability": 7,
+      "reportRating": 3,
+      "magvar": 100,
+      "nThumbsUp": 6
+    },
+    {
+      "id": "wz-cl-maipu-011",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880011",
+      "sector": "Las Naciones / Cuatro Poniente",
+      "type": "ROAD_CLOSED",
+      "subtype": "ROAD_CLOSED_CONSTRUCTION",
       "street": "Avenida Las Naciones",
       "city": "Maipú",
       "location": {
         "x": -70.786476,
         "y": -33.521983
       },
-      "pubMillis": 1729384800000,
-      "reportDescription": "Corte de tránsito programado por obras de alcantarillado SMAPA y recarpeteo asfáltico",
+      "pubMillis": 1729385400000,
+      "reportDescription": "Corte de tránsito programado por obras de alcantarillado SMAPA y recarpeteo asfáltico en Av. Las Naciones con 1 Sur",
       "confidence": 5,
-      "reliability": 8,
+      "reliability": 9,
       "reportRating": 4,
       "magvar": 340,
-      "nThumbsUp": 9
+      "nThumbsUp": 16
     },
     {
-      "id": "wz-cl-maipu-006",
-      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880006",
+      "id": "wz-cl-maipu-012",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880012",
+      "sector": "Las Naciones / Cuatro Poniente",
       "type": "HAZARD",
       "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
-      "street": "Avenida Esquina Blanca",
+      "street": "Avenida Cuatro Poniente",
       "city": "Maipú",
       "location": {
-        "x": -70.748500,
-        "y": -33.513200
+        "x": -70.801500,
+        "y": -33.531200
       },
-      "pubMillis": 1729385400000,
-      "reportDescription": "Faenas de pavimentación y arreglo de soleras; cuadrillas en calzada",
+      "pubMillis": 1729385700000,
+      "reportDescription": "Faenas de hormigonado y reparación de calzada en Av. 4 Poniente; camión mixer y operarios",
       "confidence": 4,
       "reliability": 8,
       "reportRating": 3,
+      "magvar": 210,
+      "nThumbsUp": 7
+    },
+    {
+      "id": "wz-cl-maipu-013",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880013",
+      "sector": "Pajaritos Sur / Nueva San Martín",
+      "type": "HAZARD",
+      "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+      "street": "Avenida Los Pajaritos Sur",
+      "city": "Maipú",
+      "location": {
+        "x": -70.757370,
+        "y": -33.520872
+      },
+      "pubMillis": 1729386000000,
+      "reportDescription": "Obras y faenas en calzada sur; mantención de colectores de aguas lluvia bajo enlace Vespucio",
+      "confidence": 5,
+      "reliability": 8,
+      "reportRating": 4,
       "magvar": 180,
+      "nThumbsUp": 12
+    },
+    {
+      "id": "wz-cl-maipu-014",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880014",
+      "sector": "Pajaritos Sur / Nueva San Martín",
+      "type": "ROAD_CLOSED",
+      "subtype": "ROAD_CLOSED_CONSTRUCTION",
+      "street": "Calle San José",
+      "city": "Maipú",
+      "location": {
+        "x": -70.749500,
+        "y": -33.534100
+      },
+      "pubMillis": 1729386300000,
+      "reportDescription": "Cierre de calle por obras de pavimentación participativa comunal",
+      "confidence": 4,
+      "reliability": 8,
+      "reportRating": 3,
+      "magvar": 90,
+      "nThumbsUp": 5
+    },
+    {
+      "id": "wz-cl-maipu-015",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880015",
+      "sector": "El Abrazo / Tres Poniente",
+      "type": "ROAD_CLOSED",
+      "subtype": "ROAD_CLOSED_CONSTRUCTION",
+      "street": "Avenida Tres Poniente",
+      "city": "Maipú",
+      "location": {
+        "x": -70.764200,
+        "y": -33.541500
+      },
+      "pubMillis": 1729386600000,
+      "reportDescription": "Corte de calzada por construcción de paso bajo nivel ferroviario y desvío hacia vías locales",
+      "confidence": 5,
+      "reliability": 9,
+      "reportRating": 5,
+      "magvar": 190,
+      "nThumbsUp": 19
+    },
+    {
+      "id": "wz-cl-maipu-016",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880016",
+      "sector": "El Abrazo / Tres Poniente",
+      "type": "HAZARD",
+      "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+      "street": "Calle Egipto",
+      "city": "Maipú",
+      "location": {
+        "x": -70.771800,
+        "y": -33.548200
+      },
+      "pubMillis": 1729386900000,
+      "reportDescription": "Reparación de calzada y bacheo con mezcla asfáltica en frío en barrio El Abrazo",
+      "confidence": 4,
+      "reliability": 7,
+      "reportRating": 3,
+      "magvar": 270,
       "nThumbsUp": 4
     },
     {
-      "id": "wz-cl-other-007",
-      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880007",
-      "type": "POLICE",
-      "subtype": "POLICE_VISIBLE",
-      "street": "Segunda Transversal",
+      "id": "wz-cl-maipu-017",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880017",
+      "sector": "Ciudad Satélite / Camino Melipilla Poniente",
+      "type": "ROAD_CLOSED",
+      "subtype": "ROAD_CLOSED_CONSTRUCTION",
+      "street": "Avenida Parque Central Poniente",
       "city": "Maipú",
       "location": {
-        "x": -70.758000,
-        "y": -33.515000
+        "x": -70.788500,
+        "y": -33.561200
       },
-      "pubMillis": 1729385900000,
-      "reportDescription": "Control policial de tránsito",
+      "pubMillis": 1729387200000,
+      "reportDescription": "Cierre de vía por reposición total de losas de hormigón en Ciudad Satélite",
+      "confidence": 5,
+      "reliability": 9,
+      "reportRating": 4,
+      "magvar": 310,
+      "nThumbsUp": 13
+    },
+    {
+      "id": "wz-cl-maipu-018",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880018",
+      "sector": "Ciudad Satélite / Camino Melipilla Poniente",
+      "type": "HAZARD",
+      "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+      "street": "Camino a Melipilla",
+      "city": "Maipú",
+      "location": {
+        "x": -70.799500,
+        "y": -33.568400
+      },
+      "pubMillis": 1729387500000,
+      "reportDescription": "Obras viales MOP en bermas con camiones tolva y maquinaria en movimiento altura Km 21",
+      "confidence": 5,
+      "reliability": 8,
+      "reportRating": 4,
+      "magvar": 220,
+      "nThumbsUp": 10
+    },
+    {
+      "id": "wz-cl-maipu-019",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880019",
+      "sector": "Loma Blanca / Lumen / Segunda Transversal",
+      "type": "HAZARD",
+      "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+      "street": "Avenida Lumen",
+      "city": "Maipú",
+      "location": {
+        "x": -70.729500,
+        "y": -33.498500
+      },
+      "pubMillis": 1729387800000,
+      "reportDescription": "Trabajos de fresado y recarpeteo de calzada en Av. Lumen con Segunda Transversal",
+      "confidence": 4,
+      "reliability": 8,
+      "reportRating": 3,
+      "magvar": 45,
+      "nThumbsUp": 7
+    },
+    {
+      "id": "wz-cl-maipu-020",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880020",
+      "sector": "Loma Blanca / Lumen / Segunda Transversal",
+      "type": "ROAD_CLOSED",
+      "subtype": "ROAD_CLOSED_CONSTRUCTION",
+      "street": "Pasaje Central",
+      "city": "Maipú",
+      "location": {
+        "x": -70.718200,
+        "y": -33.492100
+      },
+      "pubMillis": 1729388100000,
+      "reportDescription": "Calle cerrada por pavimentación participativa comunal y cambio de soleras",
+      "confidence": 4,
+      "reliability": 7,
+      "reportRating": 3,
+      "magvar": 120,
+      "nThumbsUp": 4
+    },
+    {
+      "id": "wz-cl-control-021",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880021",
+      "sector": "Plaza de Maipú / Centro Cívico",
+      "type": "POLICE",
+      "subtype": "POLICE_VISIBLE",
+      "street": "Avenida Los Pajaritos",
+      "city": "Maipú",
+      "location": {
+        "x": -70.755000,
+        "y": -33.511000
+      },
+      "pubMillis": 1729388400000,
+      "reportDescription": "Control policial de tránsito vehicular",
       "confidence": 3,
       "reliability": 6,
       "reportRating": 2,
-      "magvar": 45,
-      "nThumbsUp": 2
+      "magvar": 180,
+      "nThumbsUp": 3
     },
     {
-      "id": "wz-cl-other-008",
-      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880008",
+      "id": "wz-cl-control-022",
+      "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880022",
+      "sector": "Fuera de Comuna",
       "type": "ROAD_CLOSED",
       "subtype": "ROAD_CLOSED_CONSTRUCTION",
-      "street": "Alameda Bernardo O'Higgins",
+      "street": "Avenida Libertador Bernardo O'Higgins",
       "city": "Santiago",
       "location": {
         "x": -70.655000,
         "y": -33.444000
       },
-      "pubMillis": 1729386000000,
-      "reportDescription": "Obras en calzada en Santiago Centro fuera de Maipú",
+      "pubMillis": 1729388700000,
+      "reportDescription": "Obras viales en Alameda fuera del área de estudio de Maipú",
       "confidence": 5,
       "reliability": 9,
       "reportRating": 5,
       "magvar": 90,
-      "nThumbsUp": 15
+      "nThumbsUp": 20
     }
   ],
   "jams": []

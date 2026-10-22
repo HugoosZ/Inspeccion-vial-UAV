@@ -25,11 +25,20 @@ Por consiguiente, estos eventos se modelan como **amenazas de bloqueo duro (`BLO
 
 * **Endpoint oficial Live Map:**
   `https://www.waze.com/live-map/api/georss`
-* **Parámetros de consulta (centrados en Maipú):**
-  * `top`: `-33.4600` (Límite norte Maipú)
-  * `bottom`: `-33.5800` (Límite sur urbano Maipú)
-  * `left`: `-70.8200` (Límite poniente urbano)
-  * `right`: `-70.7000` (Límite oriente Maipú)
+* **Estrategia Multi-Sector (10 Zonas):**
+  Para evitar que la API trunque los resultados al solicitar un área muy extensa, la comuna se divide en 10 sectores operativos de aproximadamente $3 \times 3$ km cada uno, con un retraso configurable de **3,0 segundos** entre peticiones (`WAZE_REQUEST_DELAY=3.0`) para proteger la cuota de la sesión y evitar bloqueos por tasa de refresco (*Rate Limiting*):
+  1. *Pajaritos Norte / Del Sol / Monte Tabor*
+  2. *Plaza de Maipú / Centro Cívico*
+  3. *Esquina Blanca / Camino Melipilla Oriente / Ferrocarril*
+  4. *Rinconada / Hospital El Carmen*
+  5. *El Olimpo / Los Presidentes*
+  6. *Las Naciones / Cuatro Poniente*
+  7. *Pajaritos Sur / Nueva San Martín*
+  8. *El Abrazo / Tres Poniente*
+  9. *Ciudad Satélite / Camino Melipilla Poniente*
+  10. *Loma Blanca / Lumen / Segunda Transversal*
+
+* **Parámetros de consulta (por sector):**
   * `env`: `row` (Rest of World / Chile)
   * `types`: `alerts,traffic`
 

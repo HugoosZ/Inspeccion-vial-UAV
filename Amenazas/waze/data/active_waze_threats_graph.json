@@ -2,6 +2,45 @@
   {
     "id": "wz-cl-maipu-001",
     "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880001",
+    "sector": "Pajaritos Norte / Del Sol / Monte Tabor",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.4785,
+    "longitud": -70.7482,
+    "coordenadas": [
+      -33.4785,
+      -70.7482
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Los Pajaritos",
+    "descripcion": "Faenas en calzada poniente de Av. Pajaritos; reducción a una pista por obras de conservación vial y maquinaria pesada",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-002",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880002",
+    "sector": "Pajaritos Norte / Del Sol / Monte Tabor",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.470617,
+    "longitud": -70.735017,
+    "coordenadas": [
+      -33.470617,
+      -70.735017
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Santa Corina",
+    "descripcion": "Calle cerrada por obras de recarpeteo asfáltico y arreglo de cámaras subterráneas",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-003",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880003",
+    "sector": "Plaza de Maipú / Centro Cívico",
     "categoria": "CALLE_CERRADA",
     "nivel_riesgo": "CRITICO",
     "latitud": -33.510403,
@@ -14,12 +53,32 @@
     "accion_grafo": "BLOQUEAR_ARISTAS",
     "factor_penalizacion": "INF",
     "calle": "Avenida 5 de Abril",
-    "descripcion": "Calle cerrada por obras viales y repavimentación SERVIU en Av. 5 de Abril",
+    "descripcion": "Cierre total de calzada por obras viales de repavimentación integral SERVIU en Av. 5 de Abril",
     "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
   },
   {
-    "id": "wz-cl-maipu-002",
-    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880002",
+    "id": "wz-cl-maipu-004",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880004",
+    "sector": "Plaza de Maipú / Centro Cívico",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.5125,
+    "longitud": -70.7582,
+    "coordenadas": [
+      -33.5125,
+      -70.7582
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Alberto Llona",
+    "descripcion": "Reparación de soleras y bacheo profundo en paraderos de transporte público",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-005",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880005",
+    "sector": "Esquina Blanca / Camino Melipilla Oriente / Ferrocarril",
     "categoria": "CALLE_CERRADA",
     "nivel_riesgo": "CRITICO",
     "latitud": -33.51076,
@@ -32,30 +91,32 @@
     "accion_grafo": "BLOQUEAR_ARISTAS",
     "factor_penalizacion": "INF",
     "calle": "Camino a Melipilla",
-    "descripcion": "Cierre total de calzada por obras del proyecto Tren Alameda-Melipilla y nuevo paso bajo nivel",
+    "descripcion": "Corte total de calzada por faenas del nuevo paso bajo nivel del proyecto Tren Alameda-Melipilla",
     "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
   },
   {
-    "id": "wz-cl-maipu-003",
-    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880003",
+    "id": "wz-cl-maipu-006",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880006",
+    "sector": "Esquina Blanca / Camino Melipilla Oriente / Ferrocarril",
     "categoria": "CONSTRUCCION_VIAL",
     "nivel_riesgo": "ALTO",
-    "latitud": -33.520872,
-    "longitud": -70.75737,
+    "latitud": -33.5082,
+    "longitud": -70.7285,
     "coordenadas": [
-      -33.520872,
-      -70.75737
+      -33.5082,
+      -70.7285
     ],
     "radio_buffer_metros": 50,
     "accion_grafo": "BLOQUEAR_ARISTAS",
     "factor_penalizacion": "INF",
-    "calle": "Avenida Los Pajaritos",
-    "descripcion": "Obras y faenas en calzada poniente; reducción de pistas por mantención de colectores y maquinaria pesada",
+    "calle": "Avenida Esquina Blanca",
+    "descripcion": "Obras de canalización de aguas lluvias y maquinaria pesada operando sobre la berma",
     "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
   },
   {
-    "id": "wz-cl-maipu-004",
-    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880004",
+    "id": "wz-cl-maipu-007",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880007",
+    "sector": "Rinconada / Hospital El Carmen",
     "categoria": "CONSTRUCCION_VIAL",
     "nivel_riesgo": "ALTO",
     "latitud": -33.496784,
@@ -68,12 +129,70 @@
     "accion_grafo": "BLOQUEAR_ARISTAS",
     "factor_penalizacion": "INF",
     "calle": "Avenida Rinconada",
-    "descripcion": "Reparación de calzada y bacheo profundo; retroexcavadora y personal trabajando en la vía",
+    "descripcion": "Faenas viales de ensanche y bacheo frente al Hospital El Carmen; operarios y retroexcavadora en calzada",
     "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
   },
   {
-    "id": "wz-cl-maipu-005",
-    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880005",
+    "id": "wz-cl-maipu-008",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880008",
+    "sector": "Rinconada / Hospital El Carmen",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.5021,
+    "longitud": -70.7812,
+    "coordenadas": [
+      -33.5021,
+      -70.7812
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Calle Asunción",
+    "descripcion": "Calle cerrada por rotura de matriz y reparación de emergencia de red de agua potable SMAPA",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-009",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880009",
+    "sector": "El Olimpo / Los Presidentes",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.5184,
+    "longitud": -70.7725,
+    "coordenadas": [
+      -33.5184,
+      -70.7725
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida El Olimpo",
+    "descripcion": "Obras de pavimentación y colocación de soleras; cuadrillas trabajando en calzada",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-010",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880010",
+    "sector": "El Olimpo / Los Presidentes",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.5242,
+    "longitud": -70.7681,
+    "coordenadas": [
+      -33.5242,
+      -70.7681
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Las Tinajas",
+    "descripcion": "Cierre transitorio por instalación de nuevo cruce semaforizado y canalizaciones viales",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-011",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880011",
+    "sector": "Las Naciones / Cuatro Poniente",
     "categoria": "CALLE_CERRADA",
     "nivel_riesgo": "CRITICO",
     "latitud": -33.521983,
@@ -86,25 +205,178 @@
     "accion_grafo": "BLOQUEAR_ARISTAS",
     "factor_penalizacion": "INF",
     "calle": "Avenida Las Naciones",
-    "descripcion": "Corte de tránsito programado por obras de alcantarillado SMAPA y recarpeteo asfáltico",
+    "descripcion": "Corte de tránsito programado por obras de alcantarillado SMAPA y recarpeteo asfáltico en Av. Las Naciones con 1 Sur",
     "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
   },
   {
-    "id": "wz-cl-maipu-006",
-    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880006",
+    "id": "wz-cl-maipu-012",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880012",
+    "sector": "Las Naciones / Cuatro Poniente",
     "categoria": "CONSTRUCCION_VIAL",
     "nivel_riesgo": "ALTO",
-    "latitud": -33.5132,
-    "longitud": -70.7485,
+    "latitud": -33.5312,
+    "longitud": -70.8015,
     "coordenadas": [
-      -33.5132,
-      -70.7485
+      -33.5312,
+      -70.8015
     ],
     "radio_buffer_metros": 50,
     "accion_grafo": "BLOQUEAR_ARISTAS",
     "factor_penalizacion": "INF",
-    "calle": "Avenida Esquina Blanca",
-    "descripcion": "Faenas de pavimentación y arreglo de soleras; cuadrillas en calzada",
+    "calle": "Avenida Cuatro Poniente",
+    "descripcion": "Faenas de hormigonado y reparación de calzada en Av. 4 Poniente; camión mixer y operarios",
     "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-013",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880013",
+    "sector": "Pajaritos Sur / Nueva San Martín",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.520872,
+    "longitud": -70.75737,
+    "coordenadas": [
+      -33.520872,
+      -70.75737
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Los Pajaritos Sur",
+    "descripcion": "Obras y faenas en calzada sur; mantención de colectores de aguas lluvia bajo enlace Vespucio",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-014",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880014",
+    "sector": "Pajaritos Sur / Nueva San Martín",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.5341,
+    "longitud": -70.7495,
+    "coordenadas": [
+      -33.5341,
+      -70.7495
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Calle San José",
+    "descripcion": "Cierre de calle por obras de pavimentación participativa comunal",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-015",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880015",
+    "sector": "El Abrazo / Tres Poniente",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.5415,
+    "longitud": -70.7642,
+    "coordenadas": [
+      -33.5415,
+      -70.7642
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Tres Poniente",
+    "descripcion": "Corte de calzada por construcción de paso bajo nivel ferroviario y desvío hacia vías locales",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-016",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880016",
+    "sector": "El Abrazo / Tres Poniente",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.5482,
+    "longitud": -70.7718,
+    "coordenadas": [
+      -33.5482,
+      -70.7718
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Calle Egipto",
+    "descripcion": "Reparación de calzada y bacheo con mezcla asfáltica en frío en barrio El Abrazo",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-017",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880017",
+    "sector": "Ciudad Satélite / Camino Melipilla Poniente",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.5612,
+    "longitud": -70.7885,
+    "coordenadas": [
+      -33.5612,
+      -70.7885
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Parque Central Poniente",
+    "descripcion": "Cierre de vía por reposición total de losas de hormigón en Ciudad Satélite",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-018",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880018",
+    "sector": "Ciudad Satélite / Camino Melipilla Poniente",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.5684,
+    "longitud": -70.7995,
+    "coordenadas": [
+      -33.5684,
+      -70.7995
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Camino a Melipilla",
+    "descripcion": "Obras viales MOP en bermas con camiones tolva y maquinaria en movimiento altura Km 21",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-019",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880019",
+    "sector": "Loma Blanca / Lumen / Segunda Transversal",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.4985,
+    "longitud": -70.7295,
+    "coordenadas": [
+      -33.4985,
+      -70.7295
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Lumen",
+    "descripcion": "Trabajos de fresado y recarpeteo de calzada en Av. Lumen con Segunda Transversal",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-020",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880020",
+    "sector": "Loma Blanca / Lumen / Segunda Transversal",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.4921,
+    "longitud": -70.7182,
+    "coordenadas": [
+      -33.4921,
+      -70.7182
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Pasaje Central",
+    "descripcion": "Calle cerrada por pavimentación participativa comunal y cambio de soleras",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
   }
 ]
