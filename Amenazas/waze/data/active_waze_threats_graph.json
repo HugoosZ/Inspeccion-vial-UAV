@@ -1,0 +1,110 @@
+[
+  {
+    "id": "wz-cl-maipu-001",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880001",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.510403,
+    "longitud": -70.753172,
+    "coordenadas": [
+      -33.510403,
+      -70.753172
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida 5 de Abril",
+    "descripcion": "Calle cerrada por obras viales y repavimentación SERVIU en Av. 5 de Abril",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-002",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880002",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.51076,
+    "longitud": -70.742309,
+    "coordenadas": [
+      -33.51076,
+      -70.742309
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Camino a Melipilla",
+    "descripcion": "Cierre total de calzada por obras del proyecto Tren Alameda-Melipilla y nuevo paso bajo nivel",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-003",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880003",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.520872,
+    "longitud": -70.75737,
+    "coordenadas": [
+      -33.520872,
+      -70.75737
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Los Pajaritos",
+    "descripcion": "Obras y faenas en calzada poniente; reducción de pistas por mantención de colectores y maquinaria pesada",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-004",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880004",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.496784,
+    "longitud": -70.775326,
+    "coordenadas": [
+      -33.496784,
+      -70.775326
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Rinconada",
+    "descripcion": "Reparación de calzada y bacheo profundo; retroexcavadora y personal trabajando en la vía",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  },
+  {
+    "id": "wz-cl-maipu-005",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880005",
+    "categoria": "CALLE_CERRADA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.521983,
+    "longitud": -70.786476,
+    "coordenadas": [
+      -33.521983,
+      -70.786476
+    ],
+    "radio_buffer_metros": 60,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Las Naciones",
+    "descripcion": "Corte de tránsito programado por obras de alcantarillado SMAPA y recarpeteo asfáltico",
+    "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura."
+  },
+  {
+    "id": "wz-cl-maipu-006",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880006",
+    "categoria": "CONSTRUCCION_VIAL",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.5132,
+    "longitud": -70.7485,
+    "coordenadas": [
+      -33.5132,
+      -70.7485
+    ],
+    "radio_buffer_metros": 50,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "calle": "Avenida Esquina Blanca",
+    "descripcion": "Faenas de pavimentación y arreglo de soleras; cuadrillas en calzada",
+    "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética."
+  }
+]

@@ -1,0 +1,116 @@
+[
+  {
+    "id": "wz-cl-maipu-001",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880001",
+    "type": "ROAD_CLOSED",
+    "subtype": "ROAD_CLOSED_CONSTRUCTION",
+    "street": "Avenida 5 de Abril",
+    "city": "Maipú",
+    "location": {
+      "x": -70.753172,
+      "y": -33.510403
+    },
+    "pubMillis": 1729382400000,
+    "reportDescription": "Calle cerrada por obras viales y repavimentación SERVIU en Av. 5 de Abril",
+    "confidence": 5,
+    "reliability": 9,
+    "reportRating": 4,
+    "magvar": 180,
+    "nThumbsUp": 8
+  },
+  {
+    "id": "wz-cl-maipu-002",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880002",
+    "type": "ROAD_CLOSED",
+    "subtype": "ROAD_CLOSED_CONSTRUCTION",
+    "street": "Camino a Melipilla",
+    "city": "Maipú",
+    "location": {
+      "x": -70.742309,
+      "y": -33.51076
+    },
+    "pubMillis": 1729383000000,
+    "reportDescription": "Cierre total de calzada por obras del proyecto Tren Alameda-Melipilla y nuevo paso bajo nivel",
+    "confidence": 5,
+    "reliability": 9,
+    "reportRating": 5,
+    "magvar": 210,
+    "nThumbsUp": 14
+  },
+  {
+    "id": "wz-cl-maipu-003",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880003",
+    "type": "HAZARD",
+    "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+    "street": "Avenida Los Pajaritos",
+    "city": "Maipú",
+    "location": {
+      "x": -70.75737,
+      "y": -33.520872
+    },
+    "pubMillis": 1729383600000,
+    "reportDescription": "Obras y faenas en calzada poniente; reducción de pistas por mantención de colectores y maquinaria pesada",
+    "confidence": 4,
+    "reliability": 8,
+    "reportRating": 3,
+    "magvar": 90,
+    "nThumbsUp": 6
+  },
+  {
+    "id": "wz-cl-maipu-004",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880004",
+    "type": "HAZARD",
+    "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+    "street": "Avenida Rinconada",
+    "city": "Maipú",
+    "location": {
+      "x": -70.775326,
+      "y": -33.496784
+    },
+    "pubMillis": 1729384200000,
+    "reportDescription": "Reparación de calzada y bacheo profundo; retroexcavadora y personal trabajando en la vía",
+    "confidence": 4,
+    "reliability": 7,
+    "reportRating": 3,
+    "magvar": 120,
+    "nThumbsUp": 5
+  },
+  {
+    "id": "wz-cl-maipu-005",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880005",
+    "type": "ROAD_CLOSED",
+    "subtype": "ROAD_CLOSED_EVENT",
+    "street": "Avenida Las Naciones",
+    "city": "Maipú",
+    "location": {
+      "x": -70.786476,
+      "y": -33.521983
+    },
+    "pubMillis": 1729384800000,
+    "reportDescription": "Corte de tránsito programado por obras de alcantarillado SMAPA y recarpeteo asfáltico",
+    "confidence": 5,
+    "reliability": 8,
+    "reportRating": 4,
+    "magvar": 340,
+    "nThumbsUp": 9
+  },
+  {
+    "id": "wz-cl-maipu-006",
+    "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880006",
+    "type": "HAZARD",
+    "subtype": "HAZARD_ON_ROAD_CONSTRUCTION",
+    "street": "Avenida Esquina Blanca",
+    "city": "Maipú",
+    "location": {
+      "x": -70.7485,
+      "y": -33.5132
+    },
+    "pubMillis": 1729385400000,
+    "reportDescription": "Faenas de pavimentación y arreglo de soleras; cuadrillas en calzada",
+    "confidence": 4,
+    "reliability": 8,
+    "reportRating": 3,
+    "magvar": 180,
+    "nThumbsUp": 4
+  }
+]

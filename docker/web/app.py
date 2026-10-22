@@ -184,7 +184,7 @@ def get_metadata(
 
 @app.get("/api/amenazas")
 def get_amenazas(
-    fuente: str = Query(None, description="fuente_etl: T2_incendios, T3_clima, T5_lluvias_maipu, T6_sosafe"),
+    fuente: str = Query(None, description="fuente_etl: T2_incendios, T3_clima, T5_lluvias_maipu, T6_sosafe, T7_waze"),
     tipo: str = None,
     riesgo: str = None,
 ):

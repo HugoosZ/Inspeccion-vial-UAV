@@ -27,6 +27,7 @@ Cada amenaza cargada en `temp_amenazas` es un **evento de falla** con zona de af
 | T3 Clima (Open-Meteo) | Celda de la grilla 3 × 3 | Una hora (`valido_desde`, `valido_hasta`) | Dependiente del tiempo |
 | T5 Lluvias (Municipalidad) | Punto + `radio_afectacion_m` | Solo reportes activos | Dura (ALTO/CRÍTICO) o blanda (POSTERGAR) |
 | T6 SOSAFE | Geocerca circular | Mientras el reporte esté vigente | Dura: bloquea |
+| T7 Waze (Cierres y obras) | Geocerca circular (50--60 m) | Mientras la alerta esté activa | Dura: bloquea |
 
 Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la zona de $a$ (o está a menos del radio, en T5) y $a$ está vigente en la ventana $[t_0,\,t_0+H]$, con $H$ = `horizonte_h` (2 h por defecto).
 
@@ -35,7 +36,7 @@ Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la
 $$
 w(e,t)=
 \begin{cases}
-\infty & \text{si } e \text{ toca una amenaza dura (T2, T6, T5 ALTO/CRÍTICO)}\\
+\infty & \text{si } e \text{ toca una amenaza dura (T2, T6, T7, T5 ALTO/CRÍTICO)}\\
 d(e)\cdot\rho(e)\cdot\pi(e)\cdot\varphi(e,t) & \text{en otro caso}
 \end{cases}
 $$

@@ -1,0 +1,1226 @@
+{
+  "type": "FeatureCollection",
+  "name": "uav_threat_geofences_waze_maipu",
+  "metadata": {
+    "generado_utc": "2026-10-22T21:50:05+00:00",
+    "comuna": "Maipú",
+    "fuente": "Waze Live Map",
+    "total_features": 12,
+    "total_amenazas": 6,
+    "cota_vuelo_m": 20
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.753172,
+          -33.510403
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-001",
+        "id": "wz-cl-maipu-001",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880001",
+        "fuente": "Waze Live Map",
+        "tipo": "ROAD_CLOSED",
+        "subtipo": "ROAD_CLOSED_CONSTRUCTION",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "CALLE_CERRADA",
+        "nivel_riesgo": "CRITICO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida 5 de Abril",
+        "comuna": "Maipú",
+        "descripcion": "Calle cerrada por obras viales y repavimentación SERVIU en Av. 5 de Abril",
+        "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura.",
+        "radio_buffer": 60,
+        "radio_metros": 60,
+        "marker_color": "#d90429",
+        "confianza": 5,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.752526,
+              -33.510403
+            ],
+            [
+              -70.752538,
+              -33.510298
+            ],
+            [
+              -70.752575,
+              -33.510197
+            ],
+            [
+              -70.752635,
+              -33.510104
+            ],
+            [
+              -70.752715,
+              -33.510022
+            ],
+            [
+              -70.752813,
+              -33.509955
+            ],
+            [
+              -70.752925,
+              -33.509905
+            ],
+            [
+              -70.753046,
+              -33.509874
+            ],
+            [
+              -70.753172,
+              -33.509864
+            ],
+            [
+              -70.753298,
+              -33.509874
+            ],
+            [
+              -70.753419,
+              -33.509905
+            ],
+            [
+              -70.753531,
+              -33.509955
+            ],
+            [
+              -70.753629,
+              -33.510022
+            ],
+            [
+              -70.753709,
+              -33.510104
+            ],
+            [
+              -70.753769,
+              -33.510197
+            ],
+            [
+              -70.753806,
+              -33.510298
+            ],
+            [
+              -70.753818,
+              -33.510403
+            ],
+            [
+              -70.753806,
+              -33.510508
+            ],
+            [
+              -70.753769,
+              -33.510609
+            ],
+            [
+              -70.753709,
+              -33.510702
+            ],
+            [
+              -70.753629,
+              -33.510784
+            ],
+            [
+              -70.753531,
+              -33.510851
+            ],
+            [
+              -70.753419,
+              -33.510901
+            ],
+            [
+              -70.753298,
+              -33.510932
+            ],
+            [
+              -70.753172,
+              -33.510942
+            ],
+            [
+              -70.753046,
+              -33.510932
+            ],
+            [
+              -70.752925,
+              -33.510901
+            ],
+            [
+              -70.752813,
+              -33.510851
+            ],
+            [
+              -70.752715,
+              -33.510784
+            ],
+            [
+              -70.752635,
+              -33.510702
+            ],
+            [
+              -70.752575,
+              -33.510609
+            ],
+            [
+              -70.752538,
+              -33.510508
+            ],
+            [
+              -70.752526,
+              -33.510403
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-001",
+        "id": "wz-cl-maipu-001",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880001",
+        "fuente": "Waze Live Map",
+        "tipo": "ROAD_CLOSED",
+        "subtipo": "ROAD_CLOSED_CONSTRUCTION",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "CALLE_CERRADA",
+        "nivel_riesgo": "CRITICO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida 5 de Abril",
+        "comuna": "Maipú",
+        "descripcion": "Calle cerrada por obras viales y repavimentación SERVIU en Av. 5 de Abril",
+        "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura.",
+        "radio_buffer": 60,
+        "radio_metros": 60,
+        "marker_color": "#d90429",
+        "confianza": 5,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.742309,
+          -33.51076
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-002",
+        "id": "wz-cl-maipu-002",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880002",
+        "fuente": "Waze Live Map",
+        "tipo": "ROAD_CLOSED",
+        "subtipo": "ROAD_CLOSED_CONSTRUCTION",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "CALLE_CERRADA",
+        "nivel_riesgo": "CRITICO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Camino a Melipilla",
+        "comuna": "Maipú",
+        "descripcion": "Cierre total de calzada por obras del proyecto Tren Alameda-Melipilla y nuevo paso bajo nivel",
+        "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura.",
+        "radio_buffer": 60,
+        "radio_metros": 60,
+        "marker_color": "#d90429",
+        "confianza": 5,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.741663,
+              -33.51076
+            ],
+            [
+              -70.741675,
+              -33.510655
+            ],
+            [
+              -70.741712,
+              -33.510554
+            ],
+            [
+              -70.741772,
+              -33.510461
+            ],
+            [
+              -70.741852,
+              -33.510379
+            ],
+            [
+              -70.74195,
+              -33.510312
+            ],
+            [
+              -70.742062,
+              -33.510262
+            ],
+            [
+              -70.742183,
+              -33.510231
+            ],
+            [
+              -70.742309,
+              -33.510221
+            ],
+            [
+              -70.742435,
+              -33.510231
+            ],
+            [
+              -70.742556,
+              -33.510262
+            ],
+            [
+              -70.742668,
+              -33.510312
+            ],
+            [
+              -70.742766,
+              -33.510379
+            ],
+            [
+              -70.742846,
+              -33.510461
+            ],
+            [
+              -70.742906,
+              -33.510554
+            ],
+            [
+              -70.742943,
+              -33.510655
+            ],
+            [
+              -70.742955,
+              -33.51076
+            ],
+            [
+              -70.742943,
+              -33.510865
+            ],
+            [
+              -70.742906,
+              -33.510966
+            ],
+            [
+              -70.742846,
+              -33.511059
+            ],
+            [
+              -70.742766,
+              -33.511141
+            ],
+            [
+              -70.742668,
+              -33.511208
+            ],
+            [
+              -70.742556,
+              -33.511258
+            ],
+            [
+              -70.742435,
+              -33.511289
+            ],
+            [
+              -70.742309,
+              -33.511299
+            ],
+            [
+              -70.742183,
+              -33.511289
+            ],
+            [
+              -70.742062,
+              -33.511258
+            ],
+            [
+              -70.74195,
+              -33.511208
+            ],
+            [
+              -70.741852,
+              -33.511141
+            ],
+            [
+              -70.741772,
+              -33.511059
+            ],
+            [
+              -70.741712,
+              -33.510966
+            ],
+            [
+              -70.741675,
+              -33.510865
+            ],
+            [
+              -70.741663,
+              -33.51076
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-002",
+        "id": "wz-cl-maipu-002",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880002",
+        "fuente": "Waze Live Map",
+        "tipo": "ROAD_CLOSED",
+        "subtipo": "ROAD_CLOSED_CONSTRUCTION",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "CALLE_CERRADA",
+        "nivel_riesgo": "CRITICO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Camino a Melipilla",
+        "comuna": "Maipú",
+        "descripcion": "Cierre total de calzada por obras del proyecto Tren Alameda-Melipilla y nuevo paso bajo nivel",
+        "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura.",
+        "radio_buffer": 60,
+        "radio_metros": 60,
+        "marker_color": "#d90429",
+        "confianza": 5,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.75737,
+          -33.520872
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-003",
+        "id": "wz-cl-maipu-003",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880003",
+        "fuente": "Waze Live Map",
+        "tipo": "HAZARD",
+        "subtipo": "HAZARD_ON_ROAD_CONSTRUCTION",
+        "tipo_amenaza": "construccion_vial",
+        "categoria": "CONSTRUCCION_VIAL",
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida Los Pajaritos",
+        "comuna": "Maipú",
+        "descripcion": "Obras y faenas en calzada poniente; reducción de pistas por mantención de colectores y maquinaria pesada",
+        "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética.",
+        "radio_buffer": 50,
+        "radio_metros": 50,
+        "marker_color": "#f77f00",
+        "confianza": 4,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.756831,
+              -33.520872
+            ],
+            [
+              -70.756842,
+              -33.520784
+            ],
+            [
+              -70.756872,
+              -33.5207
+            ],
+            [
+              -70.756922,
+              -33.520622
+            ],
+            [
+              -70.756989,
+              -33.520554
+            ],
+            [
+              -70.757071,
+              -33.520499
+            ],
+            [
+              -70.757164,
+              -33.520457
+            ],
+            [
+              -70.757265,
+              -33.520431
+            ],
+            [
+              -70.75737,
+              -33.520423
+            ],
+            [
+              -70.757475,
+              -33.520431
+            ],
+            [
+              -70.757576,
+              -33.520457
+            ],
+            [
+              -70.757669,
+              -33.520499
+            ],
+            [
+              -70.757751,
+              -33.520554
+            ],
+            [
+              -70.757818,
+              -33.520622
+            ],
+            [
+              -70.757868,
+              -33.5207
+            ],
+            [
+              -70.757898,
+              -33.520784
+            ],
+            [
+              -70.757909,
+              -33.520872
+            ],
+            [
+              -70.757898,
+              -33.52096
+            ],
+            [
+              -70.757868,
+              -33.521044
+            ],
+            [
+              -70.757818,
+              -33.521122
+            ],
+            [
+              -70.757751,
+              -33.52119
+            ],
+            [
+              -70.757669,
+              -33.521245
+            ],
+            [
+              -70.757576,
+              -33.521287
+            ],
+            [
+              -70.757475,
+              -33.521313
+            ],
+            [
+              -70.75737,
+              -33.521321
+            ],
+            [
+              -70.757265,
+              -33.521313
+            ],
+            [
+              -70.757164,
+              -33.521287
+            ],
+            [
+              -70.757071,
+              -33.521245
+            ],
+            [
+              -70.756989,
+              -33.52119
+            ],
+            [
+              -70.756922,
+              -33.521122
+            ],
+            [
+              -70.756872,
+              -33.521044
+            ],
+            [
+              -70.756842,
+              -33.52096
+            ],
+            [
+              -70.756831,
+              -33.520872
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-003",
+        "id": "wz-cl-maipu-003",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880003",
+        "fuente": "Waze Live Map",
+        "tipo": "HAZARD",
+        "subtipo": "HAZARD_ON_ROAD_CONSTRUCTION",
+        "tipo_amenaza": "construccion_vial",
+        "categoria": "CONSTRUCCION_VIAL",
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida Los Pajaritos",
+        "comuna": "Maipú",
+        "descripcion": "Obras y faenas en calzada poniente; reducción de pistas por mantención de colectores y maquinaria pesada",
+        "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética.",
+        "radio_buffer": 50,
+        "radio_metros": 50,
+        "marker_color": "#f77f00",
+        "confianza": 4,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.775326,
+          -33.496784
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-004",
+        "id": "wz-cl-maipu-004",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880004",
+        "fuente": "Waze Live Map",
+        "tipo": "HAZARD",
+        "subtipo": "HAZARD_ON_ROAD_CONSTRUCTION",
+        "tipo_amenaza": "construccion_vial",
+        "categoria": "CONSTRUCCION_VIAL",
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida Rinconada",
+        "comuna": "Maipú",
+        "descripcion": "Reparación de calzada y bacheo profundo; retroexcavadora y personal trabajando en la vía",
+        "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética.",
+        "radio_buffer": 50,
+        "radio_metros": 50,
+        "marker_color": "#f77f00",
+        "confianza": 4,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.774787,
+              -33.496784
+            ],
+            [
+              -70.774798,
+              -33.496696
+            ],
+            [
+              -70.774828,
+              -33.496612
+            ],
+            [
+              -70.774878,
+              -33.496534
+            ],
+            [
+              -70.774945,
+              -33.496466
+            ],
+            [
+              -70.775027,
+              -33.496411
+            ],
+            [
+              -70.77512,
+              -33.496369
+            ],
+            [
+              -70.775221,
+              -33.496343
+            ],
+            [
+              -70.775326,
+              -33.496335
+            ],
+            [
+              -70.775431,
+              -33.496343
+            ],
+            [
+              -70.775532,
+              -33.496369
+            ],
+            [
+              -70.775625,
+              -33.496411
+            ],
+            [
+              -70.775707,
+              -33.496466
+            ],
+            [
+              -70.775774,
+              -33.496534
+            ],
+            [
+              -70.775824,
+              -33.496612
+            ],
+            [
+              -70.775854,
+              -33.496696
+            ],
+            [
+              -70.775865,
+              -33.496784
+            ],
+            [
+              -70.775854,
+              -33.496872
+            ],
+            [
+              -70.775824,
+              -33.496956
+            ],
+            [
+              -70.775774,
+              -33.497034
+            ],
+            [
+              -70.775707,
+              -33.497102
+            ],
+            [
+              -70.775625,
+              -33.497157
+            ],
+            [
+              -70.775532,
+              -33.497199
+            ],
+            [
+              -70.775431,
+              -33.497225
+            ],
+            [
+              -70.775326,
+              -33.497233
+            ],
+            [
+              -70.775221,
+              -33.497225
+            ],
+            [
+              -70.77512,
+              -33.497199
+            ],
+            [
+              -70.775027,
+              -33.497157
+            ],
+            [
+              -70.774945,
+              -33.497102
+            ],
+            [
+              -70.774878,
+              -33.497034
+            ],
+            [
+              -70.774828,
+              -33.496956
+            ],
+            [
+              -70.774798,
+              -33.496872
+            ],
+            [
+              -70.774787,
+              -33.496784
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-004",
+        "id": "wz-cl-maipu-004",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880004",
+        "fuente": "Waze Live Map",
+        "tipo": "HAZARD",
+        "subtipo": "HAZARD_ON_ROAD_CONSTRUCTION",
+        "tipo_amenaza": "construccion_vial",
+        "categoria": "CONSTRUCCION_VIAL",
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida Rinconada",
+        "comuna": "Maipú",
+        "descripcion": "Reparación de calzada y bacheo profundo; retroexcavadora y personal trabajando en la vía",
+        "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética.",
+        "radio_buffer": 50,
+        "radio_metros": 50,
+        "marker_color": "#f77f00",
+        "confianza": 4,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.786476,
+          -33.521983
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-005",
+        "id": "wz-cl-maipu-005",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880005",
+        "fuente": "Waze Live Map",
+        "tipo": "ROAD_CLOSED",
+        "subtipo": "ROAD_CLOSED_EVENT",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "CALLE_CERRADA",
+        "nivel_riesgo": "CRITICO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida Las Naciones",
+        "comuna": "Maipú",
+        "descripcion": "Corte de tránsito programado por obras de alcantarillado SMAPA y recarpeteo asfáltico",
+        "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura.",
+        "radio_buffer": 60,
+        "radio_metros": 60,
+        "marker_color": "#d90429",
+        "confianza": 5,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.785829,
+              -33.521983
+            ],
+            [
+              -70.785842,
+              -33.521878
+            ],
+            [
+              -70.785879,
+              -33.521777
+            ],
+            [
+              -70.785938,
+              -33.521684
+            ],
+            [
+              -70.786019,
+              -33.521602
+            ],
+            [
+              -70.786117,
+              -33.521535
+            ],
+            [
+              -70.786229,
+              -33.521485
+            ],
+            [
+              -70.78635,
+              -33.521454
+            ],
+            [
+              -70.786476,
+              -33.521444
+            ],
+            [
+              -70.786602,
+              -33.521454
+            ],
+            [
+              -70.786723,
+              -33.521485
+            ],
+            [
+              -70.786835,
+              -33.521535
+            ],
+            [
+              -70.786933,
+              -33.521602
+            ],
+            [
+              -70.787014,
+              -33.521684
+            ],
+            [
+              -70.787073,
+              -33.521777
+            ],
+            [
+              -70.78711,
+              -33.521878
+            ],
+            [
+              -70.787123,
+              -33.521983
+            ],
+            [
+              -70.78711,
+              -33.522088
+            ],
+            [
+              -70.787073,
+              -33.522189
+            ],
+            [
+              -70.787014,
+              -33.522282
+            ],
+            [
+              -70.786933,
+              -33.522364
+            ],
+            [
+              -70.786835,
+              -33.522431
+            ],
+            [
+              -70.786723,
+              -33.522481
+            ],
+            [
+              -70.786602,
+              -33.522512
+            ],
+            [
+              -70.786476,
+              -33.522522
+            ],
+            [
+              -70.78635,
+              -33.522512
+            ],
+            [
+              -70.786229,
+              -33.522481
+            ],
+            [
+              -70.786117,
+              -33.522431
+            ],
+            [
+              -70.786019,
+              -33.522364
+            ],
+            [
+              -70.785938,
+              -33.522282
+            ],
+            [
+              -70.785879,
+              -33.522189
+            ],
+            [
+              -70.785842,
+              -33.522088
+            ],
+            [
+              -70.785829,
+              -33.521983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-005",
+        "id": "wz-cl-maipu-005",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880005",
+        "fuente": "Waze Live Map",
+        "tipo": "ROAD_CLOSED",
+        "subtipo": "ROAD_CLOSED_EVENT",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "CALLE_CERRADA",
+        "nivel_riesgo": "CRITICO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida Las Naciones",
+        "comuna": "Maipú",
+        "descripcion": "Corte de tránsito programado por obras de alcantarillado SMAPA y recarpeteo asfáltico",
+        "justificacion": "Vía cerrada al tránsito por obras o eventos mayores. Representa una zona de exclusión para vuelo a baja cota (20m) e invalida la inspección de señalética por posible retiro, daño u obstrucción de la infraestructura.",
+        "radio_buffer": 60,
+        "radio_metros": 60,
+        "marker_color": "#d90429",
+        "confianza": 5,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.7485,
+          -33.5132
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-006",
+        "id": "wz-cl-maipu-006",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880006",
+        "fuente": "Waze Live Map",
+        "tipo": "HAZARD",
+        "subtipo": "HAZARD_ON_ROAD_CONSTRUCTION",
+        "tipo_amenaza": "construccion_vial",
+        "categoria": "CONSTRUCCION_VIAL",
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida Esquina Blanca",
+        "comuna": "Maipú",
+        "descripcion": "Faenas de pavimentación y arreglo de soleras; cuadrillas en calzada",
+        "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética.",
+        "radio_buffer": 50,
+        "radio_metros": 50,
+        "marker_color": "#f77f00",
+        "confianza": 4,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.747961,
+              -33.5132
+            ],
+            [
+              -70.747972,
+              -33.513112
+            ],
+            [
+              -70.748002,
+              -33.513028
+            ],
+            [
+              -70.748052,
+              -33.51295
+            ],
+            [
+              -70.748119,
+              -33.512882
+            ],
+            [
+              -70.748201,
+              -33.512827
+            ],
+            [
+              -70.748294,
+              -33.512785
+            ],
+            [
+              -70.748395,
+              -33.512759
+            ],
+            [
+              -70.7485,
+              -33.512751
+            ],
+            [
+              -70.748605,
+              -33.512759
+            ],
+            [
+              -70.748706,
+              -33.512785
+            ],
+            [
+              -70.748799,
+              -33.512827
+            ],
+            [
+              -70.748881,
+              -33.512882
+            ],
+            [
+              -70.748948,
+              -33.51295
+            ],
+            [
+              -70.748998,
+              -33.513028
+            ],
+            [
+              -70.749028,
+              -33.513112
+            ],
+            [
+              -70.749039,
+              -33.5132
+            ],
+            [
+              -70.749028,
+              -33.513288
+            ],
+            [
+              -70.748998,
+              -33.513372
+            ],
+            [
+              -70.748948,
+              -33.51345
+            ],
+            [
+              -70.748881,
+              -33.513518
+            ],
+            [
+              -70.748799,
+              -33.513573
+            ],
+            [
+              -70.748706,
+              -33.513615
+            ],
+            [
+              -70.748605,
+              -33.513641
+            ],
+            [
+              -70.7485,
+              -33.513649
+            ],
+            [
+              -70.748395,
+              -33.513641
+            ],
+            [
+              -70.748294,
+              -33.513615
+            ],
+            [
+              -70.748201,
+              -33.513573
+            ],
+            [
+              -70.748119,
+              -33.513518
+            ],
+            [
+              -70.748052,
+              -33.51345
+            ],
+            [
+              -70.748002,
+              -33.513372
+            ],
+            [
+              -70.747972,
+              -33.513288
+            ],
+            [
+              -70.747961,
+              -33.5132
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "WAZE_wz-cl-maipu-006",
+        "id": "wz-cl-maipu-006",
+        "uuid": "c1f7a2d8-9999-4d2b-ba76-888888880006",
+        "fuente": "Waze Live Map",
+        "tipo": "HAZARD",
+        "subtipo": "HAZARD_ON_ROAD_CONSTRUCTION",
+        "tipo_amenaza": "construccion_vial",
+        "categoria": "CONSTRUCCION_VIAL",
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "factor_penalizacion": "INF",
+        "calle": "Avenida Esquina Blanca",
+        "comuna": "Maipú",
+        "descripcion": "Faenas de pavimentación y arreglo de soleras; cuadrillas en calzada",
+        "justificacion": "Faenas viales activas y maquinaria pesada operando en calzada. Riesgo de colisión a baja cota (20m) y emisión de polvo/partículas que degradan los sensores ópticos de detección de señalética.",
+        "radio_buffer": 50,
+        "radio_metros": 50,
+        "marker_color": "#f77f00",
+        "confianza": 4,
+        "valido_desde": "2026-10-22T21:50:05+00:00",
+        "valido_hasta": "2026-10-23T21:50:05+00:00",
+        "activa": true,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    }
+  ]
+}
