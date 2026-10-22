@@ -1,14 +1,11 @@
 """
-Acceso a PostGIS para el ruteo: grafo, amenazas por arista,
+Acceso a PostGIS para el ruteo: nodos, amenazas por arista,
 restricciones de metadata, aristas requeridas y geometrías.
 """
 
 import json
 import math
-import time
 from datetime import timedelta
-
-import networkx as nx
 
 # Probabilidad de que una amenaza se materialice y corte la ruta, por nivel
 # (supuesto de diseño usado por la métrica de resiliencia).
@@ -17,13 +14,9 @@ PROB_NIVEL = {"BAJO": 0.05, "MEDIO": 0.2, "ALTO": 0.5, "CRITICO": 0.8}
 # Factor sobre el costo de una arista según la acción de la amenaza
 FACTOR_ACCION = {"PENALIZAR_ARISTAS": 1.5, "POSTERGAR_ARISTAS": 2.0}
 # El clima ALTO/CRÍTICO se trata como "bloqueo blando": la arista sigue en el
-# grafo pero cruzarla en esa hora cuesta 10 veces más. Así el genético puede
-# esquivar la hora mala reordenando la ruta en vez de quedarse sin solución.
+# grafo pero cruzarla en esa hora cuesta 10 veces más. Así pgr_dijkstra la
+# esquiva si hay alternativa, en vez de quedarse sin solución.
 FACTOR_CLIMA_BLOQUEO = 10.0
-
-_CACHE = {"grafo": None, "cargado": 0.0}
-VIGENCIA_CACHE_S = 600
-
 
 # ------------------------------------------------------------------------------
 def _filas(conn, sql, params=()):
@@ -31,26 +24,6 @@ def _filas(conn, sql, params=()):
         cur.execute(sql, params)
         columnas = [c[0] for c in cur.description]
         return [dict(zip(columnas, fila)) for fila in cur.fetchall()]
-
-
-def grafo_completo(conn, forzar=False):
-    """Grafo no dirigido de toda la red (cacheado 10 min).
-
-    Nodo: id de network_nodes, con atributos x, y.
-    Arista: id, d (metros), w0 (km). Si hay aristas paralelas se conserva la más corta.
-    """
-    if not forzar and _CACHE["grafo"] is not None and time.time() - _CACHE["cargado"] < VIGENCIA_CACHE_S:
-        return _CACHE["grafo"]
-    G = nx.Graph()
-    for n in _filas(conn, "SELECT id, ST_X(geom) AS x, ST_Y(geom) AS y FROM network_nodes"):
-        G.add_node(n["id"], x=n["x"], y=n["y"])
-    for e in _filas(conn, "SELECT id, source, target, length_m FROM network_edges"):
-        u, v, d = e["source"], e["target"], float(e["length_m"])
-        if G.has_edge(u, v) and G[u][v]["d"] <= d:
-            continue
-        G.add_edge(u, v, id=e["id"], d=d, w0=d / 1000.0)
-    _CACHE.update(grafo=G, cargado=time.time())
-    return G
 
 
 def nodo_mas_cercano(conn, lon, lat):
@@ -104,7 +77,7 @@ class Amenazas:
     """Amenazas que afectan a cada arista dentro de la ventana [t0, t1].
 
     - bloqueadas: aristas con una amenaza dura (A1 incendio, A3 SOSAFE,
-      A4 Waze) -> se eliminan del grafo del algoritmo resiliente.
+      A4 Waze) -> se eliminan del grafo de pgr_dijkstra.
     - factor_estatico: penalización permanente en la ventana (PENALIZAR, POSTERGAR).
     - temporales: intervalos (desde, hasta, factor) del clima (A2), que dependen
       de la hora a la que el dron cruza la arista.

@@ -78,8 +78,6 @@
   #resultado table { width: 100%; border-collapse: collapse; margin: 6px 0; }
   #resultado th, #resultado td { padding: 3px 4px; border-bottom: 1px solid var(--borde); text-align: right; }
   #resultado th:first-child, #resultado td:first-child { text-align: left; }
-  #resultado .delta-pos { color: #059669; font-weight: 600; }
-  #resultado .delta-neg { color: var(--critico); font-weight: 600; }
   #resultado .aviso { color: #b45309; margin: 4px 0; }
   #resultado .rutas { display: grid; gap: 3px; margin-top: 4px; }
   #resultado .rutas label { display: flex; gap: 6px; align-items: center; }
@@ -105,7 +103,7 @@
     <p class="sub">Maipú · Infraestructura, metadata y amenazas cargadas en PostGIS</p>
     <div id="estado" class="estado">Conectando con la API…</div>
     <section id="ruteo">
-      <h2>Planificación de rutas · Dijkstra vs TDRPP-GA</h2>
+      <h2>Planificación de rutas · pgr_dijkstra resiliente</h2>
       <p class="ayuda">Haz clic en el mapa para fijar el <b>inicio</b> y luego el <b>objetivo</b>.
         Puedes arrastrar los marcadores. Si no cambias las restricciones se usan las por defecto.</p>
       <div class="puntos">
@@ -366,18 +364,15 @@ function prepararHoras(capa) {
 }
 
 // ---------------------------------------------------------------------------
-// Planificación de rutas (rúbrica 8 a 11): Dijkstra k rutas vs TDRPP-GA
+// Planificación de rutas (rúbrica 8 a 11): k rutas pgr_dijkstra resilientes
 // ---------------------------------------------------------------------------
 mapa.createPane("rutas").style.zIndex = 440;
-const COLORES = {
-  dijkstra: ["#1d4ed8", "#60a5fa", "#1e3a8a", "#93c5fd"],
-  tdrpp_ga: ["#059669", "#c026d3", "#65a30d", "#ea580c"],
-};
+const COLORES = ["#1d4ed8", "#059669", "#c026d3", "#ea580c"];
 const ruteo = { inicio: null, objetivo: null, marcadores: {}, capas: {}, defecto: null, tipos: [] };
 
 const CAMPOS = [
   { grupo: "Rutas" },
-  { id: "k", etiqueta: "Rutas por algoritmo (k)", tipo: "select", opciones: [2, 3, 4] },
+  { id: "k", etiqueta: "Rutas alternativas (k)", tipo: "select", opciones: [2, 3, 4] },
   { id: "hora_salida", etiqueta: "Hora de salida (vacío = ahora)", tipo: "datetime" },
   { grupo: "Restricciones desde la metadata" },
   { id: "evitar_aerodromos", etiqueta: "Evitar aeródromos (M4)", tipo: "bool" },
@@ -483,12 +478,6 @@ function limpiarTodo() {
 }
 
 const pct = v => v === null || v === undefined ? "—" : `${(v * 100).toFixed(1)} %`;
-function celdaDelta(v, invertir = false) {
-  if (v === null || v === undefined) return "<td>—</td>";
-  const bueno = invertir ? v < 0 : v > 0;
-  const clase = v === 0 ? "" : (bueno ? "delta-pos" : "delta-neg");
-  return `<td class="${clase}">${v > 0 ? "+" : ""}${(v * 100).toFixed(1)} pp</td>`;
-}
 
 function dibujarResultado(r) {
   limpiarRutas();
@@ -498,45 +487,39 @@ function dibujarResultado(r) {
       id_arista: f.properties.id, senales: f.properties.senales,
       vulnerabilidad: f.properties.vulnerabilidad, puntaje: f.properties.puntaje })) }).addTo(mapa);
 
-  const algoritmos = [["dijkstra", "pgr_dijkstra", "8 6"], ["tdrpp_ga", "TDRPP-GA", null]];
-  algoritmos.forEach(([clave, nombre, dash]) => {
-    r[clave].rutas.features.forEach((f, i) => {
-      const color = COLORES[clave][i % 4];
-      ruteo.capas[`${clave}_${i}`] = L.geoJSON(f, { pane: "rutas",
-        style: { color, weight: clave === "dijkstra" ? 4 : 5, opacity: 0.9, dashArray: dash },
-        onEachFeature: (ft, l) => l.bindPopup(popup({ nombre: `${nombre} · ruta ${ft.properties.ruta}` },
-          Object.fromEntries(Object.entries(ft.properties).filter(([k]) => !["algoritmo", "ruta"].includes(k))))) }).addTo(mapa);
-    });
+  r.dijkstra.rutas.features.forEach((f, i) => {
+    ruteo.capas[`ruta_${i}`] = L.geoJSON(f, { pane: "rutas",
+      style: { color: COLORES[i % 4], weight: 5, opacity: 0.9 },
+      onEachFeature: (ft, l) => l.bindPopup(popup({ nombre: `pgr_dijkstra · ruta ${ft.properties.ruta}` },
+        Object.fromEntries(Object.entries(ft.properties).filter(([k]) => !["algoritmo", "ruta"].includes(k))))) }).addTo(mapa);
   });
   const todo = L.featureGroup(Object.values(ruteo.capas));
   if (todo.getLayers().length) mapa.fitBounds(todo.getBounds(), { padding: [30, 30] });
 
-  const md = r.dijkstra.metricas, mg = r.tdrpp_ga.metricas, d = r.diferencial;
-  const filasRutas = algoritmos.map(([clave, nombre, dash]) => r[clave].rutas.features.map((f, i) => {
+  const m = r.dijkstra.metricas;
+  const filasRutas = r.dijkstra.rutas.features.map((f, i) => {
     const p = f.properties;
-    return `<label><input type="checkbox" checked data-capa="${clave}_${i}">
-      <span class="linea" style="border-top-color:${COLORES[clave][i % 4]};border-top-style:${dash ? "dashed" : "solid"}"></span>
-      ${nombre} ${p.ruta}: ${p.longitud_km} km · supervivencia ${pct(p.supervivencia)} · ${p.requeridas_cubiertas} req.
-      ${p.duracion_min !== undefined ? `· ${p.duracion_min} min` : ""}${p.excede_autonomia ? " · ⚠ excede autonomía" : ""}</label>`;
-  }).join("")).join("");
-  const info = r.tdrpp_ga.info;
+    return `<label><input type="checkbox" checked data-capa="ruta_${i}">
+      <span class="linea" style="border-top-color:${COLORES[i % 4]}"></span>
+      Ruta ${p.ruta}: ${p.longitud_km} km · ${p.duracion_min} min · supervivencia ${pct(p.supervivencia)} ·
+      ${p.requeridas_cubiertas} req.${p.excede_autonomia ? " · ⚠ excede autonomía" : ""}</label>`;
+  }).join("");
   document.getElementById("resultado").innerHTML = `
     ${r.avisos.map(a => `<div class="aviso">⚠ ${escapar(a)}</div>`).join("")}
     <div>${r.contexto.aristas_requeridas} aristas a inspeccionar · ${r.contexto.amenazas_en_region} amenazas en la región ·
       ${r.contexto.aristas_bloqueadas} aristas bloqueadas · salida ${new Date(r.hora_salida).toLocaleString("es-CL")}</div>
     <table>
-      <tr><th>Métrica</th><th>Dijkstra</th><th>TDRPP-GA</th><th>Δ</th></tr>
-      <tr><td><b>Resiliencia R</b></td><td>${pct(md.R)}</td><td>${pct(mg.R)}</td>${celdaDelta(d.delta_R)}</tr>
-      <tr><td>Supervivencia R<sub>sup</sub></td><td>${pct(md.R_supervivencia)}</td><td>${pct(mg.R_supervivencia)}</td>${celdaDelta(d.delta_R_supervivencia)}</tr>
-      <tr><td>Cobertura C</td><td>${pct(md.cobertura)}</td><td>${pct(mg.cobertura)}</td>${celdaDelta(d.delta_cobertura)}</tr>
-      <tr><td>Solapamiento J</td><td>${pct(md.solapamiento_J)}</td><td>${pct(mg.solapamiento_J)}</td>${celdaDelta(d.delta_solapamiento_J, true)}</tr>
-      <tr><td>Longitud total</td><td>${md.longitud_total_km ?? "—"} km</td><td>${mg.longitud_total_km ?? "—"} km</td><td></td></tr>
+      <tr><th>Métrica</th><th>pgr_dijkstra</th></tr>
+      <tr><td><b>Resiliencia R</b></td><td>${pct(m.R)}</td></tr>
+      <tr><td>Supervivencia R<sub>sup</sub></td><td>${pct(m.R_supervivencia)}</td></tr>
+      <tr><td>Cobertura C</td><td>${pct(m.cobertura)}</td></tr>
+      <tr><td>Solapamiento J</td><td>${pct(m.solapamiento_J)}</td></tr>
+      <tr><td>Longitud total</td><td>${m.longitud_total_km ?? "—"} km</td></tr>
     </table>
     <div class="rutas">${filasRutas}
       <label><input type="checkbox" checked data-capa="requeridas">
         <span class="linea" style="border-top-color:#facc15;border-top-width:8px"></span>Aristas requeridas E<sub>R</sub></label></div>
-    ${info ? `<p class="ayuda">TDRPP-GA: ${info.generaciones} generaciones, población ${info.poblacion},
-      aptitud ${info.aptitud_ga} → ${info.aptitud_final_2opt} tras 2-Opt, ${info.segundos} s.</p>` : ""}
+    <p class="ayuda">${escapar(r.dijkstra.metodo)}.</p>
     <p class="ayuda">R = R<sub>sup</sub> × C. Preferencias por defecto usadas: ${r.preferencias_por_defecto.length}
       de ${Object.keys(r.preferencias).length}.</p>`;
   document.querySelectorAll("#resultado input[data-capa]").forEach(chk => chk.addEventListener("change", e => {
@@ -551,7 +534,7 @@ async function calcularRutas() {
   params.set("inicio_lon", ruteo.inicio.lng); params.set("inicio_lat", ruteo.inicio.lat);
   params.set("objetivo_lon", ruteo.objetivo.lng); params.set("objetivo_lat", ruteo.objetivo.lat);
   btn.disabled = true; btn.textContent = "Calculando…";
-  document.getElementById("resultado").innerHTML = '<p class="ayuda">Ejecutando pgr_dijkstra y el algoritmo genético (puede tardar unos segundos)…</p>';
+  document.getElementById("resultado").innerHTML = '<p class="ayuda">Ejecutando pgr_dijkstra…</p>';
   try {
     const resp = await fetch(`${API}/api/rutas?${params}`);
     const datos = await resp.json();

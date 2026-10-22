@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 TIPOS_SENAL_VALIDOS = ("senal_pare", "senal_ceda_el_paso", "semaforo", "cruce_peatonal")
 
 PREFERENCIAS_DEFECTO = {
-    "k": 2,                                   # rutas por algoritmo (mínimo k >= 2)
+    "k": 2,                                   # rutas alternativas (mínimo k >= 2)
     "hora_salida": None,                      # None = ahora
     "evitar_aerodromos": True,
     "radio_aerodromo_m": 2000,                # supuesto de diseño; verificar DAN 151 (DGAC)
@@ -33,9 +33,8 @@ PREFERENCIAS_DEFECTO = {
     "tipos_senal": ["senal_pare", "senal_ceda_el_paso", "semaforo"],
     "considerar_clima": True,
     "radio_corredor_m": 300,                  # ancho del corredor donde se buscan aristas requeridas
-    "max_requeridas": 30,                     # tope de |E_R| para que el genético responda rápido
-    "velocidad_crucero_ms": 10.0,             # tramos de transición
-    "velocidad_inspeccion_ms": 5.0,           # tramos requeridos (captura de imágenes)
+    "max_requeridas": 30,                     # tope de |E_R| (aristas a inspeccionar)
+    "velocidad_crucero_ms": 10.0,             # para estimar la duración de cada ruta
     "autonomia_km": 20.0,                     # batería de cada dron
     "horizonte_h": 2.0,                       # ventana para evaluar amenazas en la métrica
 }
@@ -47,7 +46,6 @@ LIMITES = {
     "radio_corredor_m": (50, 1500),
     "max_requeridas": (2, 60),
     "velocidad_crucero_ms": (1.0, 25.0),
-    "velocidad_inspeccion_ms": (1.0, 25.0),
     "autonomia_km": (1.0, 100.0),
     "horizonte_h": (0.5, 12.0),
 }

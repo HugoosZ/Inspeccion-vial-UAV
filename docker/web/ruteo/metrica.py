@@ -1,6 +1,5 @@
 """
-Métrica de resiliencia de un conjunto de k rutas y
-diferencial entre algoritmos.
+Métrica de resiliencia de un conjunto de k rutas.
 
 Fallas: cada amenaza activa en la ventana [t0, t0 + horizonte] es un evento
 independiente a que se materializa con probabilidad p_a según su nivel
@@ -15,7 +14,6 @@ agrupan por celda (un evento por celda, con el nivel máximo de la ventana).
   C         = largo de E_R cubierto / largo total de E_R       cobertura de inspección
   J         = largo compartido / largo de la unión (promedio entre pares)   solapamiento
   R         = R_sup · C                                        índice de resiliencia
-  ΔR        = R_TDRPP-GA − R_Dijkstra
 """
 
 from itertools import combinations
@@ -38,7 +36,7 @@ def _supervivencia(amenazas):
 
 def resiliencia(rutas, eventos, largos, requeridas):
     """rutas: listas de edge ids; eventos: edge -> {evento: p}; largos: edge -> metros;
-    requeridas: dict edge_id -> largo (E_R común a ambos algoritmos)."""
+    requeridas: dict edge_id -> largo (aristas a inspeccionar E_R)."""
     if not rutas:
         return {"R": 0.0, "R_supervivencia": 0.0, "cobertura": 0.0, "solapamiento_J": None,
                 "por_ruta": []}
@@ -80,12 +78,3 @@ def resiliencia(rutas, eventos, largos, requeridas):
         "por_ruta": por_ruta,
     }
 
-
-def diferencial(m_dijkstra, m_tdrpp):
-    return {
-        "delta_R": round(m_tdrpp["R"] - m_dijkstra["R"], 4),
-        "delta_R_supervivencia": round(m_tdrpp["R_supervivencia"] - m_dijkstra["R_supervivencia"], 4),
-        "delta_cobertura": round(m_tdrpp["cobertura"] - m_dijkstra["cobertura"], 4),
-        "delta_solapamiento_J": None if m_dijkstra["solapamiento_J"] is None or m_tdrpp["solapamiento_J"] is None
-        else round(m_tdrpp["solapamiento_J"] - m_dijkstra["solapamiento_J"], 4),
-    }

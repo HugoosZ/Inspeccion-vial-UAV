@@ -1,29 +1,38 @@
 """
-Planificación y comparación de rutas.
+Planificación de rutas resilientes con pgr_dijkstra.
 
 planificar() recibe el par (inicio, objetivo) y las preferencias del usuario y
-devuelve, para el mismo E_R y las mismas amenazas:
-  - k rutas de pgr_dijkstra por distancia (peor caso baseline),
-  - k rutas del TDRPP-GA con pesos resilientes,
-  - la métrica de resiliencia de cada conjunto y su diferencial.
+devuelve:
+  - k rutas de pgr_dijkstra sobre pesos resilientes (amenazas + metadata),
+  - las aristas a inspeccionar E_R del corredor,
+  - la métrica de resiliencia del conjunto de rutas.
 """
 
+import math
+
 from . import datos, dijkstra_k, metrica, preferencias
-from .tdrpp_ga import TDRPPGA, construir_grafo_resiliente, distancia_m
 
 
 class ErrorRuteo(ValueError):
     pass
 
 
-def _coleccion(rutas, geoms, algoritmo, metricas_ruta):
+def distancia_m(a, b):
+    """Distancia aproximada en metros entre dos dicts con lon/lat."""
+    lat = math.radians((a["lat"] + b["lat"]) / 2)
+    dx = (a["lon"] - b["lon"]) * 111_320 * math.cos(lat)
+    dy = (a["lat"] - b["lat"]) * 111_320
+    return math.hypot(dx, dy)
+
+
+def _coleccion(rutas, geoms, metricas_ruta):
     features = []
     for i, (aristas, m) in enumerate(zip(rutas, metricas_ruta), start=1):
         lineas = [geoms[e]["coords"] for e in aristas if e in geoms]
         features.append({
             "type": "Feature",
             "geometry": {"type": "MultiLineString", "coordinates": lineas},
-            "properties": {"algoritmo": algoritmo, "ruta": i, "aristas": len(aristas), **m},
+            "properties": {"algoritmo": "pgr_dijkstra", "ruta": i, "aristas": len(aristas), **m},
         })
     return {"type": "FeatureCollection", "features": features}
 
@@ -44,64 +53,57 @@ def planificar(conn, lon_inicio, lat_inicio, lon_objetivo, lat_objetivo, entrada
     margen = max(1500.0, prefs["radio_corredor_m"] * 3, 0.3 * distancia_m(inicio, objetivo))
     bbox = datos.bbox_region(inicio, objetivo, margen)
 
-    # Amenazas (5.2) y restricciones de metadata (6.1)
+    # Amenazas y restricciones de metadata -> pesos resilientes w(e)
     amen = datos.amenazas_region(conn, bbox, t0, prefs["horizonte_h"], prefs["considerar_clima"])
-    eliminadas, factores = datos.restricciones_metadata(conn, bbox, prefs)
+    eliminadas, factores_meta = datos.restricciones_metadata(conn, bbox, prefs)
+    bloqueadas = amen.bloqueadas | eliminadas
+    factores = {}
+    for e in set(amen.factor_estatico) | set(factores_meta) | set(amen.temporales):
+        factores[e] = (amen.factor_estatico.get(e, 1.0) * factores_meta.get(e, 1.0)
+                       * amen.factor_en(e, t0.timestamp()))
 
-    # Aristas a inspeccionar (mismo E_R para ambos algoritmos)
-    req = datos.aristas_requeridas(conn, inicio, objetivo, prefs, amen.bloqueadas | eliminadas)
+    # Aristas a inspeccionar en el corredor (para la cobertura de la métrica)
+    req = datos.aristas_requeridas(conn, inicio, objetivo, prefs, bloqueadas)
     if not req:
         avisos.append("No hay señales de los tipos elegidos en el corredor: amplía el radio o agrega tipos.")
 
-    # --- Algoritmo Baseline: k rutas con pgr_dijkstra (solo distancia) ---
-    rutas_dij = dijkstra_k.k_rutas(conn, inicio["id"], objetivo["id"], prefs["k"])
-    if not rutas_dij:
-        raise ErrorRuteo("pgr_dijkstra no encontró camino entre los puntos (red desconectada).")
-    if len(rutas_dij) < prefs["k"]:
-        avisos.append(f"Dijkstra solo encontró {len(rutas_dij)} ruta(s) distinta(s).")
+    # k rutas con pgr_dijkstra sobre w(e)
+    rutas = dijkstra_k.k_rutas(conn, inicio["id"], objetivo["id"], prefs["k"], bbox, bloqueadas, factores)
+    if not rutas:
+        raise ErrorRuteo("pgr_dijkstra no encontró camino: el inicio u objetivo queda aislado por "
+                         "amenazas o aeródromos, o la red está desconectada.")
+    if len(rutas) < prefs["k"]:
+        avisos.append(f"pgr_dijkstra solo encontró {len(rutas)} ruta(s) distinta(s).")
 
-    # --- Algoritmo Propuesto: k rutas con TDRPP-GA (pesos resilientes) ---
-    G = datos.grafo_completo(conn)
-    H = construir_grafo_resiliente(G, bbox, amen, eliminadas, factores)
-    if inicio["id"] not in H or objetivo["id"] not in H:
-        raise ErrorRuteo("El inicio u objetivo quedó dentro de una zona bloqueada (amenaza o aeródromo).")
-    ga = TDRPPGA(H, inicio["id"], objetivo["id"], req, amen, t0.timestamp(), prefs["k"],
-                 prefs["velocidad_crucero_ms"], prefs["velocidad_inspeccion_ms"], prefs["autonomia_km"])
-    resultado_ga = ga.resolver() if req else None
-    avisos += ga.avisos
-    rutas_ga = [r["aristas"] for r in resultado_ga["rutas"]] if resultado_ga else []
-
-    # --- Métrica de resiliencia y cálculo de diferencial ---
-    todas = {e for r in rutas_dij + rutas_ga for e in r} | {r["id"] for r in req}
+    # Métrica de resiliencia
+    todas = {e for r in rutas for e in r} | {r["id"] for r in req}
     geoms = datos.geometrias(conn, list(todas))
     largos = {e: g["length_m"] for e, g in geoms.items()}
     req_largos = {r["id"]: r["length_m"] for r in req}
-    m_dij = metrica.resiliencia(rutas_dij, amen.eventos, largos, req_largos)
-    m_ga = metrica.resiliencia(rutas_ga, amen.eventos, largos, req_largos)
+    m = metrica.resiliencia(rutas, amen.eventos, largos, req_largos)
 
-    extra_ga = [{"duracion_min": r["duracion_min"], "costo_resiliente": r["costo"],
-                 "excede_autonomia": r["excede_autonomia"]} for r in resultado_ga["rutas"]] if resultado_ga else []
-    por_ruta_ga = [{**a, **b} for a, b in zip(m_ga["por_ruta"], extra_ga)]
+    por_ruta = []
+    for aristas, p in zip(rutas, m["por_ruta"]):
+        costo = sum(largos.get(e, 0) / 1000.0 * factores.get(e, 1.0) for e in aristas)
+        por_ruta.append({**p, "costo_resiliente": round(costo, 3),
+                         "duracion_min": round(p["longitud_km"] * 1000 / prefs["velocidad_crucero_ms"] / 60, 1),
+                         "excede_autonomia": p["longitud_km"] > prefs["autonomia_km"]})
 
     return {
         "inicio": inicio, "objetivo": objetivo, "hora_salida": t0.isoformat(),
         "preferencias": prefs, "preferencias_por_defecto": por_defecto,
         "contexto": {"amenazas_en_region": amen.n_amenazas, "aristas_bloqueadas": len(amen.bloqueadas),
                      "aristas_eliminadas_metadata": len(eliminadas),
-                     "aristas_penalizadas_metadata": len(factores), "aristas_requeridas": len(req)},
+                     "aristas_penalizadas": len(factores), "aristas_requeridas": len(req)},
         "aristas_requeridas": {"type": "FeatureCollection", "features": [{
             "type": "Feature",
             "geometry": {"type": "LineString", "coordinates": geoms[r["id"]]["coords"]},
             "properties": {"id": r["id"], "nombre": r["name"], "senales": r["n_senales"],
                            "vulnerabilidad": r["vulnerabilidad"], "puntaje": r["puntaje"]},
         } for r in req if r["id"] in geoms]},
-        "dijkstra": {"rutas": _coleccion(rutas_dij, geoms, "pgr_dijkstra", m_dij["por_ruta"]),
-                     "metricas": {k: v for k, v in m_dij.items() if k != "por_ruta"},
-                     "metodo": f"pgr_dijkstra por distancia (km) con penalización ×{dijkstra_k.FACTOR} "
-                               "de aristas ya usadas"},
-        "tdrpp_ga": {"rutas": _coleccion(rutas_ga, geoms, "TDRPP-GA", por_ruta_ga),
-                     "metricas": {k: v for k, v in m_ga.items() if k != "por_ruta"},
-                     "info": resultado_ga["info"] if resultado_ga else None},
-        "diferencial": metrica.diferencial(m_dij, m_ga),
+        "dijkstra": {"rutas": _coleccion(rutas, geoms, por_ruta),
+                     "metricas": {k: v for k, v in m.items() if k != "por_ruta"},
+                     "metodo": f"pgr_dijkstra sobre pesos resilientes w(e), con penalización "
+                               f"×{dijkstra_k.FACTOR:g} de aristas ya usadas"},
         "avisos": avisos,
     }

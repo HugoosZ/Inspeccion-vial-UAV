@@ -19,11 +19,11 @@ El proyecto se estructura de forma modular desacoplando extracción, base de dat
 ├── docker/                  # Definición de imágenes Docker
 │   ├── etl/                 # Contenedor con herramientas geoespaciales (GeoPandas, OSMnx)
 │   └── web/                 # Contenedor con FastAPI y servidor estático Leaflet
-│       └── ruteo/           # Dijkstra k rutas, TDRPP-GA y métrica de resiliencia
+│       └── ruteo/           # k rutas pgr_dijkstra con pesos resilientes y métrica de resiliencia
 ├── Infraestructura/         # Extracción y transformación de red vial (nodos y aristas)
 ├── Metadata/                # Metadatos: M1 paraderos, M2 controles viales, M3 censo, M4 aeródromos
 ├── Amenazas/                # Extracción y transformación de amenazas (incendios, clima, SOSAFE, Waze)
-└── Sitio Web/               # Visualizador Leaflet y comparación de rutas (pgr_dijkstra vs TDRPP-GA)
+└── Sitio Web/               # Visualizador Leaflet y planificación de rutas (pgr_dijkstra)
 ```
 
 ---
@@ -82,8 +82,8 @@ http://localhost:8080/docs     # documentación de la API
 ### 4. Fuentes estáticas
 M3 (Censo 2024) se carga desde `Metadata/M3/manzanas_maipu_completo.zip`; para regenerarlo hace falta la cartografía del INE (`Cartografia_censo2024_Pais.gpkg`, no versionada por su tamaño). M4 (aeródromos DGAC) se carga desde `Metadata/M4/aerodromos.geojson`.
 
-### 5. Comparar rutas
-En el panel **Planificación de rutas** del sitio, haz clic en el mapa para fijar el inicio y el objetivo, ajusta las restricciones (u ocupa las por defecto) y presiona **Calcular rutas**. Se muestran k rutas de `pgr_dijkstra` (solo distancia) y k rutas del **TDRPP-GA** (algoritmo genético para el Time-Dependent Rural Postman Problem, Xin et al., 2022), con su métrica de resiliencia y el diferencial $\Delta R$. El modelo completo está documentado en [`docker/web/ruteo/README.md`](docker/web/ruteo/README.md).
+### 5. Planificar rutas
+En el panel **Planificación de rutas** del sitio, haz clic en el mapa para fijar el inicio y el objetivo, ajusta las restricciones (u ocupa las por defecto) y presiona **Calcular rutas**. Se muestran k rutas alternativas de `pgr_dijkstra` calculadas sobre **pesos resilientes**: las amenazas duras (A1, A3, A4) y los aeródromos (M4) bloquean aristas, y los paraderos (M1) y el clima (A2) las encarecen. Se informa la métrica de resiliencia del conjunto ($R$, supervivencia, cobertura de señalética y solapamiento). El modelo completo está documentado en [`docker/web/ruteo/README.md`](docker/web/ruteo/README.md).
 
 ---
 

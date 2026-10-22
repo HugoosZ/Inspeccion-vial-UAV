@@ -45,7 +45,7 @@ Colores de riesgo, comunes a todas las amenazas: BAJO gris, MEDIO amarillo, ALTO
 | `GET /api/metadata` | `fuente`, `tipo`, `comuna`, `simplificar` | Filas de `temp_metadata` |
 | `GET /api/amenazas` | `fuente`, `tipo`, `riesgo` | Filas de `temp_amenazas` |
 | `GET /api/route/baseline` | `start_node`, `end_node` | Ruta `pgr_dijkstra` por longitud (una ruta) |
-| `GET /api/rutas` | `inicio_lon`, `inicio_lat`, `objetivo_lon`, `objetivo_lat` + restricciones opcionales | k rutas `pgr_dijkstra` y k rutas TDRPP-GA, métrica de resiliencia y diferencial |
+| `GET /api/rutas` | `inicio_lon`, `inicio_lat`, `objetivo_lon`, `objetivo_lat` + restricciones opcionales | k rutas `pgr_dijkstra` sobre pesos resilientes y métrica de resiliencia |
 | `GET /api/rutas/preferencias` | — | Restricciones por defecto |
 
 `simplificar` es la tolerancia en grados de `ST_SimplifyPreserveTopology`; se usa en las manzanas del censo para que el GeoJSON pese menos. La documentación interactiva de la API queda en `http://localhost:8080/docs`.
@@ -70,6 +70,6 @@ El panel **Planificación de rutas** permite:
 
 1. Fijar el **inicio** y el **objetivo** con dos clics en el mapa (los marcadores se pueden arrastrar).
 2. Ajustar las **restricciones del usuario** (k, hora de salida, aeródromos, paraderos, vulnerabilidad, tipos de señal, clima, corredor, autonomía). Lo que no se modifica se envía como valor por defecto.
-3. Presionar **Calcular rutas**. El mapa muestra las aristas a inspeccionar (amarillo), las k rutas de `pgr_dijkstra` (azules, punteadas) y las k rutas del TDRPP-GA (verde, magenta…), con una tabla que compara $R$, $R_{sup}$, cobertura, solapamiento y longitud, junto al diferencial $\Delta R$.
+3. Presionar **Calcular rutas**. El mapa muestra las aristas a inspeccionar (amarillo) y las k rutas de `pgr_dijkstra` sobre pesos resilientes (azul, verde, magenta, naranjo), que evitan las amenazas duras y los aeródromos. Una tabla resume $R$, $R_{sup}$, cobertura, solapamiento y longitud total, y cada ruta indica su longitud, duración estimada, supervivencia y si excede la autonomía.
 
 El detalle del modelo de fallas, los pesos, las restricciones, el algoritmo y la métrica está en [`docker/web/ruteo/README.md`](../docker/web/ruteo/README.md).

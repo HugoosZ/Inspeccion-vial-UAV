@@ -1,18 +1,17 @@
-# Ruteo resiliente · pgr_dijkstra vs TDRPP-GA
+# Ruteo resiliente · pgr_dijkstra
 
-Módulo que usa la API (`GET /api/rutas`) y el sitio Leaflet para generar, con el mismo par (inicio, objetivo), las mismas amenazas y el mismo conjunto de aristas a inspeccionar:
+Módulo que usa la API (`GET /api/rutas`) y el sitio Leaflet para generar, dado un par (inicio, objetivo):
 
-- **k rutas con `pgr_dijkstra`**, solo por distancia en km (peor caso baseline),
-- **k rutas con el TDRPP-GA**, con pesos resilientes,
-- la **métrica de resiliencia** de cada conjunto y su **diferencial**.
+- **k rutas alternativas con `pgr_dijkstra`** sobre **pesos resilientes**, que combinan las amenazas (A1–A4) y las restricciones de metadata (M1, M4),
+- las **aristas a inspeccionar** $E_R$ del corredor (señales M2, priorizadas con M3),
+- la **métrica de resiliencia** del conjunto de rutas.
 
 | Archivo | Contenido |
 |---|---|
 | `preferencias.py` | Restricciones del usuario y sus valores por defecto |
-| `datos.py` | Consultas PostGIS: grafo, amenazas por arista, restricciones de metadata, aristas requeridas |
-| `dijkstra_k.py` | k rutas con `pgr_dijkstra` por penalización iterativa |
-| `tdrpp_ga.py` | Algoritmo genético TDRPP-GA con 2-Opt |
-| `metrica.py` | Resiliencia de k rutas y diferencial |
+| `datos.py` | Consultas PostGIS: nodos, amenazas por arista, restricciones de metadata, aristas requeridas |
+| `dijkstra_k.py` | k rutas con `pgr_dijkstra` sobre $w(e)$, por penalización iterativa |
+| `metrica.py` | Resiliencia de k rutas |
 | `__init__.py` | `planificar()`: orquesta todo y arma la respuesta GeoJSON |
 
 ---
@@ -35,8 +34,8 @@ Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la
 $$
 w(e,t)=
 \begin{cases}
-\infty & \text{si } e \text{ toca una amenaza dura (A1, A3, A4)}\\
-d(e)\cdot\rho(e)\cdot\pi(e)\cdot\varphi(e,t) & \text{en otro caso}
+\infty & \text{si } e \text{ toca una amenaza dura (A1, A3, A4) o está cerca de un aeródromo (M4)}\\
+d(e)\cdot\rho(e)\cdot\pi(e)\cdot\varphi(e,t_0) & \text{en otro caso}
 \end{cases}
 $$
 
@@ -45,9 +44,9 @@ $$
 | $d(e)$ | Largo de la arista en km | `length_m / 1000` |
 | $\rho(e)$ | Amenaza estática | 1,5 si PENALIZAR · 2,0 si POSTERGAR · 1 si no hay |
 | $\pi(e)$ | Restricción de metadata | 1,3 junto a paraderos · ∞ cerca de aeródromos · 1 en otro caso |
-| $\varphi(e,t)$ | Clima en la hora en que el dron cruza la arista | 1,5 si MEDIO · 10 si ALTO/CRÍTICO ("bloqueo blando") · 1 si no hay |
+| $\varphi(e,t_0)$ | Clima a la hora de salida $t_0$ | 1,5 si MEDIO · 10 si ALTO/CRÍTICO ("bloqueo blando") · 1 si no hay |
 
-El clima no elimina aristas, porque una celda de 7 × 6 km con lluvia dejaría a Maipú sin red. Las encarece en esa hora, y el genético puede reordenar la ruta para cruzarlas en otro momento.
+En `pgr_dijkstra` las aristas con $w=\infty$ se entregan con `cost = -1`, que pgRouting interpreta como arista inexistente. El clima no elimina aristas, porque una celda de 7 × 6 km con lluvia dejaría a Maipú sin red: las encarece a la hora de salida, y `pgr_dijkstra` las esquiva si hay alternativa. Como `pgr_dijkstra` usa pesos estáticos, el clima se evalúa en $t_0$ (un vuelo dura minutos).
 
 ## 3. Restricciones desde la metadata (preferencias del usuario)
 
@@ -57,9 +56,9 @@ El clima no elimina aristas, porque una celda de 7 × 6 km con lluvia dejaría a
 | `evitar_paraderos` | M1 Paraderos | Aristas a menos de 25 m de un paradero: $\pi = 1{,}3$, porque los buses detenidos tapan la señalética |
 | `priorizar_vulnerables` | M3 Censo, índice $V_m$ | Las aristas junto a manzanas con $V_m>0$ suman +2 al puntaje para entrar en $E_R$ |
 | `tipos_senal` | M2 Controles viales OSM | Define qué aristas se deben inspeccionar: las que tienen una señal de esos tipos a menos de 15 m |
-| `radio_corredor_m`, `max_requeridas` | — | Ancho del corredor inicio–objetivo donde se buscan aristas y tope de $\lvert E_R\rvert$ |
+| `radio_corredor_m`, `max_requeridas` | — | Ancho del corredor inicio–objetivo donde se buscan las aristas a inspeccionar y tope de $\lvert E_R\rvert$ |
 | `considerar_clima` | A2 | Activa o desactiva $\varphi(e,t)$ |
-| `velocidad_*`, `autonomia_km` | — | Parámetros del dron: tiempo de llegada a cada arista y límite de batería |
+| `velocidad_crucero_ms`, `autonomia_km` | — | Parámetros del dron: duración estimada de cada ruta y aviso si supera la batería |
 
 ## 4. Preferencias por defecto
 
@@ -76,7 +75,7 @@ Si el usuario no ingresa un valor, se usa este (`GET /api/rutas/preferencias`):
 | Considerar clima por hora | Sí |
 | Ancho del corredor | 300 m |
 | Máximo de aristas requeridas | 30 |
-| Velocidad de crucero / de inspección | 10 m/s / 5 m/s |
+| Velocidad de crucero | 10 m/s |
 | Autonomía por dron | 20 km |
 | Horizonte de amenazas | 2 h |
 
@@ -84,39 +83,21 @@ La respuesta de `/api/rutas` incluye `preferencias_por_defecto`, con la lista de
 
 ---
 
-## 5. Algoritmo de ruteo y paper
+## 5. k rutas con `pgr_dijkstra`
 
-**TDRPP-GA**: algoritmo genético para el *Time-Dependent Rural Postman Problem*.
-
-- **Base:** Xin, J., Yu, B., D'Ariano, A., Wang, H. y Wang, M. (2022). *Time-dependent rural postman problem: time-space network formulation and genetic algorithm*. Operational Research, 22(3), 2943–2972. https://doi.org/10.1007/s12351-021-00639-0
-- **Mejora local 2-Opt:** Croes, G. A. (1958). *A method for solving traveling-salesman problems*. Operations Research, 6(6), 791–812.
-- Las referencias de energía multi-UAV (Wang y Qian) y de arquitectura offline/online (Li et al.) deben completarse con su DOI.
-
-### Funcionamiento del algoritmo
-
-Inspeccionar señalética es un **Rural Postman Problem**: hay que recorrer un subconjunto de aristas obligatorias $E_R$ (las que tienen señales) usando cualquier otra arista para moverse entre ellas. Es *time-dependent* porque el costo de cada arista depende de la hora en que el dron la cruza (clima A2 por hora).
-
-1. **Aristas requeridas.** Se toman las aristas del corredor inicio–objetivo con señales de los tipos elegidos, ordenadas por puntaje (señales + vulnerabilidad) y descartando las bloqueadas, hasta `max_requeridas`.
-2. **Fase offline: caminos de transición.** Se calculan los caminos de costo mínimo $w$ entre todos los extremos de $E_R$, el inicio y el objetivo. Por la propiedad de optimalidad del paper (con tiempos FIFO, la transición óptima entre dos aristas requeridas es un camino mínimo), el genético solo decide el **orden** y el **sentido** de las aristas requeridas.
-3. **Cromosoma** $=(\text{permutación de } E_R,\ \text{sentido de cada arista},\ k-1 \text{ cortes})$. Los cortes reparten la permutación entre los $k$ drones; cada dron va del inicio al objetivo pasando por sus aristas.
-4. **Evaluación dependiente del tiempo.** Se simula cada dron desde $t_0$: transiciones a velocidad de crucero e inspección a velocidad de inspección. Cada arista se cobra con $w(e,t_e)$ según su hora de llegada $t_e$.
-$$
-F=\sum_{i=1}^{k}C(P_i)+\beta\max_i C(P_i)+\lambda_{bat}\sum_{i}\max\bigl(0,\,L(P_i)-L_{max}\bigr)+\lambda_{vac}\cdot\#\{\text{drones sin aristas}\}
-$$
-   con $\beta=0{,}5$ (balance entre drones), $\lambda_{bat}=5$ por km sobre la autonomía y $\lambda_{vac}=50$.
-5. **Operadores.** Población de 80 (una semilla ordenada por proyección sobre la recta inicio→objetivo y el resto aleatoria), selección por torneo de 3, cruce de orden (OX) con probabilidad 0,9, mutaciones por intercambio, inversión, cambio de sentido y desplazamiento de corte (0,3 cada una), elitismo de 2 y hasta 400 generaciones o 8 s.
-6. **2-Opt.** Sobre la mejor solución se invierten subsecuencias de cada dron (cambiando también el sentido) mientras haya mejora.
-7. **Resultado.** $k$ rutas que cubren $E_R$ repartido entre drones, evitan las amenazas duras y esquivan las horas de mal tiempo. La semilla aleatoria es fija (42), así que los resultados son reproducibles.
-
-**Por qué es resiliente:** las rutas no cruzan zonas bloqueadas, pagan más por las zonas de riesgo y, al repartir $E_R$, los drones recorren calles distintas. Si una amenaza corta una ruta, las demás siguen operativas.
-
-## 6. k rutas con `pgr_dijkstra` (baseline)
-
-1. $P_1$ = `pgr_dijkstra` con `cost = length_m / 1000`, solo distancia en km.
+1. $P_1$ = `pgr_dijkstra` (dirigido, respetando los sentidos únicos) con `cost` $= w(e)$, restringido a la región inicio–objetivo con margen.
 2. Las aristas ya usadas multiplican su costo por $3^{n}$, donde $n$ es el número de rutas previas que las usaron, y se vuelve a ejecutar `pgr_dijkstra`.
-3. Se repite hasta tener $k$ rutas distintas.
+3. Se repite hasta tener $k$ rutas distintas (o hasta que no aparezcan alternativas nuevas).
 
-No usa metadata ni amenazas: es la línea base de comparación.
+Los factores de cada arista se cargan en una tabla temporal de la sesión (`pesos_ruteo`), que la consulta interna de `pgr_dijkstra` lee con un `JOIN`. La penalización por uso solo sirve para que cada ejecución explore un camino distinto: todas las rutas salen de `pgr_dijkstra`.
+
+**Por qué es resiliente:** las rutas no cruzan zonas bloqueadas, pagan más por las zonas de riesgo y la penalización por uso las obliga a recorrer calles distintas. Si una amenaza corta una ruta, las demás siguen operativas.
+
+Para cada ruta se informa su longitud, su costo resiliente $\sum w(e)$, la duración estimada a `velocidad_crucero_ms` y si excede `autonomia_km`.
+
+## 6. Aristas a inspeccionar $E_R$
+
+Se toman las aristas del corredor inicio–objetivo con señales de los tipos elegidos (M2), ordenadas por puntaje (señales + 2 si están junto a una manzana vulnerable, M3) y descartando las bloqueadas, hasta `max_requeridas`. `pgr_dijkstra` no las fuerza en la ruta: sirven para medir cuánta señalética inspecciona el conjunto de rutas (cobertura $C$).
 
 ## 7. Métrica de resiliencia de k rutas
 
@@ -142,14 +123,6 @@ $$
 - $J$: solapamiento entre rutas (0 = totalmente distintas).
 - $R$: índice de resiliencia; una ruta que sobrevive pero no inspecciona no cumple la misión.
 
-## 8. Diferencial de resiliencia
-
-$$
-\Delta R = R_{\text{TDRPP-GA}}-R_{\text{Dijkstra}}
-$$
-
-Se informan también $\Delta R_{sup}$, $\Delta C$ y $\Delta J$ (en puntos porcentuales en el sitio). Un $\Delta R>0$ indica que el TDRPP-GA entrega un conjunto de rutas más resiliente para la misión de inspección.
-
 ## Uso de la API
 
 ```
@@ -158,4 +131,4 @@ GET /api/rutas?...&k=3&evitar_paraderos=false&tipos_senal=senal_pare,semaforo&ho
 GET /api/rutas/preferencias
 ```
 
-Responde con `dijkstra.rutas` y `tdrpp_ga.rutas` (GeoJSON MultiLineString por ruta), `aristas_requeridas`, `metricas` de cada algoritmo, `diferencial`, `contexto` y `avisos`.
+Responde con `dijkstra.rutas` (GeoJSON MultiLineString por ruta), `dijkstra.metricas`, `dijkstra.metodo`, `aristas_requeridas`, `contexto` y `avisos`.

@@ -10,7 +10,7 @@ Endpoints (todos devuelven GeoJSON salvo /health y /api/capas):
   GET /api/metadata?fuente=...    filas de temp_metadata (filtrables)
   GET /api/amenazas?fuente=...    filas de temp_amenazas (filtrables)
   GET /api/route/baseline         ruta pgr_dijkstra por longitud (una ruta)
-  GET /api/rutas                  k rutas pgr_dijkstra vs TDRPP-GA + métrica de resiliencia
+  GET /api/rutas                  k rutas pgr_dijkstra resilientes + métrica de resiliencia
   GET /api/rutas/preferencias     preferencias por defecto de navegación
 El sitio estático se sirve desde la carpeta "Sitio Web" montada en /app/sitio_web.
 """
@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg2.extras import RealDictCursor
 
-# Módulo de ruteo (docker/web/ruteo): Dijkstra k rutas, TDRPP-GA y métrica
+# Módulo de ruteo (docker/web/ruteo): k rutas pgr_dijkstra resilientes y métrica
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ruteo  # noqa: E402
 from ruteo.preferencias import PREFERENCIAS_DEFECTO, TIPOS_SENAL_VALIDOS  # noqa: E402
@@ -234,13 +234,12 @@ def get_rutas(
     evitar_paraderos: bool = None, priorizar_vulnerables: bool = None,
     tipos_senal: str = Query(None, description="Lista separada por comas, p. ej. senal_pare,semaforo"),
     considerar_clima: bool = None, radio_corredor_m: float = None, max_requeridas: int = None,
-    velocidad_crucero_ms: float = None, velocidad_inspeccion_ms: float = None,
-    autonomia_km: float = None, horizonte_h: float = None,
+    velocidad_crucero_ms: float = None, autonomia_km: float = None, horizonte_h: float = None,
 ):
     """
     Planificación de rutas: con el par (inicio, objetivo) y las restricciones del usuario
-    (las omitidas toman su valor por defecto) devuelve k rutas de pgr_dijkstra,
-    k rutas del TDRPP-GA, la métrica de resiliencia de cada conjunto y su diferencial.
+    (las omitidas toman su valor por defecto) devuelve k rutas de pgr_dijkstra sobre
+    pesos resilientes (amenazas + metadata) y la métrica de resiliencia del conjunto.
     """
     entrada = {
         "k": k, "hora_salida": hora_salida, "evitar_aerodromos": evitar_aerodromos,
@@ -248,7 +247,7 @@ def get_rutas(
         "priorizar_vulnerables": priorizar_vulnerables, "tipos_senal": tipos_senal,
         "considerar_clima": considerar_clima, "radio_corredor_m": radio_corredor_m,
         "max_requeridas": max_requeridas, "velocidad_crucero_ms": velocidad_crucero_ms,
-        "velocidad_inspeccion_ms": velocidad_inspeccion_ms, "autonomia_km": autonomia_km,
+        "autonomia_km": autonomia_km,
         "horizonte_h": horizonte_h,
     }
     conn = get_db_connection()

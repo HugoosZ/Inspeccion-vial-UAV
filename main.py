@@ -301,7 +301,7 @@ def resumen_web():
             texto = ", ".join(f"{f} ({n})" for f, n in sorted(por_fuente.items(), key=lambda x: str(x[0])))
             print(f"[+] Capas de {grupo}: {texto or 'ninguna'}")
         http_json("/api/rutas/preferencias")
-        print("[+] API de ruteo (pgr_dijkstra + TDRPP-GA) disponible.")
+        print("[+] API de ruteo (pgr_dijkstra resiliente) disponible.")
     except Exception as e:  # noqa: BLE001
         print(f"[!] La web responde, pero no se pudo leer el catálogo de capas: {e}")
 
