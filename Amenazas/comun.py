@@ -16,7 +16,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-import requests
+# import requests se realiza de forma local en http_get() para permitir
+# importar utilidades de comun.py sin dependencias externas.
 
 AMENAZAS_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = AMENAZAS_DIR.parent
@@ -62,6 +63,8 @@ def ahora_utc_iso():
 # ------------------------------------------------------------------------------
 def http_get(url, params=None, intentos=3, timeout=60, como_json=True):
     """GET con reintentos y espera exponencial. Devuelve JSON o texto."""
+    import requests  # import local
+
     ultimo_error = None
     for intento in range(1, intentos + 1):
         try:

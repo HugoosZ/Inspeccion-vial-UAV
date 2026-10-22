@@ -281,6 +281,12 @@ const CAPAS = [
       style: () => ({ color: "#f77f00", weight: 2, fillColor: "#f77f00", fillOpacity: 0.3 }),
       pointToLayer: (f, ll) => punto(ll, "#f77f00", 6, "amen"),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
+  { id: "T7", grupo: "Amenazas", nombre: "T7 · Calles cerradas y obras (Waze)", activa: true, muestra: "#d90429", fuente: "T7_waze",
+    url: "/api/amenazas?fuente=T7_waze",
+    crear: d => L.geoJSON(d, { pane: "amen",
+      style: f => ({ color: (f.properties && f.properties.marker_color) || "#d90429", weight: 2, fillColor: (f.properties && f.properties.marker_color) || "#d90429", fillOpacity: 0.35 }),
+      pointToLayer: (f, ll) => punto(ll, (f.properties && f.properties.marker_color) || "#d90429", 6, "amen"),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
 ];
 
 // ---------------------------------------------------------------------------

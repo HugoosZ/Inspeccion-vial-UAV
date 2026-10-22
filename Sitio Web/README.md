@@ -31,6 +31,7 @@ Cada capa corresponde a uno de los JSON cargados en la BD y se descarga solo al 
 | Amenazas | T3 · Clima severo | `/api/amenazas?fuente=T3_clima` | `temp_amenazas` | Celdas por nivel de riesgo, con selector de hora |
 | Amenazas | T5 · Lluvias | `/api/amenazas?fuente=T5_lluvias_maipu` | `temp_amenazas` | Círculo con el radio de afectación (activas); historial opcional |
 | Amenazas | T6 · SOSAFE | `/api/amenazas?fuente=T6_sosafe` | `temp_amenazas` | Geocerca y punto del reporte |
+| Amenazas | T7 · Waze | `/api/amenazas?fuente=T7_waze` | `temp_amenazas` | Geocercas de exclusión por calles cerradas y obras |
 
 Colores de riesgo, comunes a todas las amenazas: BAJO gris, MEDIO amarillo, ALTO naranjo, CRÍTICO rojo.
 

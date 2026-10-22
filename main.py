@@ -67,6 +67,8 @@ EXTRACTORES = [
      "script": "Amenazas/lluvias_maipu/extractor.py"},
     {"grupo": "Amenazas", "nombre": "T6 SOSAFE + clasificación",
      "script": "Amenazas/sosafe/run.py"},
+    {"grupo": "Amenazas", "nombre": "T7 Waze (Calles cerradas y obras)",
+     "script": "Amenazas/waze/run.py"},
 ]
 # M6 Aeródromos (aerodromos.geojson, DGAC) es una fuente estática versionada en el repositorio.
 
@@ -82,6 +84,7 @@ CARGADORES = [
     {"grupo": "Amenazas", "nombre": "T3 Clima", "script": "Amenazas/clima/cargar.py"},
     {"grupo": "Amenazas", "nombre": "T5 Lluvias", "script": "Amenazas/lluvias_maipu/cargar.py"},
     {"grupo": "Amenazas", "nombre": "T6 SOSAFE", "script": "Amenazas/sosafe/cargar.py"},
+    {"grupo": "Amenazas", "nombre": "T7 Waze", "script": "Amenazas/waze/cargar.py"},
 ]
 
 

@@ -55,7 +55,7 @@ python3 main.py
 | Paso | Qué hace | Dónde corre |
 |---|---|---|
 | 1. Contenedores | `docker compose up -d --build db etl` | Computador |
-| 2. Descarga | Extractores de Infraestructura, Metadata (M1, M3, M5) y Amenazas (T2, T3, T5, T6) que escriben los JSON/GeoJSON | Contenedor `etl` |
+| 2. Descarga | Extractores de Infraestructura, Metadata (M1, M3, M5) y Amenazas (T2, T3, T5, T6, T7) que escriben los JSON/GeoJSON | Contenedor `etl` |
 | 3. Importación | Un `cargar.py` por cada JSON/GeoJSON hacia PostGIS, y conteo de filas por tabla y fuente | Contenedor `etl` |
 | 4. Web | Levanta `web`, espera a que `/health` responda, verifica las capas y la API de ruteo, y abre el navegador | Computador |
 
