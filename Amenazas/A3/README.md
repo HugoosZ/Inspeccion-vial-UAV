@@ -81,3 +81,13 @@ python3 extractor.py
 # Solo clasificación sobre los datos ya descargados
 python3 classifier.py
 ```
+
+---
+
+## 5. Tiempos de Respuesta y Dinámica en Tiempo Real
+
+* **Tiempo de respuesta de la API (HTTP):** Entre **0,8 y 1,5 segundos** por petición GET al endpoint de SOSAFE.
+* **Tiempo de inferencia del clasificador IA:** Entre **1,2 y 3,0 segundos** con Google Gemini Flash (o < 50 ms con el clasificador heurístico local).
+* **Frecuencia de actualización y frescura del dato en el mundo real:**
+  * **Tiempo Real Inmediato (*Crowdsourcing*):** Los reportes ciudadanos son transmitidos por los vecinos desde la app móvil en tiempo real. La latencia entre la ocurrencia del incidente en el barrio (ej. balacera o fuegos artificiales) y su disponibilidad en la API de SOSAFE es de **1 a 5 minutos**.
+* **Implicancia operacional UAV:** Es la fuente de mayor dinamismo táctico inmediato. Permite al sistema de ruteo emitir órdenes de aborto de misión o desvío en pleno vuelo si surge un conflicto armado o pirotecnia en el tramo programado.

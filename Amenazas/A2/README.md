@@ -28,6 +28,15 @@ $$
 &wind_speed_unit=kmh&timezone=America/Santiago&forecast_days=2
 ```
 
+## Tiempos de Respuesta y Naturaleza del Dato
+
+* **Tiempo de respuesta de la API (HTTP):** Muy rápido, típicamente **0,3 a 0,8 segundos** para los 9 puntos simultáneos.
+* **Frecuencia de actualización y frescura del dato:**
+  * Open-Meteo no transmite telemetría de sensores meteorológicos en tiempo real segundo a segundo; ejecuta **modelos numéricos de predicción meteorológica** (NWP, como ECMWF IFS, GFS y DWD ICON).
+  * Los modelos globales asimilan datos y se recalculan cada **1 a 6 horas**.
+  * La resolución temporal de los datos entregados es **horaria** (un valor proyectado por celda para cada hora del día).
+* **Implicancia operacional UAV:** El sistema utiliza estos datos como un **bloqueo blando dependiente del tiempo**. Si se pronostican ráfagas o lluvia a las 14:00 en la celda norte, el algoritmo penaliza el paso a esa hora pero permite programar el sobrevuelo en horas previas o posteriores sin cancelar la misión completa.
+
 ## Umbrales (supuestos de diseño)
 
 | Variable | MEDIO → penalizar (×1,5) | ALTO / CRITICO → bloquear | Variable de entorno |

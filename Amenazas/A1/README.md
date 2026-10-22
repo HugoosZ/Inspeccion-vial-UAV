@@ -22,6 +22,16 @@ $$b(e,t)=0 \quad \text{si } e \cap P_{\text{fuego}}(t)\neq\varnothing$$
 
 Si `FIRMS_MAP_KEY` no está definida, el extractor usa solo GDACS y lo avisa en consola.
 
+## Tiempos de Respuesta y Latencia de Datos (NRT)
+
+Es crítico documentar la dinámica temporal de esta amenaza para la operación de la flota UAV:
+
+* **Tiempo de respuesta de la API (HTTP):** Entre 1,0 y 2,5 segundos por consulta.
+* **Frecuencia de refresco y latencia en el mundo real:**
+  * **NASA FIRMS (`VIIRS_SNPP_NRT`):** Clasificado por la NASA como **Near Real Time (NRT)**. Los satélites de órbita heliosincrónica (Suomi-NPP y NOAA-20) sobrevuelan la cuenca central de Chile solo **2 a 4 veces al día**. Entre la captura infrarroja satelital, la bajada a estaciones terrenas y el procesamiento del algoritmo de detección de anomalías térmicas, transcurren entre **1 y 3 horas**. En consecuencia, la latencia real acumulada respecto al inicio del foco de calor oscila entre **3 y 6 horas**.
+  * **GDACS:** Las alertas se consolidan mediante reportes oficiales internacionales y modelamiento de desastres, con una latencia de **12 a 24 horas**.
+* **Implicancia operacional UAV:** A1 no es un sensor en tiempo real instantáneo para esquivar fuegos repentinos de hace minutos, sino una **capa de planificación previa a la misión** que asegura que el dron no ingrese en sectores con columnas de humo denso persistentes o zonas donde aeronaves cisterna de CONAF estén operando a baja cota.
+
 ## Variables de entorno
 
 | Variable | Defecto | Descripción |

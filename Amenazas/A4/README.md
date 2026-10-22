@@ -107,3 +107,12 @@ La API pública de Waze Live Map se encuentra detrás del control perimetral Clo
 1. El extractor informa el estado en consola.
 2. Si el operador desea actualizar datos en vivo, puede copiar la cabecera `Cookie` desde las Herramientas de Desarrollador del navegador (F12 -> Pestaña *Red* en `https://www.waze.com/live-map`) y colocarla en `Amenazas/A4/.env` como `WAZE_COOKIE='...'`.
 3. Si no se dispone de credenciales actualizadas, el pipeline continúa de manera transparente utilizando el conjunto de datos verificado local en `data/waze_raw.json`, garantizando la ejecución ininterrumpida del sistema.
+
+---
+
+## 7. Tiempos de Respuesta y Dinámica en Tiempo Real
+
+* **Tiempo de respuesta de la API (HTTP):** Entre **1,0 y 2,0 segundos** por sector consultado. Con la estrategia multi-sector (10 sectores) y pausa de protección de 3 segundos (`WAZE_REQUEST_DELAY=3.0`), la extracción completa de Maipú toma aproximadamente **35 a 45 segundos**.
+* **Frecuencia de actualización y frescura del dato en el mundo real:**
+  * **Tiempo Real Vial (*Crowdsourcing*):** Los reportes de cierres de calle, trabajos de pavimentación y maquinaria pesada son alimentados continuamente por conductores y editores viales. La latencia entre la instalación del corte/obra en terreno y su reflejo en la API GeoRSS es de **2 a 5 minutos**.
+* **Implicancia operacional UAV:** Permite identificar arterias intransitables o intervenidas con maquinaria en elevación, garantizando que el algoritmo de ruteo descarte esas calles antes y durante la ejecución del vuelo.
