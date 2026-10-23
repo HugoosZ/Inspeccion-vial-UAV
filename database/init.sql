@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS network_edges (
     highway VARCHAR(50) NOT NULL, -- motorway, primary, secondary, tertiary, residential, etc.
     source BIGINT NOT NULL REFERENCES network_nodes(id) ON DELETE CASCADE,
     target BIGINT NOT NULL REFERENCES network_nodes(id) ON DELETE CASCADE,
-    cost DOUBLE PRECISION NOT NULL, -- Longitud métrica (peor caso de Dijkstra baseline)
+    cost DOUBLE PRECISION NOT NULL, -- Longitud en metros (costo base, sin amenazas ni metadata)
     reverse_cost DOUBLE PRECISION NOT NULL, -- -1 si es sentido único, longitud si es bidireccional
     length_m DOUBLE PRECISION NOT NULL,
     maxspeed_kmh INTEGER DEFAULT 50,
@@ -49,18 +49,19 @@ CREATE INDEX IF NOT EXISTS idx_network_edges_target ON network_edges (target);
 CREATE INDEX IF NOT EXISTS idx_network_edges_commune ON network_edges (commune);
 
 -- ------------------------------------------------------------------------------
--- 3. METADATA (Tabla Temporal y Flexible con JSONB y Geometría Universal)
+-- 3. METADATA (Tabla Flexible con JSONB y Geometría Universal)
 -- ------------------------------------------------------------------------------
--- Permite cargar cualquier dato de metadata (inventario MOP, OSM, Waze, clima)
--- sin amarrar al equipo a un esquema rígido antes de tiempo.
+-- Una fila por elemento de cada fuente de metadata. La fuente se identifica con
+-- propiedades->>'fuente_etl', que agrega cada Metadata/M*/cargar.py:
+--   M1_paraderos, M2_controles_viales, M3_censo_manzanas, M4_aerodromos
 CREATE TABLE IF NOT EXISTS temp_metadata (
     id BIGSERIAL PRIMARY KEY,
     nombre VARCHAR(150),                     -- Nombre o identificador del elemento
-    tipo VARCHAR(50) NOT NULL,               -- 'senaletica', 'semaforo', 'trafico', 'clima', etc.
-    fuente VARCHAR(100),                     -- 'MOP', 'OSM', 'Waze', 'OpenMeteo', etc.
+    tipo VARCHAR(50) NOT NULL,               -- 'paradero', 'senal_pare', 'semaforo', 'manzana_censo', 'aerodromo', etc.
+    fuente VARCHAR(100),                     -- Fuente original: 'OpenStreetMap vía ohsome API', 'INE Censo 2024', 'DGAC', etc.
     comuna VARCHAR(50),                      -- 'Maipú', 'Estación Central', 'Santiago'
     descripcion TEXT,
-    propiedades JSONB,                       -- Atributos libres del JSON original
+    propiedades JSONB,                       -- Atributos libres del JSON original + fuente_etl
     geom geometry(Geometry, 4326),           -- Acepta Point, LineString o Polygon
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -69,20 +70,26 @@ CREATE INDEX IF NOT EXISTS idx_temp_metadata_geom ON temp_metadata USING GIST (g
 CREATE INDEX IF NOT EXISTS idx_temp_metadata_tipo ON temp_metadata (tipo);
 CREATE INDEX IF NOT EXISTS idx_temp_metadata_comuna ON temp_metadata (comuna);
 CREATE INDEX IF NOT EXISTS idx_temp_metadata_json ON temp_metadata USING GIN (propiedades);
+-- Todas las consultas del ruteo, la API y la carga idempotente filtran por fuente_etl
+CREATE INDEX IF NOT EXISTS idx_temp_metadata_fuente_etl ON temp_metadata ((propiedades->>'fuente_etl'));
 
 -- ------------------------------------------------------------------------------
--- 4. AMENAZAS (Tabla Temporal y Flexible con JSONB y Geometría Universal)
+-- 4. AMENAZAS (Tabla Flexible con JSONB y Geometría Universal)
 -- ------------------------------------------------------------------------------
--- Permite cargar cualquier amenaza (zonas hostiles, jammers, lluvias, etc.)
--- de manera libre y compatible con cualquier GeoJSON/JSON.
+-- Una fila por amenaza (o por geocerca) de cada fuente, identificada con
+-- propiedades->>'fuente_etl', que agrega cada Amenazas/A*/cargar.py:
+--   A1_incendios, A2_clima, A3_sosafe, A4_waze
+-- El ruteo lee de propiedades: accion_grafo, valido_desde, valido_hasta,
+-- id_celda (A2) y radio_afectacion_m (opcional).
 CREATE TABLE IF NOT EXISTS temp_amenazas (
     id BIGSERIAL PRIMARY KEY,
     nombre VARCHAR(150),                     -- Nombre del sector o amenaza
-    tipo VARCHAR(50) NOT NULL,               -- 'zona_hostil', 'jammer', 'clima_severo', etc.
+    tipo VARCHAR(50) NOT NULL,               -- 'incendio_forestal', 'foco_de_calor', 'clima_severo',
+                                             -- 'zona_conflictiva', 'calle_cerrada', 'construccion_vial'
     nivel_riesgo VARCHAR(20),                -- 'BAJO', 'MEDIO', 'ALTO', 'CRITICO'
     comuna VARCHAR(50),                      -- 'Maipú', 'Estación Central', 'Santiago'
     descripcion TEXT,
-    propiedades JSONB,                       -- Atributos libres del JSON original
+    propiedades JSONB,                       -- Atributos libres del JSON original + fuente_etl
     geom geometry(Geometry, 4326),           -- Acepta Point, LineString o Polygon
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -91,27 +98,47 @@ CREATE INDEX IF NOT EXISTS idx_temp_amenazas_geom ON temp_amenazas USING GIST (g
 CREATE INDEX IF NOT EXISTS idx_temp_amenazas_tipo ON temp_amenazas (tipo);
 CREATE INDEX IF NOT EXISTS idx_temp_amenazas_riesgo ON temp_amenazas (nivel_riesgo);
 CREATE INDEX IF NOT EXISTS idx_temp_amenazas_json ON temp_amenazas USING GIN (propiedades);
+CREATE INDEX IF NOT EXISTS idx_temp_amenazas_fuente_etl ON temp_amenazas ((propiedades->>'fuente_etl'));
 
 -- ------------------------------------------------------------------------------
--- 5. RUTAS Y RESULTADOS BASELINE (Dijkstra)
+-- 5. RUTAS (pgr_dijkstra resiliente)
 -- ------------------------------------------------------------------------------
+-- Estructura para guardar las k rutas que entrega GET /api/rutas
+-- (docker/web/ruteo). Por ahora las rutas se calculan bajo demanda y esta
+-- tabla queda vacía. Los pesos resilientes w(e) de cada consulta viven en la
+-- tabla temporal de sesión pesos_ruteo (id, factor, uso), creada por
+-- docker/web/ruteo/dijkstra_k.py, y no forman parte de este esquema.
 
--- Almacena las rutas calculadas para ser visualizadas en Leaflet
+-- Migración: la versión anterior guardaba una sola ruta baseline (LineString,
+-- columna costo_total). Nunca se escribió en ella, así que se recrea.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_name = 'inspection_routes' AND column_name = 'costo_total') THEN
+        DROP TABLE inspection_routes;
+    END IF;
+END
+$$;
+
 CREATE TABLE IF NOT EXISTS inspection_routes (
     id BIGSERIAL PRIMARY KEY,
-    nombre VARCHAR(150) DEFAULT 'Ruta Peor Caso (Dijkstra)',
-    algoritmo VARCHAR(50) NOT NULL DEFAULT 'pgr_dijkstra_baseline',
+    algoritmo VARCHAR(50) NOT NULL DEFAULT 'pgr_dijkstra_resiliente',
+    ruta SMALLINT NOT NULL,                  -- Número de la ruta dentro de las k alternativas (1..k)
     start_node_id BIGINT REFERENCES network_nodes(id),
     end_node_id BIGINT REFERENCES network_nodes(id),
-    costo_total DOUBLE PRECISION NOT NULL,
-    distancia_m DOUBLE PRECISION NOT NULL,
-    geom geometry(LineString, 4326),
+    hora_salida TIMESTAMP WITH TIME ZONE,    -- t0 con que se evaluaron amenazas y clima
+    longitud_km DOUBLE PRECISION NOT NULL,
+    costo_resiliente DOUBLE PRECISION,       -- Σ w(e) de la ruta
+    metricas JSONB,                          -- supervivencia, amenazas_cruzadas, requeridas_cubiertas, duracion_min, ...
+    preferencias JSONB,                      -- Preferencias del usuario usadas en el cálculo
+    geom geometry(MultiLineString, 4326),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_inspection_routes_geom ON inspection_routes USING GIST (geom);
 
--- Función que resuelve la ruta más corta con pgr_dijkstra por longitud (peor caso)
+-- Ruta más corta con pgr_dijkstra solo por longitud (sin pesos resilientes).
+-- Sirve para comprobar que el grafo funciona; la usa la documentación de Infraestructura.
 CREATE OR REPLACE FUNCTION fn_calculate_baseline_dijkstra_route(
     start_node BIGINT,
     end_node BIGINT

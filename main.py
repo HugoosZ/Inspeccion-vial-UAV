@@ -189,6 +189,17 @@ def ejecutar_etapa(nombre_etapa, pasos, aviso_fallo):
     return resultados
 
 
+def aplicar_esquema(conn):
+    """Vuelve a ejecutar database/init.sql (idempotente) para que una BD creada con una
+    versión anterior del esquema reciba los índices y tablas nuevos. Docker solo lo
+    ejecuta automáticamente al crear el volumen por primera vez."""
+    with open(os.path.join(RAIZ, "database", "init.sql"), encoding="utf-8") as f:
+        sql = f.read()
+    with conn, conn.cursor() as cur:
+        cur.execute(sql)
+    print("[+] Esquema de la BD sincronizado con database/init.sql.")
+
+
 def limpiar_fuentes_obsoletas(conn):
     with conn, conn.cursor() as cur:
         for tabla, fuentes in FUENTES_OBSOLETAS.items():
@@ -220,6 +231,7 @@ def modo_pipeline(sin_descarga):
     if conn is None:
         print("[!] No se pudo conectar a la base de datos.")
         return 1
+    aplicar_esquema(conn)
     limpiar_fuentes_obsoletas(conn)
 
     resultados = []
