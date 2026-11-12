@@ -1,205 +1,242 @@
 """
 ==============================================================================
-AMENAZA A1: Incendios forestales y de pastizales (GDACS + NASA FIRMS)
+AMENAZA A1: Incendios forestales y de pastizales (CONAF)
 ==============================================================================
-Extract:
-  - GDACS (sin autenticación): eventos de incendio forestal (WF) en Chile y el
-    polígono oficial de cada episodio.
-  - NASA FIRMS (MAP_KEY gratuita, se pide con un correo): focos de calor VIIRS
-    detectados en los últimos días dentro del rectángulo de Maipú.
+Extract (servicios públicos de CONAF en ArcGIS, sin autenticación; son los que
+alimentan su página "Situación actual y pronóstico de incendios"):
+  - incendios_base      incendios de la temporada en curso (se actualiza a diario)
+  - incendios_totales   incendios de la temporada anterior
+  - PI                  probabilidad de ignición del día (pronóstico de CONAF)
 Transform:
-  - GDACS: se conservan solo los polígonos que se cruzan con la Región
-    Metropolitana (o todo Chile si GDACS_ALCANCE=pais).
-  - FIRMS: cada foco es un píxel de scan x track km; se convierte en un cuadrado
-    expandido por un radio de exclusión (INCENDIOS_RADIO_M, por defecto 2000 m).
+  1. Incendios no extinguidos (En combate, Foco, Bajo observación, Controlado)
+     dentro de Maipú y sus alrededores -> polígono circular de exclusión:
+        radio = radio equivalente del área quemada + INCENDIOS_RADIO_M
+     En combate / foco / bajo observación bloquean las aristas; controlado las
+     penaliza (queda humo, pero ya no hay operación aérea de combate).
+  2. Incendios extinguidos de ambas temporadas -> punto histórico sin efecto en
+     el grafo (accion_grafo = NINGUNA). Sirven para estimar la probabilidad de
+     falla y para evidenciar que la extracción funciona aunque hoy no haya fuego.
+  3. Probabilidad de ignición -> grilla de 1 km sobre Maipú con la clase de PI
+     de CONAF en el centro de cada celda (accion_grafo = NINGUNA).
+Horas: CONAF guarda la hora local de Chile como si fuera UTC; se reinterpreta
+como hora de Chile (America/Santiago).
 Load (archivo):
-  - data/incendios_maipu.geojson  (polígonos de exclusión, EPSG:4326)
+  - data/incendios_maipu.geojson
 
 Uso:
   python extractor.py
 Variables de entorno opcionales:
-  FIRMS_MAP_KEY        clave FIRMS; sin ella se omite FIRMS y se usa solo GDACS
-  FIRMS_SOURCE         VIIRS_SNPP_NRT (defecto), VIIRS_NOAA20_NRT, MODIS_NRT ...
-  FIRMS_DIAS           días hacia atrás, 1 a 5 (defecto 5)
-  GDACS_DESDE          fecha inicial AAAA-MM-DD (defecto: 365 días atrás)
-  GDACS_ALCANCE        region (defecto) | pais
-  INCENDIOS_RADIO_M    radio de exclusión alrededor del fuego (defecto 2000)
+  INCENDIOS_RADIO_M   margen de exclusión alrededor del fuego en metros (defecto 2000)
+  INCENDIOS_MARGEN_M  distancia a Maipú dentro de la que se consideran incendios (defecto 5000)
 """
 
-import csv
-import io
+import math
 import os
 import sys
-from datetime import date, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(DIR.parent))
+sys.path.insert(0, str(DIR.parent.parent / "Metadata"))
 import comun  # noqa: E402
+import comun_arcgis as ag  # noqa: E402
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
-SALIDA = DATA_DIR / "incendios_maipu.geojson"
+SALIDA = DIR / "data" / "incendios_maipu.geojson"
+CONAF = "https://services5.arcgis.com/A1ELWse9bRAi2JiV/arcgis/rest/services/"
+URL_TEMPORADA = CONAF + "incendios_base/FeatureServer/0"
+URL_ANTERIOR = CONAF + "incendios_totales/FeatureServer/0"
+URL_PI = CONAF + "PI/FeatureServer/0"
 
-GDACS_LISTA = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH"
-GDACS_GEOMETRIA = "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry"
-FIRMS_AREA = "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{key}/{source}/{bbox}/{dias}"
+# estado CONAF -> (nivel de riesgo, acción sobre el grafo)
+ESTADOS_ACTIVOS = {
+    "En combate": ("CRITICO", "BLOQUEAR_ARISTAS"),
+    "Foco": ("ALTO", "BLOQUEAR_ARISTAS"),
+    "Bajo observacion": ("ALTO", "BLOQUEAR_ARISTAS"),
+    "Controlado": ("MEDIO", "PENALIZAR_ARISTAS"),
+}
+CELDA_PI_M = 1000
 
-NIVEL_GDACS = {"Red": "CRITICO", "Orange": "ALTO", "Green": "MEDIO"}
+
+def zona_horaria_chile():
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo("America/Santiago")
+    except Exception:  # noqa: BLE001  (sin tzdata en el contenedor)
+        return timezone(timedelta(hours=-3))
 
 
-# ------------------------------------------------------------------------------
-# GDACS
-# ------------------------------------------------------------------------------
-def extraer_gdacs(desde, hasta, alcance, radio_m):
-    print("[*] GDACS: consultando incendios forestales en Chile...")
-    eventos = comun.http_get(GDACS_LISTA, params={
-        "eventlist": "WF", "country": "Chile",
-        "fromDate": desde.isoformat(), "toDate": hasta.isoformat(),
-    })
-    lista = eventos.get("features", []) if isinstance(eventos, dict) else []
-    print(f"    [+] {len(lista)} eventos WF en Chile desde {desde}")
+TZ_CHILE = zona_horaria_chile()
 
-    zona = comun.AOI_REGION_METROPOLITANA
-    features = []
-    for ev in lista:
-        p = ev.get("properties", {})
-        try:
-            geo = comun.http_get(GDACS_GEOMETRIA, params={
-                "eventtype": "WF", "eventid": p["eventid"], "episodeid": p["episodeid"],
-            })
-        except RuntimeError as error:
-            print(f"    [-] Sin geometría para evento {p.get('eventid')}: {error}")
-            continue
 
-        for poly in geo.get("features", []):
-            g = poly.get("geometry") or {}
-            if g.get("type") not in ("Polygon", "MultiPolygon"):
-                continue  # se descartan centroides y puntos de etiqueta
-            bbox = comun.bbox_geometria(g)
-            dentro = comun.bbox_se_cruzan(bbox, zona)
-            if alcance == "region" and not dentro:
+def epoch_inicio(a):
+    """Inicio del incendio en ms: incendios_base usa f_inicio (fecha), la temporada
+    anterior guarda el texto en f_inicio y la fecha en f_inicio_date_time."""
+    valor = a.get("f_inicio_date_time")
+    if valor is None and isinstance(a.get("f_inicio"), (int, float)):
+        valor = a["f_inicio"]
+    return valor
+
+
+def fecha_local(epoch_ms):
+    """CONAF guarda la hora local de Chile como si fuera UTC (en la temporada
+    anterior, f_inicio '2026-04-28 10:57' corresponde a 10:57 Z en
+    f_inicio_date_time). Se reinterpreta como hora de Chile."""
+    if epoch_ms in (None, ""):
+        return None
+    reloj = datetime.fromtimestamp(int(epoch_ms) / 1000, tz=timezone.utc).replace(tzinfo=None)
+    return reloj.replace(tzinfo=TZ_CHILE).isoformat()
+
+
+def fecha_texto_o_epoch(valor):
+    if isinstance(valor, (int, float)):
+        return fecha_local(valor)
+    return ag.texto(valor)
+
+
+def radio_quemado_m(sup_ha):
+    try:
+        return math.sqrt(max(float(sup_ha or 0), 0) * 10_000 / math.pi)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def bbox_ampliado(margen_m):
+    lon_min, lat_min, lon_max, lat_max = comun.AOI_MAIPU
+    dlon, dlat = comun.metros_a_grados(margen_m, (lat_min + lat_max) / 2)
+    return (lon_min - dlon, lat_min - dlat, lon_max + dlon, lat_max + dlat)
+
+
+def incendios(radio_m, margen_m):
+    zona = bbox_ampliado(margen_m)
+    features, vistos = [], set()
+    for url, temporada in ((URL_TEMPORADA, "en curso"), (URL_ANTERIOR, "anterior")):
+        print(f"[*] CONAF: incendios de la temporada {temporada}...")
+        filas = ag.consultar(url, bbox=zona)
+        n_act = n_hist = 0
+        for fila in filas:
+            a = fila.get("attributes") or {}
+            if a.get("id") in vistos:
                 continue
-            sev = p.get("severitydata") or {}
-            features.append({
-                "type": "Feature",
-                "geometry": g,
-                "properties": {
-                    "id_amenaza": f"GDACS-{p['eventid']}-{p['episodeid']}",
-                    "fuente": "GDACS",
-                    "tipo_amenaza": "incendio_forestal",
-                    "nivel_riesgo": NIVEL_GDACS.get(p.get("alertlevel"), "MEDIO"),
-                    "accion_grafo": "BLOQUEAR_ARISTAS",
-                    "factor_penalizacion": "INF",
-                    "valido_desde": p.get("fromdate"),
-                    "valido_hasta": p.get("todate"),
-                    "es_actual": str(p.get("iscurrent", "false")).lower() == "true",
-                    "en_region_metropolitana": dentro,
-                    "alerta_gdacs": p.get("alertlevel"),
-                    "area_afectada_ha": sev.get("severity"),
-                    "clase_poligono": (poly.get("properties") or {}).get("Class"),
-                    "glide": p.get("glide"),
-                    "url_reporte": (p.get("url") or {}).get("report"),
-                    "radio_exclusion_m": 0,
-                },
-            })
-    print(f"    [+] {len(features)} polígonos GDACS conservados (alcance={alcance})")
+            vistos.add(a.get("id"))
+            lon, lat = a.get("lon"), a.get("lat")
+            if lon is None or lat is None:
+                g = fila.get("geometry") or {}
+                lon, lat = g.get("x"), g.get("y")
+            if lon is None or lat is None:
+                continue
+            estado = ag.texto(a.get("estado")) or "Sin estado"
+            inicio = fecha_local(epoch_inicio(a))
+            comunes = {
+                "id_amenaza": f"CONAF-{a.get('id')}",
+                "fuente": "CONAF",
+                "id_conaf": a.get("id"),
+                "nombre_incendio": ag.texto(a.get("nombre")),
+                "estado": estado,
+                "temporada": temporada,
+                "comuna_incendio": ag.texto(a.get("comuna")),
+                "superficie_ha": a.get("sup_total"),
+                "combustible_inicial": ag.texto(a.get("comb_inicial")),
+                "inicio": inicio,
+                "control": fecha_texto_o_epoch(a.get("f_control")),
+                "extincion": fecha_texto_o_epoch(a.get("f_extincion")),
+                "lon": round(float(lon), 6), "lat": round(float(lat), 6),
+            }
+            if estado in ESTADOS_ACTIVOS:
+                nivel, accion = ESTADOS_ACTIVOS[estado]
+                radio_total = round(radio_quemado_m(a.get("sup_total")) + radio_m)
+                features.append({"type": "Feature",
+                                 "geometry": comun.circulo(float(lon), float(lat), radio_total),
+                                 "properties": {**comunes, "tipo_amenaza": "incendio_activo",
+                                                "nivel_riesgo": nivel, "accion_grafo": accion,
+                                                "radio_exclusion_m": radio_total,
+                                                "valido_desde": inicio, "valido_hasta": None}})
+                n_act += 1
+            else:
+                features.append({"type": "Feature",
+                                 "geometry": {"type": "Point", "coordinates": [comunes["lon"], comunes["lat"]]},
+                                 "properties": {**comunes, "tipo_amenaza": "incendio_historico",
+                                                "nivel_riesgo": "BAJO", "accion_grafo": "NINGUNA"}})
+                n_hist += 1
+        print(f"    [+] {len(filas)} registros: {n_act} activos, {n_hist} extinguidos")
     return features
 
 
-# ------------------------------------------------------------------------------
-# NASA FIRMS
-# ------------------------------------------------------------------------------
-def nivel_firms(confianza, frp):
-    """Nivel de riesgo según confianza VIIRS (l/n/h) y potencia radiativa (MW)."""
-    conf = str(confianza).lower()
-    if conf in ("h", "high") or (frp or 0) >= 20:
-        return "CRITICO"
-    if conf in ("n", "nominal"):
-        return "ALTO"
-    return "MEDIO"
-
-
-def extraer_firms(map_key, source, dias, radio_m):
-    print(f"[*] FIRMS: focos de calor {source}, últimos {dias} días, rectángulo de Maipú...")
-    bbox = ",".join(str(v) for v in comun.AOI_MAIPU)
-    url = FIRMS_AREA.format(key=map_key, source=source, bbox=bbox, dias=dias)
-    texto = comun.http_get(url, como_json=False)
-    if texto.lstrip().lower().startswith(("invalid", "error")):
-        raise RuntimeError(f"FIRMS respondió: {texto[:200]}")
-
+def probabilidad_ignicion():
+    """Clase de PI de CONAF en una grilla de 1 km sobre Maipú."""
+    print("[*] CONAF: probabilidad de ignición del día...")
+    filas = ag.consultar(URL_PI, bbox=comun.AOI_MAIPU, extra={"geometryPrecision": "5"})
+    poligonos = [(f["attributes"], f["geometry"]["rings"]) for f in filas if (f.get("geometry") or {}).get("rings")]
+    if not poligonos:
+        print("    [!] CONAF no publicó PI para Maipú hoy")
+        return []
+    try:
+        limite = ag.limite_maipu()
+    except RuntimeError as error:
+        print(f"    [!] Sin límite comunal ({error}); la grilla cubre todo el rectángulo")
+        limite = None
+    lon_min, lat_min, lon_max, lat_max = comun.AOI_MAIPU
+    dlon, dlat = comun.metros_a_grados(CELDA_PI_M, (lat_min + lat_max) / 2)
+    columnas = math.ceil((lon_max - lon_min) / dlon)
+    filas_g = math.ceil((lat_max - lat_min) / dlat)
     features = []
-    for fila in csv.DictReader(io.StringIO(texto)):
-        lat, lon = float(fila["latitude"]), float(fila["longitude"])
-        if not comun.punto_en_bbox(lon, lat, comun.AOI_MAIPU):
-            continue
-        # scan y track = tamaño del píxel en km (VIIRS ~0,375 km, MODIS ~1 km)
-        lado_m = 1000 * max(float(fila.get("scan") or 0.375), float(fila.get("track") or 0.375))
-        frp = float(fila.get("frp") or 0)
-        hora = str(fila.get("acq_time", "0000")).zfill(4)
-        features.append({
-            "type": "Feature",
-            "geometry": comun.cuadrado_con_margen(lon, lat, lado_m, radio_m),
-            "properties": {
-                "id_amenaza": f"FIRMS-{fila['acq_date']}-{hora}-{lat:.4f}-{lon:.4f}",
-                "fuente": "NASA FIRMS",
-                "tipo_amenaza": "foco_de_calor",
-                "nivel_riesgo": nivel_firms(fila.get("confidence"), frp),
-                "accion_grafo": "BLOQUEAR_ARISTAS",
-                "factor_penalizacion": "INF",
-                "valido_desde": f"{fila['acq_date']}T{hora[:2]}:{hora[2:]}:00Z",
-                "valido_hasta": None,
-                "latitud_foco": lat,
-                "longitud_foco": lon,
-                "lado_pixel_m": round(lado_m),
-                "radio_exclusion_m": radio_m,
-                "confianza": fila.get("confidence"),
-                "frp_mw": frp,
-                "satelite": fila.get("satellite"),
-                "instrumento": fila.get("instrument"),
-                "dia_noche": fila.get("daynight"),
-            },
-        })
-    print(f"    [+] {len(features)} focos FIRMS dentro de Maipú")
+    for fi in range(filas_g):
+        for co in range(columnas):
+            x0, y0 = lon_min + co * dlon, lat_min + fi * dlat
+            cx, cy = x0 + dlon / 2, y0 + dlat / 2
+            if limite and not ag.dentro_de(cx, cy, limite):
+                continue
+            atributos = next((attrs for attrs, anillos in poligonos
+                              if sum(ag._punto_en_anillo(cx, cy, r) for r in anillos) % 2 == 1), None)
+            if not atributos or atributos.get("label") is None:
+                continue
+            clase = int(atributos["label"])          # límite superior de la clase (decil)
+            dia = datetime.fromisoformat(str(atributos.get("date"))).replace(tzinfo=TZ_CHILE)
+            nivel = "ALTO" if clase >= 70 else "MEDIO" if clase >= 40 else "BAJO"
+            features.append({"type": "Feature", "geometry": comun.rectangulo(x0, y0, x0 + dlon, y0 + dlat),
+                             "properties": {
+                                 "id_amenaza": f"CONAF-PI-F{fi}C{co}-{atributos.get('date')}",
+                                 "fuente": "CONAF", "tipo_amenaza": "probabilidad_ignicion",
+                                 "id_celda": f"PI-F{fi}C{co}",
+                                 "clase_pi": f"{max(clase - 9, 1)}-{clase} %",
+                                 "probabilidad_ignicion": round((clase - 5) / 100, 2),
+                                 "nivel_riesgo": nivel, "accion_grafo": "NINGUNA",
+                                 "valido_desde": dia.isoformat(),
+                                 "valido_hasta": (dia + timedelta(days=1)).isoformat()}})
+    print(f"    [+] {len(features)} celdas de 1 km con probabilidad de ignición")
     return features
 
 
-# ------------------------------------------------------------------------------
 def main():
     comun.cargar_env()
     radio_m = int(os.getenv("INCENDIOS_RADIO_M", "2000"))
-    alcance = os.getenv("GDACS_ALCANCE", "region").lower()
-    hasta = date.today()
-    desde = date.fromisoformat(os.getenv("GDACS_DESDE", (hasta - timedelta(days=365)).isoformat()))
-
-    features, fuentes_ok = [], []
+    margen_m = int(os.getenv("INCENDIOS_MARGEN_M", "5000"))
+    features, consultadas = [], []
     try:
-        features += extraer_gdacs(desde, hasta, alcance, radio_m)
-        fuentes_ok.append("GDACS")
+        features += incendios(radio_m, margen_m)
+        consultadas.append("incendios")
     except RuntimeError as error:
-        print(f"[!] GDACS no disponible: {error}")
+        print(f"[!] Incendios CONAF no disponibles: {error}")
+    try:
+        features += probabilidad_ignicion()
+        consultadas.append("probabilidad_ignicion")
+    except RuntimeError as error:
+        print(f"[!] Probabilidad de ignición no disponible: {error}")
 
-    map_key = os.getenv("FIRMS_MAP_KEY", "").strip()
-    if map_key:
-        try:
-            dias = max(1, min(5, int(os.getenv("FIRMS_DIAS", "5"))))
-            features += extraer_firms(map_key, os.getenv("FIRMS_SOURCE", "VIIRS_SNPP_NRT"),
-                                      dias, radio_m)
-            fuentes_ok.append("FIRMS")
-        except RuntimeError as error:
-            print(f"[!] FIRMS no disponible: {error}")
-    else:
-        print("[!] FIRMS_MAP_KEY no definida: se omite FIRMS (pídela en "
-              "https://firms.modaps.eosdis.nasa.gov/api/map_key).")
-
-    if not fuentes_ok:
-        print("[-] Ninguna fuente respondió; se conserva el archivo anterior si existe.")
+    if "incendios" not in consultadas:
+        print("[-] CONAF no respondió; se conserva el archivo anterior si existe.")
         sys.exit(1)
 
+    resumen = {}
+    for f in features:
+        resumen[f["properties"]["tipo_amenaza"]] = resumen.get(f["properties"]["tipo_amenaza"], 0) + 1
     comun.guardar_geojson(SALIDA, "amenaza_a1_incendios_maipu", features, {
         "amenaza": "A1 - Incendios forestales y de pastizales",
-        "fuentes_consultadas": fuentes_ok,
-        "gdacs_desde": desde.isoformat(),
-        "gdacs_alcance": alcance,
+        "fuente": "CONAF · servicios ArcGIS (incendios_base, incendios_totales, PI)",
+        "consultas_exitosas": consultadas,
+        "por_tipo": resumen,
         "radio_exclusion_m": radio_m,
+        "margen_busqueda_m": margen_m,
         "aoi_maipu_bbox": list(comun.AOI_MAIPU),
     })
 

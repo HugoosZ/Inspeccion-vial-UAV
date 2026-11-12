@@ -1,6 +1,6 @@
-# A1 · Incendios forestales y de pastizales (GDACS + NASA FIRMS)
+# A1 · Incendios forestales y de pastizales (CONAF)
 
-Amenaza **dinámica con polígonos**: un incendio activo genera humo (que reduce la visibilidad de la señalética) y operación aérea de combate (aviones y helicópteros), con la que el dron no debe interferir. Toda arista que cruce el polígono queda bloqueada:
+Amenaza **dinámica**: un incendio activo genera una columna de humo con corrientes ascendentes y operación aérea de combate (aviones y helicópteros), con la que el dron no debe interferir. Shawon et al. (2025) midieron corrientes ascendentes de 6 a 10 m/s dentro de la pluma de un incendio de pastizal, con cambios significativos de actitud, altitud y velocidad del UAS. Toda arista que cruce el área de exclusión de un incendio activo queda bloqueada:
 
 $$b(e,t)=0 \quad \text{si } e \cap P_{\text{fuego}}(t)\neq\varnothing$$
 
@@ -8,131 +8,117 @@ $$b(e,t)=0 \quad \text{si } e \cap P_{\text{fuego}}(t)\neq\varnothing$$
 
 | Archivo | Rol |
 |---|---|
-| `extractor.py` | Extract + Transform: consulta GDACS y FIRMS y genera el GeoJSON |
+| `extractor.py` | Extract + Transform: consulta los servicios de CONAF y genera el GeoJSON |
 | `cargar.py` | Load: inserta el GeoJSON en `temp_amenazas` (`--dry-run` para probar sin BD) |
 | `data/incendios_maipu.geojson` | Salida del ETL |
 
-## Fuentes y acceso
+## Fuente y acceso
 
-| Fuente | Endpoint | Autenticación |
-|---|---|---|
-| GDACS, lista de eventos | `https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventlist=WF&country=Chile&fromDate=…&toDate=…` | Ninguna |
-| GDACS, polígono del episodio | `https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=WF&eventid=…&episodeid=…` | Ninguna |
-| NASA FIRMS, focos por área | `https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-70.92,-33.62,-70.70,-33.46/{1-5}` | `FIRMS_MAP_KEY` gratuita, se pide con un correo, sin tarjeta |
+CONAF publica en ArcGIS los mismos datos que muestra en su página *Situación actual y pronóstico de incendios* (cuenta `deigeprif` / `sapif_geprif`). No requieren autenticación.
 
-Si `FIRMS_MAP_KEY` no está definida, el extractor usa solo GDACS y lo avisa en consola.
+| Servicio | URL de la capa | Contenido | Actualización |
+|---|---|---|---|
+| `incendios_base` | `https://services5.arcgis.com/A1ELWse9bRAi2JiV/arcgis/rest/services/incendios_base/FeatureServer/0` | Incendios de la temporada en curso | Diaria |
+| `incendios_totales` | `…/incendios_totales/FeatureServer/0` | Incendios de la temporada anterior (julio 2025 a mayo 2026) | Al cierre de temporada |
+| `PI` | `…/PI/FeatureServer/0` | Probabilidad de ignición del día, en clases de 10 % y celdas de 2 km | Diaria |
 
-## Tiempos de Respuesta y Latencia de Datos (NRT)
+Se consultan los incendios dentro del rectángulo de Maipú ampliado en `INCENDIOS_MARGEN_M` (5 km), porque el humo de un incendio en una comuna vecina también afecta el vuelo.
 
-Es crítico documentar la dinámica temporal de esta amenaza para la operación de la flota UAV:
+Reemplaza a GDACS + NASA FIRMS de la entrega anterior: GDACS solo registra incendios de gran magnitud (la consulta devolvía 0 en Maipú) y FIRMS detecta puntos de calor por satélite, con falsas alarmas y una latencia de 3 a 6 horas. CONAF registra cada incendio confirmado en terreno.
 
-* **Tiempo de respuesta de la API (HTTP):** Entre 1,0 y 2,5 segundos por consulta.
-* **Frecuencia de refresco y latencia en el mundo real:**
-  * **NASA FIRMS (`VIIRS_SNPP_NRT`):** Clasificado por la NASA como **Near Real Time (NRT)**. Los satélites de órbita heliosincrónica (Suomi-NPP y NOAA-20) sobrevuelan la cuenca central de Chile solo **2 a 4 veces al día**. Entre la captura infrarroja satelital, la bajada a estaciones terrenas y el procesamiento del algoritmo de detección de anomalías térmicas, transcurren entre **1 y 3 horas**. En consecuencia, la latencia real acumulada respecto al inicio del foco de calor oscila entre **3 y 6 horas**.
-  * **GDACS:** Las alertas se consolidan mediante reportes oficiales internacionales y modelamiento de desastres, con una latencia de **12 a 24 horas**.
-* **Implicancia operacional UAV:** A1 no es un sensor en tiempo real instantáneo para esquivar fuegos repentinos de hace minutos, sino una **capa de planificación previa a la misión** que asegura que el dron no ingrese en sectores con columnas de humo denso persistentes o zonas donde aeronaves cisterna de CONAF estén operando a baja cota.
+## Transformación
+
+| Estado CONAF | `tipo_amenaza` | Geometría | `nivel_riesgo` | `accion_grafo` |
+|---|---|---|---|---|
+| En combate | `incendio_activo` | Círculo de exclusión | CRITICO | `BLOQUEAR_ARISTAS` |
+| Foco, Bajo observación | `incendio_activo` | Círculo de exclusión | ALTO | `BLOQUEAR_ARISTAS` |
+| Controlado | `incendio_activo` | Círculo de exclusión | MEDIO | `PENALIZAR_ARISTAS` |
+| Extinguido | `incendio_historico` | Punto | BAJO | `NINGUNA` |
+| (pronóstico) | `probabilidad_ignicion` | Celda de 1 km | según la clase | `NINGUNA` |
+
+Radio del círculo de exclusión:
+
+$$r = \sqrt{\frac{A_{\text{ha}} \cdot 10\,000}{\pi}} + r_{\text{margen}}$$
+
+donde $A_{\text{ha}}$ es la superficie afectada informada por CONAF y $r_{\text{margen}}$ = `INCENDIOS_RADIO_M` (2000 m por defecto). El margen es un **supuesto de diseño configurable**, no una norma.
+
+Los incendios extinguidos y la probabilidad de ignición no modifican el grafo: quedan en la base de datos para calcular la probabilidad de falla de cada arista (punto 5 del enunciado) y para evidenciar que la extracción funciona aunque hoy no haya incendios activos en Maipú.
+
+**Horas:** CONAF guarda la hora local de Chile como si fuera UTC (en la temporada anterior, `f_inicio` = `"2026-04-28 10:57"` y `f_inicio_date_time` = 10:57 Z). El extractor la reinterpreta como hora de Chile (`America/Santiago`).
 
 ## Variables de entorno
 
 | Variable | Defecto | Descripción |
 |---|---|---|
-| `FIRMS_MAP_KEY` | vacío | Clave FIRMS |
-| `FIRMS_SOURCE` | `VIIRS_SNPP_NRT` | Satélite/sensor FIRMS |
-| `FIRMS_DIAS` | `5` | Días hacia atrás (1 a 5) |
-| `GDACS_DESDE` | hoy − 365 días | Fecha inicial de búsqueda GDACS |
-| `GDACS_ALCANCE` | `region` | `region`: solo polígonos que tocan la RM. `pais`: todo Chile (útil para demostrar en el mapa) |
-| `INCENDIOS_RADIO_M` | `2000` | Radio de exclusión alrededor de cada foco FIRMS (supuesto de diseño) |
+| `INCENDIOS_RADIO_M` | `2000` | Margen de exclusión alrededor del área quemada (m) |
+| `INCENDIOS_MARGEN_M` | `5000` | Distancia a Maipú dentro de la cual se buscan incendios (m) |
 
 ## Estructura de `incendios_maipu.geojson`
 
-```json
-{
-  "type": "FeatureCollection",
-  "name": "amenaza_a1_incendios_maipu",
-  "metadata": { ... },
-  "features": [ { "type": "Feature", "geometry": { "type": "Polygon", ... }, "properties": { ... } } ]
-}
-```
-
 ### Bloque `metadata`
 
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `generado_utc` | string ISO 8601 | Momento de la extracción |
-| `comuna` | string | Comuna de estudio (`Maipú`) |
-| `total_features` | int | Cantidad de polígonos |
-| `amenaza` | string | Identificador de la amenaza |
-| `fuentes_consultadas` | array | Fuentes que respondieron (`GDACS`, `FIRMS`) |
-| `gdacs_desde` | string fecha | Inicio de la búsqueda GDACS |
-| `gdacs_alcance` | string | `region` o `pais` |
-| `radio_exclusion_m` | int | Radio usado para FIRMS |
-| `aoi_maipu_bbox` | array [oeste, sur, este, norte] | Rectángulo de Maipú usado en FIRMS |
+| Campo | Descripción |
+|---|---|
+| `generado_utc` | Momento de la extracción |
+| `comuna` | `Maipú` |
+| `total_features` | Cantidad de elementos |
+| `amenaza` | Identificador de la amenaza |
+| `fuente` | Servicios consultados |
+| `consultas_exitosas` | `incendios` y/o `probabilidad_ignicion` |
+| `por_tipo` | Conteo por `tipo_amenaza` |
+| `radio_exclusion_m` | Margen usado en los círculos |
+| `margen_busqueda_m` | Ampliación del rectángulo de búsqueda |
+| `aoi_maipu_bbox` | Rectángulo de Maipú [oeste, sur, este, norte] |
 
-### `geometry`
-
-Polygon o MultiPolygon en EPSG:4326 (`[longitud, latitud]`).
-- **GDACS:** polígono oficial del área quemada o afectada.
-- **FIRMS:** cuadrado centrado en el foco, de lado igual al píxel del satélite (`scan` × `track`, unos 375 m en VIIRS), expandido `radio_exclusion_m` por lado.
-
-### `properties` (comunes)
-
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id_amenaza` | string | `GDACS-{eventid}-{episodeid}` o `FIRMS-{fecha}-{hora}-{lat}-{lon}` |
-| `fuente` | string | `GDACS` o `NASA FIRMS` |
-| `tipo_amenaza` | string | `incendio_forestal` (GDACS) o `foco_de_calor` (FIRMS) |
-| `nivel_riesgo` | string | `MEDIO`, `ALTO` o `CRITICO` |
-| `accion_grafo` | string | Siempre `BLOQUEAR_ARISTAS` |
-| `factor_penalizacion` | string | `INF`: peso infinito, la arista no se usa |
-| `valido_desde` | string ISO 8601 | Inicio del evento o hora de detección |
-| `valido_hasta` | string o null | Fin del evento (GDACS); `null` en FIRMS |
-| `radio_exclusion_m` | int | 0 en GDACS (ya es el área), `INCENDIOS_RADIO_M` en FIRMS |
-
-### `properties` exclusivas de GDACS
+### `properties` de los incendios (`incendio_activo` e `incendio_historico`)
 
 | Campo | Descripción |
 |---|---|
-| `es_actual` | `true` si GDACS marca el evento como vigente |
-| `en_region_metropolitana` | `true` si el polígono toca el rectángulo de la RM |
-| `alerta_gdacs` | `Green`, `Orange` o `Red` |
-| `area_afectada_ha` | Hectáreas afectadas según GDACS |
-| `clase_poligono` | Clase de polígono informada por GDACS |
-| `glide` | Código internacional del desastre |
-| `url_reporte` | Reporte oficial GDACS |
+| `id_amenaza` | `CONAF-{id}` |
+| `fuente` | `CONAF` |
+| `id_conaf` | Identificador del incendio en CONAF |
+| `nombre_incendio` | Nombre asignado por CONAF (habitualmente el sector) |
+| `estado` | En combate, Foco, Bajo observación, Controlado o Extinguido |
+| `temporada` | `en curso` o `anterior` |
+| `comuna_incendio` | Comuna donde se inició |
+| `superficie_ha` | Superficie afectada en hectáreas |
+| `combustible_inicial` | Vegetación donde se inició (pastizal, matorral, …) |
+| `inicio`, `control`, `extincion` | Fechas del ciclo del incendio (hora de Chile) |
+| `lon`, `lat` | Punto de inicio |
+| `tipo_amenaza`, `nivel_riesgo`, `accion_grafo` | Según la tabla de transformación |
+| `radio_exclusion_m` | Solo activos: radio del círculo |
+| `valido_desde`, `valido_hasta` | Solo activos: inicio del incendio y `null` (sigue vigente) |
 
-Nivel de riesgo: `Red` → CRITICO, `Orange` → ALTO, `Green` → MEDIO.
-
-### `properties` exclusivas de FIRMS
+### `properties` de la probabilidad de ignición
 
 | Campo | Descripción |
 |---|---|
-| `latitud_foco`, `longitud_foco` | Centro del píxel detectado |
-| `lado_pixel_m` | Lado del píxel en metros |
-| `confianza` | `l` (baja), `n` (nominal), `h` (alta) |
-| `frp_mw` | Potencia radiativa del fuego en MW |
-| `satelite`, `instrumento` | Origen de la detección |
-| `dia_noche` | `D` o `N` |
-
-Nivel de riesgo: confianza `h` o FRP ≥ 20 MW → CRITICO; confianza `n` → ALTO; resto → MEDIO.
+| `id_amenaza` | `CONAF-PI-F{fila}C{columna}-{fecha}` |
+| `id_celda` | Celda de la grilla de 1 km |
+| `clase_pi` | Clase de CONAF, por ejemplo `51-60 %` |
+| `probabilidad_ignicion` | Punto medio de la clase (0,55 para `51-60 %`) |
+| `nivel_riesgo` | BAJO (< 40 %), MEDIO (40–69 %) o ALTO (≥ 70 %) |
+| `valido_desde`, `valido_hasta` | El día del pronóstico (00:00 a 24:00, hora de Chile) |
 
 ## Carga en la base de datos
 
-`cargar.py` inserta cada feature en `temp_amenazas`:
+`cargar.py` inserta cada feature en `temp_amenazas` con `tipo` = `tipo_amenaza`, `nivel_riesgo`, un nombre y una descripción legibles, y todas las `properties` en `propiedades` más `fuente_etl = "A1_incendios"`. La carga es idempotente: antes de insertar borra las filas anteriores de esa fuente. El ruteo ignora las filas con `accion_grafo = NINGUNA`.
 
-| Columna | Valor |
+## Resultado de referencia (12-11-2026)
+
+| Tipo | Cantidad |
 |---|---|
-| `nombre` | `Incendio forestal GDACS {glide}` o `Foco de calor FIRMS {fecha}` |
-| `tipo` | `properties.tipo_amenaza` |
-| `nivel_riesgo` | `properties.nivel_riesgo` |
-| `comuna` | `Maipú` |
-| `descripcion` | Resumen legible del evento |
-| `propiedades` | Todas las `properties` + `fuente_etl = "A1_incendios"` |
-| `geom` | `ST_SetSRID(ST_GeomFromGeoJSON(geometry), 4326)` |
-
-La carga es idempotente: antes de insertar borra las filas con `fuente_etl = "A1_incendios"`.
+| Incendios activos | 0 |
+| Incendios extinguidos (ambas temporadas, Maipú y alrededores) | 71 (22 iniciados en Maipú) |
+| Celdas de probabilidad de ignición | 87 (clases 41-50 % y 51-60 %) |
 
 ## Limitaciones
 
-- En invierno y primavera es esperable que FIRMS devuelva 0 focos en Maipú. Es una amenaza estacional (verano).
-- GDACS solo registra incendios grandes (2 en Chile desde 2024). Con `GDACS_ALCANCE=pais` se puede mostrar el polígono real de enero de 2026 para demostrar el flujo.
-- El radio de 2 km es un supuesto de diseño; la restricción normativa precisa debe verificarse en la DAN 151 de la DGAC.
+- CONAF registra incendios **forestales y de pastizales**. Los incendios estructurales urbanos (viviendas, bodegas) los atiende Bomberos y no aparecen en esta fuente.
+- El servicio no declara licencia ni condiciones de uso; se cita como datos de CONAF publicados en su portal.
+- El margen de 2 km es un supuesto de diseño configurable.
+
+## Referencias
+
+- CONAF. Situación actual y pronóstico de incendios. https://www.conaf.cl/incendios/situacion-actual-y-pronostico-de-incendios/
+- Shawon, M. H. et al. (2025). Vertical Wind Velocity Estimation during UAS Fire Plume Encounters. AIAA SciTech Forum. https://doi.org/10.2514/6.2025-1624

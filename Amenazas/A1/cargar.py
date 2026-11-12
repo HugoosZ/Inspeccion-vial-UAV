@@ -1,5 +1,10 @@
 """
-Carga data/incendios_maipu.geojson en la tabla temp_amenazas.
+Carga data/incendios_maipu.geojson (CONAF) en la tabla temp_amenazas.
+
+Tipos que se cargan:
+  incendio_activo         polígono de exclusión (bloquea o penaliza aristas)
+  incendio_historico      punto de un incendio extinguido (sin efecto en el grafo)
+  probabilidad_ignicion   celda de 1 km con la probabilidad de ignición del día
 
 Uso:
   python cargar.py            # carga en la BD (variables DB_HOST, DB_PORT, ...)
@@ -17,15 +22,20 @@ ARCHIVO = Path(__file__).resolve().parent / "data" / "incendios_maipu.geojson"
 
 def mapear(feature):
     p = feature["properties"]
-    if p["fuente"] == "GDACS":
-        nombre = f"Incendio forestal GDACS {p.get('glide') or p['id_amenaza']}"
-        desc = (f"Polígono oficial GDACS, alerta {p.get('alerta_gdacs')}, "
-                f"{p.get('area_afectada_ha')} ha, {p.get('valido_desde')} a {p.get('valido_hasta')}.")
+    tipo = p["tipo_amenaza"]
+    if tipo == "probabilidad_ignicion":
+        nombre = f"Probabilidad de ignición {p['clase_pi']} · {p['id_celda']}"
+        desc = (f"Pronóstico CONAF para el {p['valido_desde'][:10]}: probabilidad de ignición "
+                f"{p['clase_pi']} en esta celda de 1 km.")
+    elif tipo == "incendio_activo":
+        nombre = f"Incendio {p.get('nombre_incendio') or p['id_conaf']} ({p['estado'].lower()})"
+        desc = (f"CONAF, comuna {p.get('comuna_incendio')}, {p.get('superficie_ha')} ha, "
+                f"inicio {p.get('inicio')}. Exclusión de {p['radio_exclusion_m']} m.")
     else:
-        nombre = f"Foco de calor FIRMS {p.get('valido_desde')}"
-        desc = (f"Píxel {p.get('lado_pixel_m')} m + {p.get('radio_exclusion_m')} m de exclusión, "
-                f"confianza {p.get('confianza')}, FRP {p.get('frp_mw')} MW.")
-    return nombre, p["tipo_amenaza"], p["nivel_riesgo"], desc
+        nombre = f"Incendio extinguido {p.get('nombre_incendio') or p['id_conaf']}"
+        desc = (f"CONAF, temporada {p['temporada']}, comuna {p.get('comuna_incendio')}, "
+                f"{p.get('superficie_ha')} ha, inicio {p.get('inicio')}.")
+    return nombre, tipo, p["nivel_riesgo"], desc
 
 
 if __name__ == "__main__":
