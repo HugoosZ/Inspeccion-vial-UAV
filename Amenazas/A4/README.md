@@ -1,4 +1,64 @@
-# Módulo de Amenazas: Waze Live Map (Calles Cerradas y Obras Viales)
+# A4 · Accidentes, calles cerradas y obras viales (TomTom)
+
+Amenaza **dinámica**: un accidente o un cierre de calle aparece y desaparece durante la jornada, y obliga a cambiar una ruta ya planificada. Además, un choque puede derribar señales y semáforos (FHWA, *Maintenance of Signs and Sign Supports*, cap. X), así que los accidentes quedan marcados para revisar la señalética del tramo.
+
+## Archivos
+
+| Archivo | Rol |
+|---|---|
+| `tomtom.py` | Extract + Transform: consulta TomTom y genera el GeoJSON (requiere `TOMTOM_API_KEY`) |
+| `cargar_tomtom.py` | Load: inserta el GeoJSON en `temp_amenazas` (`--dry-run` para probar sin BD) |
+| `data/tomtom_incidentes_maipu.geojson` | Salida del ETL |
+
+## Fuente y acceso
+
+TomTom Traffic API, **Incident Details v5**:
+`https://api.tomtom.com/traffic/services/5/incidentDetails?key=…&bbox=-70.92,-33.62,-70.70,-33.46&fields=…&language=es-ES&timeValidityFilter=present`
+
+- Clave gratuita de desarrollador en https://developer.tomtom.com: 2.500 solicitudes al mes, sin tarjeta.
+- La clave va en `TOMTOM_API_KEY` del `.env` (no se sube al repositorio). Sin ella, `main.py` omite el extractor y carga el último GeoJSON guardado.
+- Una sola consulta cubre Maipú (el límite del rectángulo es 10.000 km²).
+
+## Transformación
+
+| `iconCategory` | `tipo_amenaza` | `nivel_riesgo` | `accion_grafo` | `radio_afectacion_m` |
+|---|---|---|---|---|
+| 1 Accidente | `accidente` | ALTO | `BLOQUEAR_ARISTAS` | 100 |
+| 8 Calle cerrada | `calle_cerrada` | ALTO | `BLOQUEAR_ARISTAS` | 60 |
+| 9 Obras | `construccion_vial` | MEDIO | `PENALIZAR_ARISTAS` | 50 |
+| 7 Carril cerrado | `carril_cerrado` | MEDIO | `PENALIZAR_ARISTAS` | 50 |
+| 3 Condición peligrosa | `condicion_peligrosa` | MEDIO | `PENALIZAR_ARISTAS` | 50 |
+| 14 Vehículo detenido | `vehiculo_detenido` | BAJO | `PENALIZAR_ARISTAS` | 30 |
+
+Se descartan las retenciones (6), porque la congestión no afecta al dron, y las categorías de clima (2, 4, 5, 10, 11), que cubre A2. Cada incidente conserva su geometría original (punto o tramo); el ruteo bloquea o penaliza las aristas a menos de `radio_afectacion_m` (`ST_DWithin`). Los radios son **supuestos de diseño configurables**.
+
+## `properties` de cada incidente
+
+| Campo | Campo TomTom | Descripción |
+|---|---|---|
+| `id_amenaza`, `id_tomtom` | `id` | Identificador del incidente |
+| `fuente` | — | `TomTom Traffic Incidents` |
+| `tipo_amenaza`, `categoria` | `iconCategory` | Tipo según la tabla anterior |
+| `descripcion` | `events[].description` | Descripción en español |
+| `tramo` | `from`, `to` | Inicio y fin del tramo afectado |
+| `vias` | `roadNumbers` | Rutas afectadas |
+| `largo_m`, `demora_s`, `magnitud_demora` | `length`, `delay`, `magnitudeOfDelay` | Largo del tramo, demora y su magnitud |
+| `probabilidad` | `probabilityOfOccurrence` | certain, probable, risk_of o improbable |
+| `n_reportes`, `ultimo_reporte` | `numberOfReports`, `lastReportTime` | Reportes de usuarios |
+| `nivel_riesgo`, `accion_grafo`, `radio_afectacion_m` | — | Efecto en el ruteo |
+| `revisar_senaletica` | — | `true` en accidentes |
+| `valido_desde`, `valido_hasta` | `startTime`, `endTime` | Vigencia (ISO 8601) |
+
+## Carga en la base de datos
+
+`cargar_tomtom.py` inserta cada incidente en `temp_amenazas` con `fuente_etl = "A4_tomtom"`. Al cargar, `main.py` borra las filas antiguas de Waze (`A4_waze`).
+
+---
+
+## Versión anterior: Waze Live Map
+
+El módulo de Waze (`extractor.py`, `classifier.py`, `run.py`, `cargar.py`) queda en la carpeta como referencia, pero ya no lo ejecuta `main.py`.
+
 
 Este módulo automatiza la extracción, filtrado geoespacial y modelamiento operacional de eventos reportados en tiempo real por la comunidad y operadores viales a través de **Waze Live Map** para la comuna de **Maipú**.
 

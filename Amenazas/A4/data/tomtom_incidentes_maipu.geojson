@@ -1,0 +1,489 @@
+{
+  "type": "FeatureCollection",
+  "name": "amenaza_a4_tomtom_incidentes_maipu",
+  "metadata": {
+    "generado_utc": "2026-11-12T20:49:36+00:00",
+    "comuna": "Maipú",
+    "total_features": 7,
+    "amenaza": "A4 - Accidentes, cierres y obras viales",
+    "fuente": "TomTom Traffic API · Incident Details v5",
+    "aoi_maipu_bbox": [
+      -70.92,
+      -33.62,
+      -70.7,
+      -33.46
+    ],
+    "incidentes_recibidos": 66,
+    "por_categoria": {
+      "Calle cerrada": 6,
+      "Obras viales": 1
+    },
+    "categorias_descartadas": "retenciones (6) y clima (2, 4, 5, 10, 11)"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.759104,
+            -33.536413
+          ],
+          [
+            -70.759819,
+            -33.535677
+          ],
+          [
+            -70.760496,
+            -33.535005
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29250934832022000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29250934832022000",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "Calle cerrada",
+        "descripcion": "Cerrado",
+        "tramo": "Calle Las Industrias → Camino a Melipilla",
+        "vias": null,
+        "largo_m": 202.8996540751,
+        "demora_s": null,
+        "magnitud_demora": "indefinida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "radio_afectacion_m": 60,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-07-23T10:27:30Z",
+        "valido_hasta": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.742983,
+            -33.510797
+          ],
+          [
+            -70.742289,
+            -33.510767
+          ],
+          [
+            -70.741726,
+            -33.510739
+          ],
+          [
+            -70.740697,
+            -33.510676
+          ],
+          [
+            -70.740339,
+            -33.510652
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29262477060021000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29262477060021000",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "Calle cerrada",
+        "descripcion": "Cerrado",
+        "tramo": "Avenida 5 de Abril → Avenida Ferrocarril",
+        "vias": null,
+        "largo_m": 245.6115795828,
+        "demora_s": null,
+        "magnitud_demora": "indefinida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "radio_afectacion_m": 60,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-07-26T04:50:30Z",
+        "valido_hasta": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.740205,
+            -33.510354
+          ],
+          [
+            -70.740259,
+            -33.5105
+          ],
+          [
+            -70.740339,
+            -33.510652
+          ],
+          [
+            -70.740586,
+            -33.511228
+          ],
+          [
+            -70.740821,
+            -33.511735
+          ],
+          [
+            -70.741034,
+            -33.512159
+          ],
+          [
+            -70.741125,
+            -33.512367
+          ],
+          [
+            -70.741216,
+            -33.512548
+          ],
+          [
+            -70.741482,
+            -33.513007
+          ],
+          [
+            -70.741845,
+            -33.513542
+          ],
+          [
+            -70.742136,
+            -33.513907
+          ],
+          [
+            -70.742422,
+            -33.514251
+          ],
+          [
+            -70.742781,
+            -33.514589
+          ],
+          [
+            -70.743406,
+            -33.515203
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29259591636053000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29259591636053000",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "Calle cerrada",
+        "descripcion": "Cerrado",
+        "tramo": "Avenida 5 de Abril / Avenida Lumen → Calle Los Estandartes",
+        "vias": null,
+        "largo_m": 621.5819040039,
+        "demora_s": null,
+        "magnitud_demora": "indefinida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "radio_afectacion_m": 60,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-07-25T17:03:00Z",
+        "valido_hasta": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.743406,
+            -33.515203
+          ],
+          [
+            -70.742781,
+            -33.514589
+          ],
+          [
+            -70.742422,
+            -33.514251
+          ],
+          [
+            -70.742136,
+            -33.513907
+          ],
+          [
+            -70.741845,
+            -33.513542
+          ],
+          [
+            -70.741482,
+            -33.513007
+          ],
+          [
+            -70.741216,
+            -33.512548
+          ],
+          [
+            -70.741125,
+            -33.512367
+          ],
+          [
+            -70.741034,
+            -33.512159
+          ],
+          [
+            -70.740821,
+            -33.511735
+          ],
+          [
+            -70.740586,
+            -33.511228
+          ],
+          [
+            -70.740339,
+            -33.510652
+          ],
+          [
+            -70.740259,
+            -33.5105
+          ],
+          [
+            -70.740205,
+            -33.510354
+          ],
+          [
+            -70.740176,
+            -33.510247
+          ],
+          [
+            -70.740154,
+            -33.51019
+          ],
+          [
+            -70.740123,
+            -33.510094
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29259591564061000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29259591564061000",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "Calle cerrada",
+        "descripcion": "Cerrado",
+        "tramo": "Calle Los Estandartes → Avenida 5 de Abril / Avenida Esquina Blanca",
+        "vias": null,
+        "largo_m": 651.5059324044,
+        "demora_s": null,
+        "magnitud_demora": "indefinida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "radio_afectacion_m": 60,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-07-25T16:02:30Z",
+        "valido_hasta": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.736207,
+            -33.510017
+          ],
+          [
+            -70.736644,
+            -33.510024
+          ],
+          [
+            -70.73721,
+            -33.510044
+          ],
+          [
+            -70.737259,
+            -33.51004
+          ],
+          [
+            -70.738342,
+            -33.510074
+          ],
+          [
+            -70.738503,
+            -33.510079
+          ],
+          [
+            -70.738757,
+            -33.510087
+          ],
+          [
+            -70.739099,
+            -33.510142
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29265362604030000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29265362604030000",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "Calle cerrada",
+        "descripcion": "Cerrado",
+        "tramo": "Pasaje Ciudad de México → Avenida Esquina Blanca",
+        "vias": null,
+        "largo_m": 268.8310978721,
+        "demora_s": null,
+        "magnitud_demora": "indefinida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "radio_afectacion_m": 60,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-10-26T23:52:30Z",
+        "valido_hasta": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.715514,
+            -33.595933
+          ],
+          [
+            -70.715399,
+            -33.595031
+          ],
+          [
+            -70.715377,
+            -33.594861
+          ],
+          [
+            -70.715175,
+            -33.593289
+          ],
+          [
+            -70.715025,
+            -33.591974
+          ],
+          [
+            -70.715003,
+            -33.591787
+          ],
+          [
+            -70.71479,
+            -33.590163
+          ],
+          [
+            -70.714752,
+            -33.58989
+          ],
+          [
+            -70.714648,
+            -33.589156
+          ],
+          [
+            -70.714606,
+            -33.588662
+          ],
+          [
+            -70.714575,
+            -33.588345
+          ],
+          [
+            -70.714514,
+            -33.58784
+          ],
+          [
+            -70.714501,
+            -33.587744
+          ],
+          [
+            -70.714388,
+            -33.586848
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29242277428072000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29242277428072000",
+        "tipo_amenaza": "construccion_vial",
+        "categoria": "Obras viales",
+        "descripcion": "Obras",
+        "tramo": "exit [24s] → Avenida Presidente Jorge Alessandri Rodríguez",
+        "vias": [
+          "5"
+        ],
+        "largo_m": 1015.6007532057,
+        "demora_s": null,
+        "magnitud_demora": "desconocida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "PENALIZAR_ARISTAS",
+        "radio_afectacion_m": 50,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-11-12T10:13:45Z",
+        "valido_hasta": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.70189,
+            -33.502323
+          ],
+          [
+            -70.701148,
+            -33.502757
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29276904576015000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29276904576015000",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "Calle cerrada",
+        "descripcion": "Cerrado",
+        "tramo": "Cerrillos → Cerrillos",
+        "vias": null,
+        "largo_m": 83.9578252998,
+        "demora_s": null,
+        "magnitud_demora": "indefinida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "ALTO",
+        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "radio_afectacion_m": 60,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-10-14T04:07:00Z",
+        "valido_hasta": null
+      }
+    }
+  ]
+}
