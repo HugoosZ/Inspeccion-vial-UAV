@@ -85,6 +85,19 @@
   .pin { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
     border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); display: grid; place-items: center; }
   .pin span { transform: rotate(45deg); color: #fff; font: 700 12px system-ui; }
+  .base { display: flex; align-items: center; gap: 3px; padding: 2px 6px 2px 3px; border-radius: 6px;
+    border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.45); color: #fff; font: 700 11px system-ui;
+    white-space: nowrap; transform: translate(-50%, -50%); width: max-content; }
+  .base svg { width: 15px; height: 15px; flex-shrink: 0; }
+  #resultado .bases { margin: 6px 0; padding-left: 18px; font-size: 12px; }
+  #resultado .bases li { margin: 2px 0; }
+  .form-prefs.destacado { margin: 6px 0 2px; }
+  .form-prefs.destacado input { width: 70px; font-weight: 600; }
+  details.dron { margin: 4px 0; font-size: 12px; }
+  details.dron summary { cursor: pointer; }
+  details.dron ol { margin: 4px 0 4px 18px; padding: 0; }
+  #resultado label { display: inline-flex; gap: 5px; align-items: center; }
+  #resultado .tabla-drones td { white-space: nowrap; }
   #alternar { display: none; }
   @media (max-width: 760px) {
     #app { flex-direction: column; }
@@ -103,27 +116,36 @@
     <p class="sub">Maipú · Infraestructura, metadata y amenazas cargadas en PostGIS</p>
     <div id="estado" class="estado">Conectando con la API…</div>
     <section id="ruteo">
-      <h2>Planificación de rutas · pgr_dijkstra resiliente</h2>
-      <p class="ayuda">Haz clic en el mapa para fijar el <b>inicio</b> y luego el <b>objetivo</b>.
-        Puedes arrastrar los marcadores. Si no cambias las restricciones se usan las por defecto.</p>
+      <h2>Planificación por área · flota UAV</h2>
+      <p class="ayuda">Define el área a inspeccionar: presiona <b>Dibujar área</b> y haz clic en cada vértice
+        (doble clic o <b>Cerrar área</b> para terminar), o usa <b>Toda la comuna</b>. Cada dron recibe una parte
+        del área con su propia base y recorre las calles con señalética de esa parte.</p>
+      <div class="fila-botones">
+        <button type="button" class="btn" id="btnDibujar">Dibujar área</button>
+        <button type="button" class="btn" id="btnCerrar" disabled>Cerrar área</button>
+        <button type="button" class="btn" id="btnComuna">Toda la comuna</button>
+      </div>
       <div class="puntos">
-        <b>Inicio</b><span id="txtInicio">sin definir</span>
-        <b>Objetivo</b><span id="txtObjetivo">sin definir</span>
+        <b>Área</b><span id="txtArea">sin definir</span>
+      </div>
+      <div class="form-prefs destacado">
+        <label for="p_n_drones"><b>Cantidad de drones</b></label>
+        <input type="number" id="p_n_drones" min="1" max="10" step="1" value="3">
       </div>
       <details id="prefs">
-        <summary>Restricciones del usuario</summary>
+        <summary>Restricciones y parámetros del dron</summary>
         <div class="form-prefs" id="formPrefs"></div>
         <div class="fila-botones"><button type="button" class="btn" id="btnDefecto">Restablecer valores por defecto</button></div>
       </details>
       <div class="fila-botones">
-        <button type="button" class="btn primario" id="btnCalcular" disabled>Calcular rutas</button>
+        <button type="button" class="btn primario" id="btnCalcular" disabled>Planificar inspección</button>
         <button type="button" class="btn" id="btnLimpiar">Limpiar</button>
       </div>
       <div id="resultado"></div>
     </section>
     <div id="capas"></div>
-    <p class="nota">Fuentes: OpenStreetMap (OSMnx, ohsome), Municipalidad de Maipú, INE Censo 2024,
-      DGAC, GDACS, NASA FIRMS, Open-Meteo y SOSAFE. Haz clic en un elemento del mapa para ver su detalle.</p>
+    <p class="nota">Fuentes: OpenStreetMap (OSMnx, ohsome), MINVU, MOP, CONASET, CONAF, Open-Meteo,
+      SOSAFE y TomTom. Haz clic en un elemento del mapa para ver su detalle.</p>
   </aside>
   <div id="mapa"></div>
 </div>
@@ -189,17 +211,42 @@ const COLOR_CONTROL = { senal_pare: "#dc2626", senal_ceda_el_paso: "#f59e0b",
 const NOMBRE_CONTROL = { senal_pare: "PARE", senal_ceda_el_paso: "Ceda el paso",
                          semaforo: "Semáforo", cruce_peatonal: "Cruce peatonal" };
 
-const RANGOS_VULN = [
-  { hasta: -0.5, color: "#fff7ed", etiqueta: "< −0,5 (menos vulnerable)" },
-  { hasta: 0,    color: "#fed7aa", etiqueta: "−0,5 a 0" },
-  { hasta: 0.5,  color: "#fb923c", etiqueta: "0 a 0,5" },
-  { hasta: 1,    color: "#ea580c", etiqueta: "0,5 a 1" },
-  { hasta: Infinity, color: "#9a3412", etiqueta: "> 1 (más vulnerable)" },
+const COLOR_LUGAR = { salud_publica: "#2563eb", educacion_publica: "#0d9488",
+                      carabineros: "#166534", bomberos: "#b91c1c" };
+const NOMBRE_LUGAR = { salud_publica: "Salud pública", educacion_publica: "Educación pública",
+                       carabineros: "Carabineros", bomberos: "Bomberos" };
+const COLOR_PUENTE = { puente: "#7c2d12", pasarela: "#a16207", enlace: "#57534e" };
+const NOMBRE_PUENTE = { puente: "Puente", pasarela: "Pasarela peatonal", enlace: "Enlace a desnivel" };
+const COLOR_SINIESTRO = { CRITICA: "#b91c1c", ALTA: "#f97316", MEDIA: "#fcd34d" };
+const NOMBRE_SINIESTRO = { CRITICA: "Crítica (5 % con más siniestros)", ALTA: "Alta (siguiente 15 %)",
+                           MEDIA: "Media" };
+const nivelZona = f => (f.properties.propiedades || {}).nivel || "MEDIA";
+// Probabilidad de falla (Probabilidades/generar.py): rampa de colores por p_total
+const RANGOS_PROB = [
+  { hasta: 0.01, color: "#cbd5e1", etiqueta: "< 1 %" },
+  { hasta: 0.05, color: "#fde68a", etiqueta: "1 – 5 %" },
+  { hasta: 0.15, color: "#fb923c", etiqueta: "5 – 15 %" },
+  { hasta: 0.30, color: "#dc2626", etiqueta: "15 – 30 %" },
+  { hasta: Infinity, color: "#7f1d1d", etiqueta: "≥ 30 %" },
 ];
-function colorVuln(v) {
-  if (v === null || v === undefined) return "#cbd5e1";
-  return RANGOS_VULN.find(r => v < r.hasta).color;
+const colorProb = p => RANGOS_PROB.find(r => p < r.hasta).color;
+const pctP = v => v == null ? "—" : `${(100 * v).toFixed(v < 0.01 ? 2 : 1)} %`;
+const horaIso = t => new Date(t).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+function popupProb(f, tipo) {
+  const p = f.properties;
+  const filas = { "probabilidad total": pctP(p.p_total), "A1 incendios": pctP(p.p_a1), "A2 clima": pctP(p.p_a2),
+                  "A3 SOSAFE": pctP(p.p_a3), "A4 accidentes y cierres": pctP(p.p_a4),
+                  "jornada": p.t0 ? `${horaIso(p.t0)} – ${horaIso(p.t1)}` : "—" };
+  (p.detalle || []).slice(0, 4).forEach((d, i) => {
+    filas[`aporte ${i + 1}`] = `${d.fuente} · ${d.tipo.replaceAll("_", " ")} · ${pctP(d.p)}`;
+  });
+  return popup({ nombre: `${tipo} ${p.id}${p.name ? ` · ${p.name}` : ""}` }, filas);
 }
+const COLOR_INCIDENTE = { accidente: "#d90429", calle_cerrada: "#7f1d1d", construccion_vial: "#ea580c",
+                          carril_cerrado: "#f59e0b", condicion_peligrosa: "#a855f7", vehiculo_detenido: "#64748b" };
+const NOMBRE_INCIDENTE = { accidente: "Accidente (bloquea 100 m)", calle_cerrada: "Calle cerrada (bloquea 60 m)",
+                           construccion_vial: "Obras (penaliza 50 m)", carril_cerrado: "Carril cerrado (penaliza 50 m)",
+                           condicion_peligrosa: "Condición peligrosa (penaliza 50 m)", vehiculo_detenido: "Vehículo detenido (penaliza 30 m)" };
 
 const punto = (latlng, color, r = 4, pane = "meta") =>
   L.circleMarker(latlng, { pane, radius: r, color: "#fff", weight: 1, fillColor: color, fillOpacity: 0.9 });
@@ -223,34 +270,41 @@ const CAPAS = [
       onEachFeature: (f, l) => l.bindPopup(popup({ nombre: `Nodo ${f.properties.id}` }, f.properties)) }) },
 
   // ----- Metadata -----
-  { id: "M1", grupo: "Metadata", nombre: "M1 · Paraderos", muestra: "#2563eb", fuente: "M1_paraderos",
-    url: "/api/metadata?fuente=M1_paraderos",
-    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, "#2563eb", 4),
-      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
-  { id: "M2", grupo: "Metadata", nombre: "M2 · Controles viales (OSM)", muestra: "#dc2626", fuente: "M2_controles_viales",
-    url: "/api/metadata?fuente=M2_controles_viales",
+  { id: "M1", grupo: "Metadata", nombre: "M1 · Señaléticas (OSM)", muestra: "#dc2626", fuente: "M1_senaleticas",
+    url: "/api/metadata?fuente=M1_senaleticas",
     crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, COLOR_CONTROL[f.properties.tipo] || "#64748b",
                                                               f.properties.tipo === "cruce_peatonal" ? 2.5 : 4),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
     leyenda: Object.entries(NOMBRE_CONTROL).map(([k, v]) => [COLOR_CONTROL[k], v]) },
-  { id: "M3", grupo: "Metadata", nombre: "M3 · Vulnerabilidad por manzana", muestra: "#ea580c", fuente: "M3_censo_manzanas",
-    url: "/api/metadata?fuente=M3_censo_manzanas&simplificar=0.00003",
-    crear: d => L.geoJSON(d, { pane: "meta",
-      style: f => ({ color: "#9a3412", weight: 0.3,
-                     fillColor: colorVuln((f.properties.propiedades || {}).indice_vulnerabilidad), fillOpacity: 0.55 }),
+  { id: "M2", grupo: "Metadata", nombre: "M2 · Lugares públicos para droneports (MINVU)", muestra: "#2563eb",
+    fuente: "M2_lugares_publicos", url: "/api/metadata?fuente=M2_lugares_publicos",
+    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, COLOR_LUGAR[f.properties.tipo] || "#334155", 6),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
-    leyenda: RANGOS_VULN.map(r => [r.color, r.etiqueta, true]).concat([["#cbd5e1", "Sin dato", true]]) },
-  { id: "M4", grupo: "Metadata", nombre: "M4 · Aeródromos DGAC", muestra: "#0891b2", fuente: "M4_aerodromos",
-    url: "/api/metadata?fuente=M4_aerodromos",
-    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, "#0891b2", 6),
-      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
+    leyenda: Object.entries(NOMBRE_LUGAR).map(([k, v]) => [COLOR_LUGAR[k], v]) },
+  { id: "M3", grupo: "Metadata", nombre: "M3 · Puentes y pasos a desnivel (MOP)", muestra: "#7c2d12",
+    fuente: "M3_puentes", url: "/api/metadata?fuente=M3_puentes",
+    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, COLOR_PUENTE[f.properties.tipo] || "#57534e", 7),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
+    leyenda: Object.entries(NOMBRE_PUENTE).map(([k, v]) => [COLOR_PUENTE[k], v]) },
+  { id: "M4", grupo: "Metadata", nombre: "M4 · Zonas de siniestros (CONASET)", muestra: "#f97316",
+    fuente: "M4_siniestros", url: "/api/metadata?fuente=M4_siniestros",
+    crear: d => L.geoJSON(d, { pane: "meta",
+      style: f => ({ color: COLOR_SINIESTRO[nivelZona(f)], weight: 0.5,
+                     fillColor: COLOR_SINIESTRO[nivelZona(f)], fillOpacity: nivelZona(f) === "MEDIA" ? 0.35 : 0.6 }),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
+    leyenda: Object.entries(NOMBRE_SINIESTRO).map(([k, v]) => [COLOR_SINIESTRO[k], v, true]) },
 
   // ----- Amenazas -----
-  { id: "A1", grupo: "Amenazas", nombre: "A1 · Incendios (GDACS + FIRMS)", activa: true, muestra: "#ef4444", fuente: "A1_incendios",
+  { id: "A1", grupo: "Amenazas", nombre: "A1 · Incendios (CONAF)", activa: true, muestra: "#ef4444", fuente: "A1_incendios",
     url: "/api/amenazas?fuente=A1_incendios",
     crear: d => L.geoJSON(d, { pane: "amen",
-      style: f => ({ color: "#b91c1c", weight: 1.5, fillColor: "#ef4444", fillOpacity: 0.35 }),
-      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
+      style: f => f.properties.tipo === "probabilidad_ignicion"
+        ? { color: COLOR_NIVEL[f.properties.nivel_riesgo], weight: 0.3, fillColor: COLOR_NIVEL[f.properties.nivel_riesgo], fillOpacity: 0.15 }
+        : { color: "#b91c1c", weight: 1.5, fillColor: "#ef4444", fillOpacity: 0.35 },
+      pointToLayer: (f, ll) => punto(ll, "#7f1d1d", 4, "amen"),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
+    leyenda: [["#ef4444", "Incendio activo (área de exclusión)", true], ["#7f1d1d", "Incendio extinguido"],
+              [COLOR_NIVEL.MEDIO, "Probabilidad de ignición 40–69 %", true], [COLOR_NIVEL.ALTO, "Probabilidad de ignición ≥ 70 %", true]] },
   { id: "A2", grupo: "Amenazas", nombre: "A2 · Clima severo (Open-Meteo)", activa: true, muestra: "#f97316", fuente: "A2_clima",
     url: "/api/amenazas?fuente=A2_clima", opciones: "horas",
     crear: (d, capa) => L.geoJSON(d, { pane: "amen",
@@ -266,12 +320,28 @@ const CAPAS = [
       style: () => ({ color: "#f77f00", weight: 2, fillColor: "#f77f00", fillOpacity: 0.3 }),
       pointToLayer: (f, ll) => punto(ll, "#f77f00", 6, "amen"),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
-  { id: "A4", grupo: "Amenazas", nombre: "A4 · Calles cerradas y obras (Waze)", activa: true, muestra: "#d90429", fuente: "A4_waze",
-    url: "/api/amenazas?fuente=A4_waze",
+  { id: "A4", grupo: "Amenazas", nombre: "A4 · Accidentes, cierres y obras (TomTom)", activa: true, muestra: "#d90429",
+    fuente: "A4_tomtom", url: "/api/amenazas?fuente=A4_tomtom",
     crear: d => L.geoJSON(d, { pane: "amen",
-      style: f => ({ color: (f.properties && f.properties.marker_color) || "#d90429", weight: 2, fillColor: (f.properties && f.properties.marker_color) || "#d90429", fillOpacity: 0.35 }),
-      pointToLayer: (f, ll) => punto(ll, (f.properties && f.properties.marker_color) || "#d90429", 6, "amen"),
-      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }) },
+      style: f => ({ color: COLOR_INCIDENTE[f.properties.tipo] || "#d90429", weight: 5, opacity: 0.9 }),
+      pointToLayer: (f, ll) => punto(ll, COLOR_INCIDENTE[f.properties.tipo] || "#d90429", 7, "amen"),
+      onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
+    leyenda: Object.entries(NOMBRE_INCIDENTE).map(([k, v]) => [COLOR_INCIDENTE[k], v]) },
+
+  // ----- Probabilidad de falla (punto 5) -----
+  { id: "PF_aristas", grupo: "Probabilidad de falla", nombre: "Enlaces (calles)", muestra: "#dc2626",
+    url: "/api/probabilidades?elemento=aristas&minimo=0.001",
+    conteo: c => c.probabilidades ? `${fmt(c.probabilidades.aristas)} enlaces con p > 0` : "sin calcular",
+    crear: d => L.geoJSON(d, { pane: "meta",
+      style: f => ({ color: colorProb(f.properties.p_total), weight: 3, opacity: 0.85 }),
+      onEachFeature: (f, l) => l.bindPopup(popupProb(f, "Enlace")) }),
+    leyenda: RANGOS_PROB.map(r => [r.color, r.etiqueta]) },
+  { id: "PF_nodos", grupo: "Probabilidad de falla", nombre: "Nodos (intersecciones)", muestra: "#7f1d1d",
+    url: "/api/probabilidades?elemento=nodos&minimo=0.001",
+    conteo: c => c.probabilidades ? `${fmt(c.probabilidades.nodos)} nodos con p > 0` : "sin calcular",
+    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, colorProb(f.properties.p_total), 3),
+      onEachFeature: (f, l) => l.bindPopup(popupProb(f, "Nodo")) }),
+    leyenda: RANGOS_PROB.map(r => [r.color, r.etiqueta]) },
 ];
 
 // ---------------------------------------------------------------------------
@@ -364,27 +434,32 @@ function prepararHoras(capa) {
 }
 
 // ---------------------------------------------------------------------------
-// Planificación de rutas (rúbrica 8 a 11): k rutas pgr_dijkstra resilientes
+// Planificación por área con una flota de drones (POST /api/flota)
 // ---------------------------------------------------------------------------
 mapa.createPane("rutas").style.zIndex = 440;
-const COLORES = ["#1d4ed8", "#059669", "#c026d3", "#ea580c"];
-const ruteo = { inicio: null, objetivo: null, marcadores: {}, capas: {}, defecto: null, tipos: [] };
+const COLORES = ["#1d4ed8", "#059669", "#c026d3", "#ea580c", "#0891b2",
+                 "#be123c", "#65a30d", "#7c3aed", "#b45309", "#0f766e"];
+const colorDron = d => COLORES[(d - 1) % COLORES.length];
+const ruteo = { area: null, comuna: false, vertices: [], dibujando: false, capaArea: null,
+                guia: null, capas: {}, defecto: null, tipos: [], categoriasBase: [], opciones: {} };
 
 const CAMPOS = [
-  { grupo: "Rutas" },
-  { id: "k", etiqueta: "Rutas alternativas (k)", tipo: "select", opciones: [2, 3, 4] },
-  { id: "hora_salida", etiqueta: "Hora de salida (vacío = ahora)", tipo: "datetime" },
-  { grupo: "Restricciones desde la metadata" },
-  { id: "evitar_aerodromos", etiqueta: "Evitar aeródromos (M4)", tipo: "bool" },
-  { id: "radio_aerodromo_m", etiqueta: "Radio de exclusión aeródromo (m)", tipo: "num", paso: 100 },
-  { id: "evitar_paraderos", etiqueta: "Evitar oclusión en paraderos (M1)", tipo: "bool" },
-  { id: "priorizar_vulnerables", etiqueta: "Priorizar manzanas vulnerables (M3)", tipo: "bool" },
-  { id: "tipos_senal", etiqueta: "Señales a inspeccionar (M2)", tipo: "tipos" },
-  { grupo: "Amenazas y operación" },
-  { id: "considerar_clima", etiqueta: "Considerar clima por hora (A2)", tipo: "bool" },
-  { id: "radio_corredor_m", etiqueta: "Ancho del corredor (m)", tipo: "num", paso: 50 },
-  { id: "max_requeridas", etiqueta: "Máx. aristas a inspeccionar", tipo: "num", paso: 1 },
-  { id: "autonomia_km", etiqueta: "Autonomía por dron (km)", tipo: "num", paso: 1 },
+  { grupo: "Flota y jornada" },
+  { id: "bases", etiqueta: "Bases", tipo: "select",
+    opciones: [["distribuidas", "Una base por área (distribuidas)"], ["centralizada", "Una sola base para todos"]] },
+  { id: "hora_salida", etiqueta: "Hora de inicio (vacío = ahora)", tipo: "datetime" },
+  { id: "jornada_h", etiqueta: "Jornada de vuelo (h)", tipo: "num", paso: 0.5 },
+  { id: "categorias_base", etiqueta: "Recintos públicos para las bases (M2)", tipo: "lista",
+    valores: () => ruteo.categoriasBase, nombres: () => NOMBRE_LUGAR },
+  { grupo: "Qué inspeccionar" },
+  { id: "tipos_senal", etiqueta: "Señaléticas (M1)", tipo: "tipos" },
+  { grupo: "Restricciones" },
+  { id: "considerar_clima", etiqueta: "Avisar salidas con mal tiempo (A2)", tipo: "bool" },
+  { grupo: "Dron" },
+  { id: "velocidad_crucero_ms", etiqueta: "Velocidad de crucero (m/s)", tipo: "num", paso: 0.5 },
+  { id: "autonomia_min", etiqueta: "Autonomía de la batería (min)", tipo: "num", paso: 1 },
+  { id: "reserva_bateria_pct", etiqueta: "Reserva de batería (%)", tipo: "num", paso: 5 },
+  { id: "tiempo_recarga_min", etiqueta: "Cambio de batería entre salidas (min)", tipo: "num", paso: 1 },
 ];
 const NOMBRE_TIPO = { senal_pare: "PARE", senal_ceda_el_paso: "Ceda el paso", semaforo: "Semáforo",
                       cruce_peatonal: "Cruce peatonal" };
@@ -395,10 +470,12 @@ function construirFormulario() {
     if (c.grupo) return `<div class="grupo">${c.grupo}</div>`;
     if (c.tipo === "bool") return `<label for="p_${c.id}">${c.etiqueta}</label><input type="checkbox" id="p_${c.id}">`;
     if (c.tipo === "select") return `<label for="p_${c.id}">${c.etiqueta}</label><select id="p_${c.id}">${
-      c.opciones.map(o => `<option value="${o}">${o}</option>`).join("")}</select>`;
+      c.opciones.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}</select>`;
     if (c.tipo === "datetime") return `<label for="p_${c.id}">${c.etiqueta}</label><input type="datetime-local" id="p_${c.id}">`;
     if (c.tipo === "tipos") return `<div class="grupo">${c.etiqueta}</div><div class="ancho">${
       ruteo.tipos.map(t => `<label><input type="checkbox" name="p_tipos" value="${t}">${NOMBRE_TIPO[t] || t}</label>`).join("")}</div>`;
+    if (c.tipo === "lista") return `<div class="grupo">${c.etiqueta}</div><div class="ancho">${
+      c.valores().map(t => `<label><input type="checkbox" name="p_${c.id}" value="${t}">${c.nombres()[t] || t}</label>`).join("")}</div>`;
     return `<label for="p_${c.id}">${c.etiqueta}</label><input type="number" id="p_${c.id}" step="${c.paso}">`;
   }).join("");
   aplicarDefecto();
@@ -406,9 +483,12 @@ function construirFormulario() {
 
 function aplicarDefecto() {
   const d = ruteo.defecto;
+  document.getElementById("p_n_drones").value = d.n_drones;
   CAMPOS.filter(c => c.id).forEach(c => {
     if (c.tipo === "tipos") {
       document.querySelectorAll('input[name="p_tipos"]').forEach(x => { x.checked = d.tipos_senal.includes(x.value); });
+    } else if (c.tipo === "lista") {
+      document.querySelectorAll(`input[name="p_${c.id}"]`).forEach(x => { x.checked = (d[c.id] || []).includes(x.value); });
     } else if (c.tipo === "bool") {
       document.getElementById(`p_${c.id}`).checked = !!d[c.id];
     } else if (c.tipo === "datetime") {
@@ -419,47 +499,108 @@ function aplicarDefecto() {
   });
 }
 
-/** Solo se envían los valores que el usuario cambió; el resto queda por defecto (rúbrica 6.2). */
-function parametrosUsuario() {
-  const d = ruteo.defecto, params = new URLSearchParams();
+/** Solo se envían los valores que el usuario cambió; el resto queda por defecto. */
+function preferenciasUsuario() {
+  const d = ruteo.defecto, p = {};
+  const n = Number(document.getElementById("p_n_drones").value);
+  p.n_drones = Number.isFinite(n) && n >= 1 ? Math.round(n) : d.n_drones;
   CAMPOS.filter(c => c.id).forEach(c => {
     if (c.tipo === "tipos") {
       const v = [...document.querySelectorAll('input[name="p_tipos"]:checked')].map(x => x.value);
-      if (v.length && v.slice().sort().join() !== d.tipos_senal.slice().sort().join()) params.set("tipos_senal", v.join(","));
+      if (v.length && v.slice().sort().join() !== d.tipos_senal.slice().sort().join()) p.tipos_senal = v;
+    } else if (c.tipo === "lista") {
+      const v = [...document.querySelectorAll(`input[name="p_${c.id}"]:checked`)].map(x => x.value);
+      if (v.length && v.slice().sort().join() !== (d[c.id] || []).slice().sort().join()) p[c.id] = v;
     } else if (c.tipo === "bool") {
       const v = document.getElementById(`p_${c.id}`).checked;
-      if (v !== !!d[c.id]) params.set(c.id, v);
+      if (v !== !!d[c.id]) p[c.id] = v;
     } else if (c.tipo === "datetime") {
       const v = document.getElementById(`p_${c.id}`).value;
-      if (v) params.set(c.id, new Date(v).toISOString());     // hora local -> UTC
+      if (v) p[c.id] = new Date(v).toISOString();          // hora local -> UTC
+    } else if (c.tipo === "select") {
+      const v = document.getElementById(`p_${c.id}`).value;
+      if (v !== d[c.id]) p[c.id] = v;
     } else {
       const v = document.getElementById(`p_${c.id}`).value;
-      if (v !== "" && Number(v) !== Number(d[c.id])) params.set(c.id, v);
+      if (v !== "" && Number(v) !== Number(d[c.id])) p[c.id] = Number(v);
     }
   });
-  return params;
+  return p;
 }
 
-function icono(texto, color) {
-  return L.divIcon({ className: "", iconSize: [26, 26], iconAnchor: [13, 26],
-    html: `<div class="pin" style="background:${color}"><span>${texto}</span></div>` });
+// ----- Selección del área -----
+function actualizarBotones() {
+  document.getElementById("btnCalcular").disabled = !(ruteo.area || ruteo.comuna) || ruteo.dibujando;
+  document.getElementById("btnCerrar").disabled = !(ruteo.dibujando && ruteo.vertices.length >= 3);
+  document.getElementById("btnDibujar").classList.toggle("activo", ruteo.dibujando);
+  document.getElementById("btnComuna").classList.toggle("activo", ruteo.comuna);
 }
 
-function fijarPunto(cual, latlng) {
-  ruteo[cual] = latlng;
-  if (ruteo.marcadores[cual]) {
-    ruteo.marcadores[cual].setLatLng(latlng);
-  } else {
-    const m = L.marker(latlng, { draggable: true, icon: icono(cual === "inicio" ? "I" : "O",
-                                 cual === "inicio" ? "#0f766e" : "#b91c1c") }).addTo(mapa);
-    m.on("dragend", e => fijarPunto(cual, e.target.getLatLng()));
-    ruteo.marcadores[cual] = m;
-  }
-  document.getElementById(cual === "inicio" ? "txtInicio" : "txtObjetivo").textContent =
-    `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
-  document.getElementById("btnCalcular").disabled = !(ruteo.inicio && ruteo.objetivo);
+function borrarArea() {
+  [ruteo.capaArea, ruteo.guia].forEach(c => { if (c) mapa.removeLayer(c); });
+  ruteo.capaArea = ruteo.guia = null;
+  ruteo.area = null; ruteo.comuna = false; ruteo.vertices = [];
 }
 
+function empezarDibujo() {
+  borrarArea();
+  limpiarRutas();
+  ruteo.dibujando = true;
+  mapa.doubleClickZoom.disable();
+  document.getElementById("mapa").style.cursor = "crosshair";
+  document.getElementById("txtArea").textContent = "haz clic en el mapa para agregar vértices…";
+  actualizarBotones();
+}
+
+function agregarVertice(latlng) {
+  ruteo.vertices.push(latlng);
+  if (ruteo.guia) mapa.removeLayer(ruteo.guia);
+  ruteo.guia = L.polygon(ruteo.vertices, { pane: "rutas", color: "#0f766e", weight: 2, dashArray: "6 4",
+                                          fillOpacity: 0.05, interactive: false }).addTo(mapa);
+  document.getElementById("txtArea").textContent = `${ruteo.vertices.length} vértice(s)`;
+  actualizarBotones();
+}
+
+function terminarDibujo() {
+  if (ruteo.vertices.length < 3) return;
+  ruteo.dibujando = false;
+  mapa.doubleClickZoom.enable();
+  document.getElementById("mapa").style.cursor = "";
+  const anillo = ruteo.vertices.map(p => [Number(p.lng.toFixed(6)), Number(p.lat.toFixed(6))]);
+  anillo.push(anillo[0]);
+  ruteo.area = { type: "Polygon", coordinates: [anillo] };
+  if (ruteo.guia) mapa.removeLayer(ruteo.guia);
+  ruteo.guia = null;
+  ruteo.capaArea = L.polygon(ruteo.vertices, { pane: "rutas", color: "#0f766e", weight: 2, dashArray: "6 4",
+                                              fillOpacity: 0.04, interactive: false }).addTo(mapa);
+  const km2 = areaKm2(ruteo.vertices);
+  document.getElementById("txtArea").textContent = `polígono de ${ruteo.vertices.length} vértices · ${km2.toFixed(1)} km²`;
+  actualizarBotones();
+}
+
+function usarComuna() {
+  borrarArea();
+  limpiarRutas();
+  ruteo.dibujando = false;
+  mapa.doubleClickZoom.enable();
+  document.getElementById("mapa").style.cursor = "";
+  ruteo.comuna = true;
+  document.getElementById("txtArea").textContent = "toda la comuna";
+  actualizarBotones();
+}
+
+function areaKm2(latlngs) {
+  const lat0 = latlngs.reduce((s, p) => s + p.lat, 0) / latlngs.length;
+  const kx = 111.32 * Math.cos(lat0 * Math.PI / 180), ky = 110.574;
+  let a = 0;
+  latlngs.forEach((p, i) => {
+    const q = latlngs[(i + 1) % latlngs.length];
+    a += p.lng * kx * q.lat * ky - q.lng * kx * p.lat * ky;
+  });
+  return Math.abs(a) / 2;
+}
+
+// ----- Resultado -----
 function limpiarRutas() {
   Object.values(ruteo.capas).forEach(c => mapa.removeLayer(c));
   ruteo.capas = {};
@@ -468,60 +609,132 @@ function limpiarRutas() {
 
 function limpiarTodo() {
   limpiarRutas();
-  ["inicio", "objetivo"].forEach(c => {
-    if (ruteo.marcadores[c]) mapa.removeLayer(ruteo.marcadores[c]);
-    ruteo.marcadores[c] = null; ruteo[c] = null;
-  });
-  document.getElementById("txtInicio").textContent = "sin definir";
-  document.getElementById("txtObjetivo").textContent = "sin definir";
-  document.getElementById("btnCalcular").disabled = true;
+  borrarArea();
+  ruteo.dibujando = false;
+  mapa.doubleClickZoom.enable();
+  document.getElementById("mapa").style.cursor = "";
+  document.getElementById("txtArea").textContent = "sin definir";
+  actualizarBotones();
 }
 
 const pct = v => v === null || v === undefined ? "—" : `${(v * 100).toFixed(1)} %`;
+const horas = min => { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${m} min` : `${m} min`; };
+const horaCorta = min => `${Math.floor(min / 60)}:${String(Math.round(min % 60)).padStart(2, "0")} h`;
+const hora = iso => new Date(iso).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+
+// Ícono de edificio para las bases: el dron despega desde un recinto público (M2)
+const SVG_EDIFICIO = `<svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 15V3l6-2 6 2v12h-4v-3H6v3H2zm2-9h2V4H4v2zm0 3h2V7H4v2zm6-3h2V4h-2v2zm0 3h2V7h-2v2zM7 6h2V4H7v2zm0 3h2V7H7v2z"/></svg>`;
+function iconoBase(texto, color) {
+  return L.divIcon({ className: "", iconSize: [0, 0],
+    html: `<div class="base" style="background:${color}">${SVG_EDIFICIO}<span>${texto}</span></div>` });
+}
+const nombreBase = b => (b.lugar && b.lugar.nombre) || `calle (nodo ${b.id})`;
 
 function dibujarResultado(r) {
   limpiarRutas();
-  ruteo.capas.requeridas = L.geoJSON(r.aristas_requeridas, { pane: "rutas",
-    style: { color: "#facc15", weight: 9, opacity: 0.55 },
-    onEachFeature: (f, l) => l.bindPopup(popup({ nombre: f.properties.nombre || "Arista requerida" }, {
-      id_arista: f.properties.id, senales: f.properties.senales,
-      vulnerabilidad: f.properties.vulnerabilidad, puntaje: f.properties.puntaje })) }).addTo(mapa);
-
-  r.dijkstra.rutas.features.forEach((f, i) => {
-    ruteo.capas[`ruta_${i}`] = L.geoJSON(f, { pane: "rutas",
-      style: { color: COLORES[i % 4], weight: 5, opacity: 0.9 },
-      onEachFeature: (ft, l) => l.bindPopup(popup({ nombre: `pgr_dijkstra · ruta ${ft.properties.ruta}` },
-        Object.fromEntries(Object.entries(ft.properties).filter(([k]) => !["algoritmo", "ruta"].includes(k))))) }).addTo(mapa);
+  const capas = r.capas;
+  const centralizada = r.preferencias.bases === "centralizada";
+  r.drones.forEach(dr => {
+    const d = dr.dron, color = colorDron(d), grupo = L.featureGroup();
+    L.geoJSON({ type: "FeatureCollection", features: capas.areas.features.filter(f => f.properties.dron === d) },
+      { pane: "rutas", interactive: false,
+        style: { color, weight: 1.5, dashArray: "4 4", fillColor: color, fillOpacity: 0.08 } }).addTo(grupo);
+    L.geoJSON({ type: "FeatureCollection", features: capas.tareas.features.filter(f => f.properties.dron === d) },
+      { pane: "rutas", style: { color, weight: 8, opacity: 0.35 },
+        onEachFeature: (f, l) => l.bindPopup(popup({ nombre: f.properties.nombre || "Calle a inspeccionar" }, {
+          dron: d, id_arista: f.properties.id, puntos: f.properties.puntos,
+          señales: Object.entries(f.properties.tipos || {}).map(([k, v]) => `${NOMBRE_TIPO[k] || k} ×${v}`).join(", ") })) }).addTo(grupo);
+    L.geoJSON({ type: "FeatureCollection", features: capas.rutas.features.filter(f => f.properties.dron === d) },
+      { pane: "rutas",
+        style: f => ({ color, weight: f.properties.tipo === "traslado" ? 2.5 : 3,
+                       opacity: 0.95, dashArray: f.properties.tipo === "traslado" ? "8 6" : null }),
+        onEachFeature: (f, l) => l.bindPopup(popup({ nombre: `Dron ${d} · ${f.properties.tipo === "traslado"
+            ? "traslado entre bases" : `salida ${f.properties.salida}`}` }, {
+          km: f.properties.km, vuelo_min: f.properties.vuelo_min, calles: f.properties.tareas,
+          inicio: hora(f.properties.inicio), clima: f.properties.clima || "sin aviso" })) }).addTo(grupo);
+    capas.bases.features.filter(f => f.properties.dron === d).forEach(f => {
+      const p = f.properties, [lon, lat] = f.geometry.coordinates;
+      const texto = centralizada ? "B" : (p.orden > 1 ? `${d}${String.fromCharCode(96 + p.orden)}` : `${d}`);
+      const colorB = centralizada ? "#0f172a" : color;
+      if (p.despegue && (p.despegue[0] !== lon || p.despegue[1] !== lat)) {
+        L.polyline([[lat, lon], [p.despegue[1], p.despegue[0]]],
+          { pane: "rutas", color: colorB, weight: 2, dashArray: "2 4", interactive: false }).addTo(grupo);
+      }
+      const titulo = p.nombre || (centralizada ? "Base común" : `Base del dron ${d}`);
+      L.marker([lat, lon], { icon: iconoBase(texto, colorB), pane: "rutas" })
+        .bindPopup(popup({ nombre: titulo }, {
+          base: centralizada ? "común a todos los drones" : `dron ${d}${p.orden > 1 ? ` (sector ${p.orden})` : ""}`,
+          recinto: NOMBRE_LUGAR[p.categoria] || "sin recinto público (calle)",
+          dependencia: p.dependencia, dirección: p.direccion,
+          despegue: p.nombre ? `calle a ${p.distancia_m} m del recinto (nodo ${p.nodo})` : `nodo ${p.nodo}` }))
+        .addTo(grupo);
+    });
+    ruteo.capas[`dron_${d}`] = grupo.addTo(mapa);
   });
+  if (capas.postergadas.features.length) {
+    ruteo.capas.postergadas = L.geoJSON(capas.postergadas, { pane: "rutas",
+      style: { color: "#475569", weight: 5, opacity: 0.8, dashArray: "2 6" },
+      onEachFeature: (f, l) => l.bindPopup(popup({ nombre: f.properties.nombre || "Calle postergada" },
+        { motivo: f.properties.motivo, puntos: f.properties.puntos })) }).addTo(mapa);
+  }
   const todo = L.featureGroup(Object.values(ruteo.capas));
   if (todo.getLayers().length) mapa.fitBounds(todo.getBounds(), { padding: [30, 30] });
 
-  const m = r.dijkstra.metricas;
-  const filasRutas = r.dijkstra.rutas.features.map((f, i) => {
-    const p = f.properties;
-    return `<label><input type="checkbox" checked data-capa="ruta_${i}">
-      <span class="linea" style="border-top-color:${COLORES[i % 4]}"></span>
-      Ruta ${p.ruta}: ${p.longitud_km} km · ${p.duracion_min} min · supervivencia ${pct(p.supervivencia)} ·
-      ${p.requeridas_cubiertas} req.${p.excede_autonomia ? " · ⚠ excede autonomía" : ""}</label>`;
-  }).join("");
+  const s = r.resumen;
+  const filas = r.drones.map(dr => `
+    <tr>
+      <td><label><input type="checkbox" checked data-capa="dron_${dr.dron}">
+        <span class="linea" style="border-top-color:${colorDron(dr.dron)}"></span>${dr.dron}</label></td>
+      <td>${fmt(dr.tareas)}</td><td>${dr.km_total.toLocaleString("es-CL")}</td>
+      <td title="${dr.traslados ? `${dr.traslados} traslado(s) entre bases` : ""}">${dr.salidas}${dr.traslados ? `+${dr.traslados}` : ""}</td><td>${horaCorta(dr.tiempo_min)}</td><td>${pct(dr.repeticion_rho)}</td>
+    </tr>`).join("");
+  const detalle = r.drones.map(dr => `
+    <details class="dron"><summary><span class="linea" style="border-top-color:${colorDron(dr.dron)}"></span>
+      Dron ${dr.dron}: ${dr.puntos} señales en ${dr.tareas} calles · ${dr.km_inspeccion} km a inspeccionar ·
+      base${dr.bases.length > 1 ? "s" : ""}: ${dr.bases.map(b => escapar(nombreBase(b))).join(" → ")}</summary>
+      <ol>${dr.detalle_salidas.map(x => `<li>${hora(x.inicio)}–${hora(x.fin)} ·
+        ${x.tipo === "traslado" ? "traslado a la siguiente base" : `${x.tareas} calles`} · ${x.km} km
+        ${x.clima ? `<span class="aviso">· ${escapar(x.clima)}</span>` : ""}</li>`).join("")}</ol>
+    </details>`).join("");
+  // Recintos públicos donde quedó cada base
+  const vistos = new Set();
+  const listaBases = `<div class="grupo">Bases (recintos públicos, M2)</div><ol class="bases">${
+    capas.bases.features.filter(f => {
+      const k = `${f.properties.nombre}|${f.properties.nodo}`;
+      if (centralizada && vistos.has(k)) return false;
+      vistos.add(k); return true;
+    }).map(f => {
+      const p = f.properties;
+      const quien = centralizada ? "Todos los drones" : `Dron ${p.dron}${p.orden > 1 ? ` (sector ${p.orden})` : ""}`;
+      return `<li><b>${quien}:</b> ${escapar(p.nombre || `calle, nodo ${p.nodo}`)}${
+        p.categoria ? ` <span class="ayuda">· ${NOMBRE_LUGAR[p.categoria]}${p.direccion ? ` · ${escapar(p.direccion)}` : ""}</span>` : ""}</li>`;
+    }).join("")}</ol>`;
   document.getElementById("resultado").innerHTML = `
     ${r.avisos.map(a => `<div class="aviso">⚠ ${escapar(a)}</div>`).join("")}
-    <div>${r.contexto.aristas_requeridas} aristas a inspeccionar · ${r.contexto.amenazas_en_region} amenazas en la región ·
-      ${r.contexto.aristas_bloqueadas} aristas bloqueadas · salida ${new Date(r.hora_salida).toLocaleString("es-CL")}</div>
     <table>
-      <tr><th>Métrica</th><th>pgr_dijkstra</th></tr>
-      <tr><td><b>Resiliencia R</b></td><td>${pct(m.R)}</td></tr>
-      <tr><td>Supervivencia R<sub>sup</sub></td><td>${pct(m.R_supervivencia)}</td></tr>
-      <tr><td>Cobertura C</td><td>${pct(m.cobertura)}</td></tr>
-      <tr><td>Solapamiento J</td><td>${pct(m.solapamiento_J)}</td></tr>
-      <tr><td>Longitud total</td><td>${m.longitud_total_km ?? "—"} km</td></tr>
+      <tr><th>Indicador</th><th>Valor</th></tr>
+      <tr><td><b>Tiempo de inspección global T</b></td><td><b>${horas(s.tiempo_global_min)}</b></td></tr>
+      <tr><td>Señales · calles a inspeccionar</td><td>${fmt(s.puntos)} · ${fmt(s.calles_a_inspeccionar)}</td></tr>
+      <tr><td>Km a inspeccionar</td><td>${s.km_a_inspeccionar.toLocaleString("es-CL")} km</td></tr>
+      <tr><td>Kilometraje total Dis</td><td>${s.km_total_Dis.toLocaleString("es-CL")} km</td></tr>
+      <tr><td>Eficiencia η (inspección / total)</td><td>${pct(s.eficiencia_eta)}</td></tr>
+      <tr><td>Uso equilibrado β (mín / máx)</td><td>${pct(s.utilizacion_beta)}</td></tr>
+      <tr><td>Repetición media ρ</td><td>${pct(s.repeticion_rho_media)}</td></tr>
+      <tr><td>Salidas · bases</td><td>${s.salidas} · ${s.bases}</td></tr>
+      <tr><td>Alcance por salida</td><td>${s.capacidad_salida_km} km</td></tr>
+      <tr><td>Postergadas · fuera de alcance</td><td>${s.postergadas} · ${s.fuera_de_alcance}</td></tr>
     </table>
-    <div class="rutas">${filasRutas}
-      <label><input type="checkbox" checked data-capa="requeridas">
-        <span class="linea" style="border-top-color:#facc15;border-top-width:8px"></span>Aristas requeridas E<sub>R</sub></label></div>
-    <p class="ayuda">${escapar(r.dijkstra.metodo)}.</p>
-    <p class="ayuda">R = R<sub>sup</sub> × C. Preferencias por defecto usadas: ${r.preferencias_por_defecto.length}
-      de ${Object.keys(r.preferencias).length}.</p>`;
+    <table class="tabla-drones">
+      <tr><th>Dron</th><th>Calles</th><th>Km</th><th>Salidas</th><th>Tiempo</th><th>ρ</th></tr>
+      ${filas}
+    </table>
+    ${listaBases}
+    ${capas.postergadas.features.length ? `<label class="ayuda"><input type="checkbox" checked data-capa="postergadas">
+      Calles postergadas por amenazas (gris punteado)</label>` : ""}
+    ${detalle}
+    <p class="ayuda">${escapar(r.metodo)}</p>
+    <p class="ayuda">Inicio ${new Date(r.hora_salida).toLocaleString("es-CL")} · preferencias por defecto usadas:
+      ${r.preferencias_por_defecto.length} de ${Object.keys(r.preferencias).length}.</p>`;
   document.querySelectorAll("#resultado input[data-capa]").forEach(chk => chk.addEventListener("change", e => {
     const capa = ruteo.capas[e.target.dataset.capa];
     if (capa) e.target.checked ? capa.addTo(mapa) : mapa.removeLayer(capa);
@@ -530,35 +743,42 @@ function dibujarResultado(r) {
 
 async function calcularRutas() {
   const btn = document.getElementById("btnCalcular");
-  const params = parametrosUsuario();
-  params.set("inicio_lon", ruteo.inicio.lng); params.set("inicio_lat", ruteo.inicio.lat);
-  params.set("objetivo_lon", ruteo.objetivo.lng); params.set("objetivo_lat", ruteo.objetivo.lat);
-  btn.disabled = true; btn.textContent = "Calculando…";
-  document.getElementById("resultado").innerHTML = '<p class="ayuda">Ejecutando pgr_dijkstra…</p>';
+  const cuerpo = { area: ruteo.comuna ? null : ruteo.area, preferencias: preferenciasUsuario() };
+  btn.disabled = true; btn.textContent = "Planificando…";
+  document.getElementById("resultado").innerHTML =
+    '<p class="ayuda">Calculando con pgr_dijkstraCostMatrix y pgr_dijkstra… (toda la comuna puede tardar un minuto)</p>';
   try {
-    const resp = await fetch(`${API}/api/rutas?${params}`);
+    const resp = await fetch(`${API}/api/flota`, { method: "POST", headers: { "Content-Type": "application/json" },
+                                                 body: JSON.stringify(cuerpo) });
     const datos = await resp.json();
     if (!resp.ok) throw new Error(datos.detail || resp.statusText);
     dibujarResultado(datos);
   } catch (e) {
     document.getElementById("resultado").innerHTML = `<div class="aviso">⚠ ${escapar(e.message)}</div>`;
   } finally {
-    btn.disabled = false; btn.textContent = "Calcular rutas";
+    btn.textContent = "Planificar inspección";
+    actualizarBotones();
   }
 }
 
 async function iniciarRuteo() {
   try {
-    const r = await obtener("/api/rutas/preferencias");
-    ruteo.defecto = r.defecto; ruteo.tipos = r.tipos_senal;
+    const r = await obtener("/api/flota/preferencias");
+    ruteo.defecto = r.defecto; ruteo.tipos = r.tipos_senal; ruteo.opciones = r.opciones;
+    ruteo.categoriasBase = r.categorias_base || [];
     construirFormulario();
   } catch (e) {
     document.getElementById("formPrefs").textContent = "No se pudieron cargar las preferencias por defecto.";
   }
   mapa.on("click", e => {
-    if (!ruteo.inicio) fijarPunto("inicio", e.latlng);
-    else if (!ruteo.objetivo) { fijarPunto("objetivo", e.latlng); mapa.closePopup(); }
+    if (!ruteo.dibujando) return;
+    mapa.closePopup();
+    agregarVertice(e.latlng);
   });
+  mapa.on("dblclick", () => { if (ruteo.dibujando) terminarDibujo(); });
+  document.getElementById("btnDibujar").addEventListener("click", empezarDibujo);
+  document.getElementById("btnCerrar").addEventListener("click", terminarDibujo);
+  document.getElementById("btnComuna").addEventListener("click", usarComuna);
   document.getElementById("btnCalcular").addEventListener("click", calcularRutas);
   document.getElementById("btnLimpiar").addEventListener("click", limpiarTodo);
   document.getElementById("btnDefecto").addEventListener("click", aplicarDefecto);
