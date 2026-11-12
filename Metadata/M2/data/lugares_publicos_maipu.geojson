@@ -1,0 +1,1311 @@
+{
+ "type": "FeatureCollection",
+ "name": "metadata_m2_lugares_publicos_maipu",
+ "metadata": {
+  "generado_utc": "2026-11-12T20:49:09+00:00",
+  "comuna": "Maipú",
+  "total_features": 57,
+  "metadata": "M2 - Lugares públicos candidatos a droneport",
+  "fuente": "MINVU · Equipamientos (ArcGIS)",
+  "servicios": [
+   "https://services3.arcgis.com/cTnMkBRk4HWkUCRo/arcgis/rest/services/EQUIPAMIENTOS/FeatureServer/2",
+   "https://services3.arcgis.com/cTnMkBRk4HWkUCRo/arcgis/rest/services/EQUIPAMIENTOS/FeatureServer/3",
+   "https://services3.arcgis.com/cTnMkBRk4HWkUCRo/arcgis/rest/services/Equipamientos_prod_vista_/FeatureServer/20",
+   "https://services3.arcgis.com/cTnMkBRk4HWkUCRo/arcgis/rest/services/Equipamientos_prod_vista_/FeatureServer/22"
+  ],
+  "limite_comunal": "MINVU · División Político Administrativa (cod_com 13119)",
+  "por_capa": {
+   "Salud pública": 20,
+   "Colegios": 27,
+   "Cuarteles de Carabineros": 3,
+   "Compañías de Bomberos": 7
+  },
+  "criterio_educacion": "solo dependencia pública (TIPO_DEPEN 1, 4 y 5)"
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.75815,
+     -33.504315
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "Centro de Salud Familiar Maipú",
+    "direccion": "Ramón Freire 2470 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 370,
+    "tipo_establecimiento": "Consultorio General Urbano",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111304"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.774352,
+     -33.505433
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "Centro de Salud Familiar Dr. José Eduardo Ahués Salame",
+    "direccion": "Independencia 2200 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 374,
+    "tipo_establecimiento": "Consultorio General Urbano",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111308"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.796603,
+     -33.514065
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "Centro de Salud Familiar Dra. Ana María Juricic",
+    "direccion": "El Conquistador 1841 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 375,
+    "tipo_establecimiento": "Consultorio General Urbano",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111309"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.771353,
+     -33.484273
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro de Salud Familiar Dr. Iván Insunza",
+    "direccion": "Mar de Chile 491 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 380,
+    "tipo_establecimiento": "Consultorio General Urbano",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111378"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.744879,
+     -33.490025
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro de Salud Familiar Clotario Blest",
+    "direccion": "Los Trabajadores 999 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 381,
+    "tipo_establecimiento": "Consultorio General Urbano",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111379"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.796393,
+     -33.52776
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro de Salud Familiar Dr. Carlos Godoy",
+    "direccion": "El Conquistador 1565 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 382,
+    "tipo_establecimiento": "Consultorio General Urbano",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111380"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.767836,
+     -33.525395
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro de Salud Familiar Presidenta Michelle Bachelet",
+    "direccion": "Nueva San Martín 776 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 384,
+    "tipo_establecimiento": "Consultorio General Urbano",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111382"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.75602,
+     -33.473168
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro de Salud Familiar Dr. Luis Ferrada",
+    "direccion": "Tierra Fértil 5161 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 385,
+    "tipo_establecimiento": "Consultorio General Urbano",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111383"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.770043,
+     -33.540195
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "Centro Comunitario de Salud Familiar Futramapu",
+    "direccion": "Judea 321 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 386,
+    "tipo_establecimiento": "Centro Comunitario de Salud Familiar",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111704"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.774211,
+     -33.535883
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "Centro Comunitario de Salud Familiar Europa",
+    "direccion": "Europa 220 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 387,
+    "tipo_establecimiento": "Centro Comunitario de Salud Familiar",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111780"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.745503,
+     -33.510016
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro Comunitario de Salud Familiar El Abrazo",
+    "direccion": "5 de Abril 1150 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 389,
+    "tipo_establecimiento": "Centro Comunitario de Salud Familiar",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111782"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.725014,
+     -33.473047
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro Comunitario de Salud Familiar Lo Errázuriz",
+    "direccion": "Sur de Chile S/N Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 390,
+    "tipo_establecimiento": "Centro Comunitario de Salud Familiar",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111783"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.763053,
+     -33.496471
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro Comunitario de Salud Familiar Bueras",
+    "direccion": "Bueras 456 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 391,
+    "tipo_establecimiento": "Centro Comunitario de Salud Familiar",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111784"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.758607,
+     -33.504336
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "SAPU-Maipú",
+    "direccion": "Pajaritos 2470 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 393,
+    "tipo_establecimiento": "Servicio de Atención Primaria de Urgencia",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111804"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.79687,
+     -33.513934
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "SAPU-Dra. Ana María Juricic",
+    "direccion": "El Conquistador 1841 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 396,
+    "tipo_establecimiento": "Servicio de Atención Primaria de Urgencia",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111809"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.771537,
+     -33.48424
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "SAPU-Dr. Iván Insunza",
+    "direccion": "Mar de Chile 491 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 398,
+    "tipo_establecimiento": "Servicio de Atención Primaria de Urgencia",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "200141"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.825418,
+     -33.513167
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "Posta de Salud Rural Rinconada de Maipú",
+    "direccion": "Camino Rinconada S/N Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 1440,
+    "tipo_establecimiento": "Posta de Salud Rural",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Primario",
+    "codigo_deis": "111400"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.771857,
+     -33.508774
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "Centro de Referencia de Salud de Maipú",
+    "direccion": "Camino Rinconada 1001 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 2377,
+    "tipo_establecimiento": "Centro de Referencia de Salud",
+    "dependencia_deis": "Establecimiento Experimental",
+    "nivel_atencion": "Secundario",
+    "codigo_deis": "111351"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.769791,
+     -33.502803
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "municipal",
+    "nombre": "COSAM Maipú",
+    "direccion": "O'Higgins 1000 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 2379,
+    "tipo_establecimiento": "Consultorio de Salud Mental",
+    "dependencia_deis": "Municipal",
+    "nivel_atencion": "Secundario",
+    "codigo_deis": "111607"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.774248,
+     -33.508212
+    ]
+   },
+   "properties": {
+    "categoria": "salud_publica",
+    "dependencia": "estatal",
+    "nombre": "Hospital Clínico Metropolitano El Carmen Doctor Luis Valentín Ferrada",
+    "direccion": "Rinconada 1001 Maipu",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Salud pública",
+    "id_origen": 2518,
+    "tipo_establecimiento": "Establecimiento Alta Complejidad",
+    "dependencia_deis": "Servicio de Salud",
+    "nivel_atencion": "Terciario",
+    "codigo_deis": "111101"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.79134,
+     -33.557051
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Colegio Alcazar",
+    "direccion": "Avenida Parque Central Poniente 500",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 6638,
+    "rbd": 12255,
+    "tipo_dependencia": "Municipal",
+    "matricula": 1155,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.772968,
+     -33.54831
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Las Americas",
+    "direccion": "Marco Antonio 16916",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 6730,
+    "rbd": 9892,
+    "tipo_dependencia": "Municipal",
+    "matricula": 758,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.777922,
+     -33.539069
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Básica 1737 Los Alerces De Maipú",
+    "direccion": "Glorias Navales 2040",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 6814,
+    "rbd": 25314,
+    "tipo_dependencia": "Municipal",
+    "matricula": 580,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.773419,
+     -33.529498
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Basica Los Bosquinos",
+    "direccion": "El Olimpo 650",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 6917,
+    "rbd": 25042,
+    "tipo_dependencia": "Municipal",
+    "matricula": 1537,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.79683,
+     -33.528244
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Liceo Tecnologico Bicentenario Enrique Kirberg Baltiansky",
+    "direccion": "Avenida Conquistador 1561",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 6925,
+    "rbd": 31065,
+    "tipo_dependencia": "Municipal",
+    "matricula": 795,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.759092,
+     -33.52621
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Presidente Riesco Errazuriz",
+    "direccion": "Pasaje San Ramon 101",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 6945,
+    "rbd": 9878,
+    "tipo_dependencia": "Municipal",
+    "matricula": 762,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.792454,
+     -33.519165
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Liceo Nacional De Maipu",
+    "direccion": "Avenida Portales 2471",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7019,
+    "rbd": 25770,
+    "tipo_dependencia": "Municipal",
+    "matricula": 1405,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.750836,
+     -33.517077
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Vicente Reyes Palazuelos",
+    "direccion": "Elizabeth Heisse 500",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7043,
+    "rbd": 9881,
+    "tipo_dependencia": "Municipal",
+    "matricula": 574,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.750116,
+     -33.516657
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela El Llano De Maipu",
+    "direccion": "Las Acacias 535",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7052,
+    "rbd": 9887,
+    "tipo_dependencia": "Municipal",
+    "matricula": 177,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.754202,
+     -33.516112
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "estatal",
+    "nombre": "Liceo Industrial Domingo Matte Perez",
+    "direccion": "Cuatro Alamos 215",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7061,
+    "rbd": 9981,
+    "tipo_dependencia": "Corporación de administración delegada",
+    "matricula": 516,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.767456,
+     -33.51586
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Especial Andalue",
+    "direccion": "San Jose 860",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7065,
+    "rbd": 9893,
+    "tipo_dependencia": "Municipal",
+    "matricula": 198,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.785138,
+     -33.512336
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Básica Municipal San Luis",
+    "direccion": "Las Naciones 2020",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7105,
+    "rbd": 24883,
+    "tipo_dependencia": "Municipal",
+    "matricula": 402,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.724213,
+     -33.510754
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Liceo Alcalde Gonzalo Perez Llona",
+    "direccion": "Camino A Melipilla 8720",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7119,
+    "rbd": 9896,
+    "tipo_dependencia": "Municipal",
+    "matricula": 304,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.762212,
+     -33.510406
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela General San Martin",
+    "direccion": "Avenida Cinco De Abril 409",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7125,
+    "rbd": 9876,
+    "tipo_dependencia": "Municipal",
+    "matricula": 585,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.763082,
+     -33.509716
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela General Ohiggins",
+    "direccion": "Emiliano Llona 1853",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7133,
+    "rbd": 9877,
+    "tipo_dependencia": "Municipal",
+    "matricula": 561,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.747255,
+     -33.509559
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Centro De Educ. Tecn.Profesional Codeduc",
+    "direccion": "Avenida Segunda Transversal 1900",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7135,
+    "rbd": 9867,
+    "tipo_dependencia": "Municipal",
+    "matricula": 905,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.795438,
+     -33.508713
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Colegio Munic. San Sebastian De Rinconada",
+    "direccion": "La Galaxia 2370",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7149,
+    "rbd": 25186,
+    "tipo_dependencia": "Municipal",
+    "matricula": 442,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.782597,
+     -33.507185
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Liceo Reino De Dinamarca",
+    "direccion": "German Greves 265",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7169,
+    "rbd": 9889,
+    "tipo_dependencia": "Municipal",
+    "matricula": 598,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.751742,
+     -33.505274
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Liceo Santiago Bueras Y Avaria",
+    "direccion": "Capellan Benavides 2321",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7208,
+    "rbd": 9863,
+    "tipo_dependencia": "Municipal",
+    "matricula": 624,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.769155,
+     -33.503402
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Liceo Jose Ignacio Zenteno",
+    "direccion": "Avenida De La Victoria 2400",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7232,
+    "rbd": 9864,
+    "tipo_dependencia": "Municipal",
+    "matricula": 579,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.753817,
+     -33.500364
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela De Las Artes Y La Tecnologia",
+    "direccion": "Camino A Melipilla 18400",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7275,
+    "rbd": 25823,
+    "tipo_dependencia": "Municipal",
+    "matricula": 32,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.776254,
+     -33.499999
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Tomas Vargas",
+    "direccion": "Calle Asuncion 1440",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7282,
+    "rbd": 9890,
+    "tipo_dependencia": "Municipal",
+    "matricula": 516,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.771112,
+     -33.498514
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Básica N 263 Ramon Freire",
+    "direccion": "Blanco Encalada 1111",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7301,
+    "rbd": 9883,
+    "tipo_dependencia": "Municipal",
+    "matricula": 553,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.749556,
+     -33.497502
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Republica De Guatemala",
+    "direccion": "Presidente German Riesco 3315",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7311,
+    "rbd": 9891,
+    "tipo_dependencia": "Municipal",
+    "matricula": 644,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.765287,
+     -33.497483
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Leon Humberto Valenzuela",
+    "direccion": "Los Andes 680",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7312,
+    "rbd": 9884,
+    "tipo_dependencia": "Municipal",
+    "matricula": 540,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.78401,
+     -33.491425
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Liceo Bicentenario De Niñas De Maipu",
+    "direccion": "Avenida Ingeniero Eduardo Dominguez 1377",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7357,
+    "rbd": 31074,
+    "tipo_dependencia": "Municipal",
+    "matricula": 921,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.756017,
+     -33.473672
+    ]
+   },
+   "properties": {
+    "categoria": "educacion_publica",
+    "dependencia": "municipal",
+    "nombre": "Escuela Basica Reina De Suecia",
+    "direccion": "Avenida Hugo Bravo 1177",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Colegios",
+    "id_origen": 7495,
+    "rbd": 9895,
+    "tipo_dependencia": "Municipal",
+    "matricula": 573,
+    "anio_catastro": 2021
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.754619,
+     -33.507197
+    ]
+   },
+   "properties": {
+    "categoria": "carabineros",
+    "dependencia": "estatal",
+    "nombre": "25A. Com. Maipu",
+    "direccion": "Bailen 2185",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Cuarteles de Carabineros",
+    "id_origen": 77,
+    "tipo_unidad": "COMISARIA",
+    "prefectura": "SANTIAGO RINCONADA"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.790934,
+     -33.511141
+    ]
+   },
+   "properties": {
+    "categoria": "carabineros",
+    "dependencia": "estatal",
+    "nombre": "52A. Com. Rinconada De Maipu",
+    "direccion": "Cuatro Poniente 2020",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Cuarteles de Carabineros",
+    "id_origen": 95,
+    "tipo_unidad": "COMISARIA",
+    "prefectura": "SANTIAGO RINCONADA"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.789735,
+     -33.558223
+    ]
+   },
+   "properties": {
+    "categoria": "carabineros",
+    "dependencia": "estatal",
+    "nombre": "Scom. Maipu Oriente",
+    "direccion": "Parque Central Oriente 671",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Cuarteles de Carabineros",
+    "id_origen": 136,
+    "tipo_unidad": "SUBCOMISARIA",
+    "prefectura": "SANTIAGO RINCONADA"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.760584,
+     -33.510887
+    ]
+   },
+   "properties": {
+    "categoria": "bomberos",
+    "dependencia": "estatal",
+    "nombre": "Bomberos · Primera de Maipu",
+    "direccion": "Avenida 5 de Abril 274",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Compañías de Bomberos",
+    "id_origen": 146,
+    "codigo_compania": "1311501"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.750876,
+     -33.506888
+    ]
+   },
+   "properties": {
+    "categoria": "bomberos",
+    "dependencia": "estatal",
+    "nombre": "Bomberos · Tercera de Maipu",
+    "direccion": "Avenida Maipu 0299",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Compañías de Bomberos",
+    "id_origen": 148,
+    "codigo_compania": "1311503"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.773158,
+     -33.545858
+    ]
+   },
+   "properties": {
+    "categoria": "bomberos",
+    "dependencia": "estatal",
+    "nombre": "Bomberos · Cuarta de Maipu",
+    "direccion": "Avenida 4 Poniente 570, Villa El Abrazo",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Compañías de Bomberos",
+    "id_origen": 149,
+    "codigo_compania": "1311504"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.794112,
+     -33.554502
+    ]
+   },
+   "properties": {
+    "categoria": "bomberos",
+    "dependencia": "estatal",
+    "nombre": "Bomberos · Quinta de Maipu",
+    "direccion": "Avenida Parque Central 101, Ciudad Satelite",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Compañías de Bomberos",
+    "id_origen": 150,
+    "codigo_compania": "1311505"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.775537,
+     -33.533575
+    ]
+   },
+   "properties": {
+    "categoria": "bomberos",
+    "dependencia": "estatal",
+    "nombre": "Bomberos · Sexta de Maipu",
+    "direccion": "Avenida Rene Olivares Becerra 1575",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Compañías de Bomberos",
+    "id_origen": 151,
+    "codigo_compania": "1311506"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.748912,
+     -33.470148
+    ]
+   },
+   "properties": {
+    "categoria": "bomberos",
+    "dependencia": "estatal",
+    "nombre": "Bomberos · Septima de Maipu",
+    "direccion": "Avenida El Descanso 644",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Compañías de Bomberos",
+    "id_origen": 152,
+    "codigo_compania": "1311507"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.793646,
+     -33.510503
+    ]
+   },
+   "properties": {
+    "categoria": "bomberos",
+    "dependencia": "estatal",
+    "nombre": "Bomberos · Octava de Maipu",
+    "direccion": "Senadora Maria de la Cruz 3031",
+    "fuente": "MINVU · Equipamientos",
+    "capa_origen": "Compañías de Bomberos",
+    "id_origen": 153,
+    "codigo_compania": "1311508"
+   }
+  }
+ ]
+}
