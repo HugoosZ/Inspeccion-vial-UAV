@@ -1,35 +1,42 @@
 # Módulos de Metadata
 
-Este directorio contiene los módulos de extracción, transformación y carga (ETL) de los metadatos urbanos, socioeconómicos, normativos y de transporte para la comuna de **Maipú**.
+Este directorio contiene los módulos de extracción, transformación y carga (ETL) de la metadata de la comuna de **Maipú**.
 
-A diferencia de las amenazas dinámicas, la metadata define la **estructura basal del territorio**: dónde están los elementos viales a inspeccionar (demanda/recompensa) y qué restricciones físicas o normativas fijas condicionan el vuelo.
-
----
-
-## 1. Catálogo de Fuentes de Metadata
-
-| # | Fuente | Carpeta | Origen de Datos | Tipo Geométrico | Rol en el Ruteo UAV |
-|---|---|---|---|:---:|---|
-| **M1** | **Paraderos** | `M1/` | Catastro DTPM / Directorio de Transporte Público Metropolitano | Puntos (942) | Factor de penalización ($\pi = 1{,}3$) por riesgo de oclusión visual (buses detenidos) y concentración de personas. |
-| **M2** | **Controles Viales** | `M2/` | OpenStreetMap vía API Ohsome | Puntos (PARE, semáforos, ceda el paso, cruces) | **Demanda de inspección:** Define las aristas requeridas ($E_R$) que el dron debe sobrevolar y fotografiar. |
-| **M3** | **Censo 2024** | `M3/` | Instituto Nacional de Estadísticas (INE) | Polígonos (manzanas censales) | **Priorización social:** Coropleta de vulnerabilidad ($V_m$) que otorga mayor puntaje a señales en barrios vulnerables. |
-| **M4** | **Aeródromos** | `M4/` | Dirección General de Aeronáutica Civil (DGAC) | Puntos + conos de aproximación | **Restricción dura ($\pi = \infty$):** Zona de exclusión aérea por seguridad aeronáutica (DAN 151). |
+A diferencia de las amenazas dinámicas, la metadata describe el territorio de forma **estática**: qué se inspecciona, dónde pueden ubicarse las bases de los drones, qué estructuras condicionan el vuelo y qué zonas conviene priorizar.
 
 ---
 
-## 2. Dinámica Temporal y Tiempos de Respuesta
+## 1. Catálogo de fuentes
 
-**Ninguna de las fuentes de metadata es en tiempo real continuo**, y responde a una decisión técnica deliberada de diseño: la infraestructura física, los catastros censales y la zonificación aeronáutica no cambian minuto a minuto.
+| # | Metadata | Carpeta | Fuente | Geometría | Rol en el ruteo |
+|---|---|---|---|---|---|
+| **M1** | Señaléticas | `M1/` | OpenStreetMap vía ohsome | Puntos | **Demanda:** cada calle con una señal elegida es una tarea a inspeccionar |
+| **M2** | Lugares públicos | `M2/` | MINVU · Equipamientos (ArcGIS) | Puntos | **Candidatos a droneport:** las bases se eligen entre recintos públicos |
+| **M3** | Puentes | `M3/` | MOP · Vialidad y Concesiones (ArcGIS) | Puntos | **Estructuras elevadas:** obstáculo y zona de señal GNSS degradada |
+| **M4** | Zonas de siniestros | `M4/` | CONASET · Base de siniestros 2020-2025 (ArcGIS) | Polígonos (celdas de 100 m) | **Priorización:** las calles en zonas críticas se inspeccionan primero |
 
-| ID | Fuente | Tiempo de Respuesta API / Script | Frecuencia de Actualización | Latencia del Dato | Clasificación Temporal |
-|---|---|:---:|:---:|:---:|:---:|
-| **M1** | Paraderos (DTPM) | 1,5 -- 3,0 s *(ArcGIS / CSV)* | Anual o semestral | Meses *(catastro consolidado)* | **Estático / Catastral** |
-| **M2** | Controles viales (Ohsome OSM) | 2,0 -- 5,0 s *(HTTP API)* | Semanal o mensual *(comunidad OSM)* | Semanas *(edición colaborativa)* | **Estático / Infraestructura** |
-| **M3** | Censo por manzana (INE) | Procesamiento local (< 5 s) | Decenal *(Censo 2024)* | Años *(censo oficial nacional)* | **Estático / Demográfico** |
-| **M4** | Aeródromos (DGAC) | Archivo local estático | Periódica *(enmiendas AIRAC / anual)* | Meses *(publicación oficial)* | **Estático / Normativo** |
+`comun_bd.py` hace la carga idempotente a `temp_metadata`. `comun_arcgis.py` reúne las consultas a servicios ArcGIS (paginación, conversión a GeoJSON y el límite comunal de MINVU), que usan M2, M3, M4 y la amenaza A1. `limite_maipu.geojson` guarda el último límite comunal descargado como respaldo.
 
----
+## 2. Dinámica temporal
 
-## 3. Integración en la Base de Datos
+| ID | Fuente | Tiempo de respuesta | Actualización de la fuente | Clasificación |
+|---|---|:---:|:---:|:---:|
+| **M1** | ohsome (OSM) | 2–5 s | Continua (edición colaborativa) | Estático / infraestructura |
+| **M2** | MINVU | 1–3 s por capa | Según cada catastro (educación: abril 2021) | Estático / equipamiento |
+| **M3** | MOP | 1–3 s por capa | Catastros del MOP | Estático / infraestructura |
+| **M4** | CONASET | 5–15 s (5 páginas) | Anual (base 2020-2025) | Estático / histórico |
 
-Cada subcarpeta cuenta con un script `cargar.py` que almacena los registros de forma idempotente en la tabla `temp_metadata` de PostGIS (`database/init.sql`), registrando su `fuente_etl` (`M1_paraderos`, `M2_controles_viales`, `M3_censo_manzanas`, `M4_aerodromos`).
+## 3. Integración en la base de datos
+
+Cada subcarpeta tiene un `cargar.py` que inserta sus registros en la tabla `temp_metadata` de PostGIS (`database/init.sql`) con su `fuente_etl`:
+
+| Carpeta | `fuente_etl` | `tipo` |
+|---|---|---|
+| `M1/` | `M1_senaleticas` | `senal_pare`, `senal_ceda_el_paso`, `semaforo`, `cruce_peatonal` |
+| `M2/` | `M2_lugares_publicos` | `salud_publica`, `educacion_publica`, `carabineros`, `bomberos` |
+| `M3/` | `M3_puentes` | `puente`, `pasarela`, `enlace` |
+| `M4/` | `M4_siniestros` | `zona_siniestros` |
+
+## 4. Cambios respecto de la entrega 2
+
+Se retiraron los paraderos (DTPM), el Censo 2024 y los aeródromos (DGAC). Las señales de OSM pasaron de `M2/` a `M1/`. Al cargar, `main.py` borra de la base de datos las filas de las fuentes retiradas (`M1_paraderos`, `M2_controles_viales`, `M3_censo_manzanas`, `M4_aerodromos`).
