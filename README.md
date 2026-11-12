@@ -19,11 +19,12 @@ El proyecto se estructura de forma modular desacoplando extracción, base de dat
 ├── docker/                  # Definición de imágenes Docker
 │   ├── etl/                 # Contenedor con herramientas geoespaciales (GeoPandas, OSMnx)
 │   └── web/                 # Contenedor con FastAPI y servidor estático Leaflet
-│       └── ruteo/           # k rutas pgr_dijkstra con pesos resilientes y métrica de resiliencia
+│       └── ruteo/           # Planificación por área con n drones (pgRouting) y k rutas pgr_dijkstra
 ├── Infraestructura/         # Extracción y transformación de red vial (nodos y aristas)
-├── Metadata/                # Metadatos: M1 paraderos, M2 controles viales, M3 censo, M4 aeródromos
-├── Amenazas/                # Extracción y transformación de amenazas (incendios, clima, SOSAFE, Waze)
-└── Sitio Web/               # Visualizador Leaflet y planificación de rutas (pgr_dijkstra)
+├── Metadata/                # Metadata: M1 señaléticas, M2 lugares públicos, M3 puentes, M4 siniestros
+├── Amenazas/                # Extracción y transformación de amenazas (incendios, clima, SOSAFE, TomTom)
+├── Probabilidades/          # Probabilidad de falla de cada enlace y nodo por amenaza (punto 5)
+└── Sitio Web/               # Visualizador Leaflet y planificación por área con una flota de drones
 ```
 
 ---
@@ -43,7 +44,7 @@ El proyecto corre íntegramente sobre Docker mediante `docker-compose`:
 ### 1. Requisitos
 - Docker Desktop (con Docker Compose) abierto.
 - Python 3 en el computador (solo la biblioteca estándar; todo el procesamiento corre en Docker).
-- Opcional: copiar `.env.example` a `.env` y completar las claves (`OHSOME_API_KEY`, `FIRMS_MAP_KEY`, SOSAFE, Gemini). Sin ellas, esos pasos se omiten y se cargan los JSON que ya están en el repositorio.
+- Opcional: copiar `.env.example` a `.env` y completar las claves (`OHSOME_API_KEY`, SOSAFE, Gemini). Sin ellas, esos pasos se omiten y se cargan los JSON que ya están en el repositorio.
 
 ### 2. Ejecutar todo con un comando
 Desde la raíz del repositorio:
@@ -55,9 +56,10 @@ python3 main.py
 | Paso | Qué hace | Dónde corre |
 |---|---|---|
 | 1. Contenedores | `docker compose up -d --build db etl` | Computador |
-| 2. Descarga | Extractores de Infraestructura, Metadata (M1, M2, M3) y Amenazas (A1, A2, A3, A4) que escriben los JSON/GeoJSON | Contenedor `etl` |
+| 2. Descarga | Extractores de Infraestructura, Metadata (M1 a M4) y Amenazas (A1, A2, A3, A4) que escriben los JSON/GeoJSON | Contenedor `etl` |
 | 3. Importación | Un `cargar.py` por cada JSON/GeoJSON hacia PostGIS, y conteo de filas por tabla y fuente | Contenedor `etl` |
-| 4. Web | Levanta `web`, espera a que `/health` responda, verifica las capas y la API de ruteo, y abre el navegador | Computador |
+| 4. Probabilidades | `Probabilidades/generar.py`: probabilidad de falla de cada enlace y nodo por amenaza (tablas `prob_falla_*`) | Contenedor `etl` |
+| 5. Web | Levanta `web`, espera a que `/health` responda, verifica las capas y la API de ruteo, y abre el navegador | Computador |
 
 Si un extractor falla (sin internet o sin clave), se usa el último JSON disponible y el resumen final lo marca. Solo la red vial es obligatoria: sin ella el ruteo no funciona y `main.py` termina con error.
 
@@ -79,27 +81,22 @@ http://localhost:8080          # visualizador Leaflet
 http://localhost:8080/docs     # documentación de la API
 ```
 
-### 4. Fuentes estáticas
-M3 (Censo 2024) se carga desde `Metadata/M3/manzanas_maipu_completo.zip`; para regenerarlo hace falta la cartografía del INE (`Cartografia_censo2024_Pais.gpkg`, no versionada por su tamaño). M4 (aeródromos DGAC) se carga desde `Metadata/M4/aerodromos.geojson`.
+### 4. Fuentes de datos
+Todas las fuentes se descargan con su extractor; ninguna depende de un archivo bajado a mano:
 
-### 5. Planificar rutas
-En el panel **Planificación de rutas** del sitio, haz clic en el mapa para fijar el inicio y el objetivo, ajusta las restricciones (u ocupa las por defecto) y presiona **Calcular rutas**. Se muestran k rutas alternativas de `pgr_dijkstra` calculadas sobre **pesos resilientes**: las amenazas duras (A1, A3, A4) y los aeródromos (M4) bloquean aristas, y los paraderos (M1) y el clima (A2) las encarecen. Se informa la métrica de resiliencia del conjunto ($R$, supervivencia, cobertura de señalética y solapamiento). El modelo completo está documentado en [`docker/web/ruteo/README.md`](docker/web/ruteo/README.md).
+| Grupo | Fuente | Acceso |
+|---|---|---|
+| Infraestructura | OpenStreetMap (OSMnx) + elevación | Libre |
+| M1 Señaléticas | OpenStreetMap vía ohsome | `OHSOME_API_KEY` gratuita |
+| M2 Lugares públicos | MINVU · Equipamientos (ArcGIS) | Libre |
+| M3 Puentes | MOP · Vialidad y Concesiones (ArcGIS) | Libre |
+| M4 Zonas de siniestros | CONASET · Base de siniestros 2020-2025 (ArcGIS) | Libre |
+| A1 Incendios | CONAF (ArcGIS) | Libre |
+| A2 Clima | Open-Meteo | Libre |
+| A3 SOSAFE | App SOSAFE + clasificador Gemini | Credenciales en `.env` |
+| A4 Accidentes, cierres y obras | TomTom Traffic API | `TOMTOM_API_KEY` gratuita |
 
----
+Si una fuente no responde, su extractor conserva el último JSON del repositorio y `main.py` lo carga igual.
 
-## Nota sobre los datos del Censo 2024 (Metadata 3)
-
-En la carpeta `Metadata/M3/` encontrarás el archivo `manzanas_maipu_completo.zip`. 
-Este archivo contiene el **GeoJSON final** con la geometría y los datos demográficos de las **5.875 manzanas de Maipú**, cruzados con el Censo 2024.
-
-**¿Cómo usarlo?**
-1. Descarga el archivo `.zip` y descomprímelo en tu computador.
-2. Tendrás un archivo `.geojson` con todos los datos listos para tu algoritmo de ruteo.
-
-**¿Cómo regenerarlo?**
-Si necesitas volver a generarlo (porque actualizaste los datos o quieres ver el proceso), sigue estos pasos:
-1. Abre una terminal y entra a la carpeta:
-   cd Metadata/M3
-2. Ejecuta el script:
-    python procesar_censo.py
-(Asegúrate de tener el GeoPackage original Cartografia_censo2024_Pais.gpkg en la misma carpeta para que el script funcione)
+### 5. Planificar la inspección
+En el panel **Planificación por área · flota UAV** del sitio, dibuja el área a inspeccionar (o usa toda la comuna), elige la cantidad de drones y presiona **Planificar inspección**. Cada dron recibe una parte del área con su base y recorre las calles con señalética (PARE, Ceda el paso y semáforos), volviendo a la base cuando se le acaba la batería. Las distancias se calculan con `pgr_dijkstraCostMatrix` y cada traslado se traza con `pgr_dijkstra`; las calles bloqueadas por amenazas (A1, A3, A4) se postergan, y se avisa qué salidas coinciden con mal tiempo (A2). El método, basado en Zhong et al. (2023), está documentado en [`docker/web/ruteo/README.md`](docker/web/ruteo/README.md).
