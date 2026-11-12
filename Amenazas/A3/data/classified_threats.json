@@ -1,38 +1,20 @@
 {
-  "total_analizados": 18,
-  "total_amenazas_confirmadas": 1,
-  "total_ruido_descartado": 17,
-  "amenazas": [
-    {
-      "id": 12034739,
-      "uuid": "c572768c-a42e-5dec-a2e0-4ab3bbeb3d61",
-      "tipo_original": "Emergencia de Bomberos",
-      "descripcion": "Quema ilegal , cochinos y demás con peligro de propagación",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.480072140184,
-        -70.744833770394
-      ],
-      "fecha": "2026-10-19 19:45:21",
-      "es_amenaza": true,
-      "nivel_riesgo": "ALTO",
-      "categoria": "INCENDIO_COLUMNA_TERMICA",
-      "radio_buffer_metros": 500,
-      "justificacion": "Humo denso y columnas térmicas que desestabilizan el control de actitud del dron."
-    }
-  ],
+  "total_analizados": 12,
+  "total_amenazas_confirmadas": 0,
+  "total_ruido_descartado": 12,
+  "amenazas": [],
   "descartados": [
     {
-      "id": 12035733,
-      "uuid": "986bebae-86f7-5a8d-819c-9ba97bf8491c",
+      "id": 12183273,
+      "uuid": "37d2dc9d-001e-5d2f-9673-2ae19abf03f1",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "Bebiendo en la vía pública",
+      "descripcion": "Dos sujetos de 1.75 de altura aproximadamente andan por los pasajes de la Villa Pehuén 3 mirando las casas al ver las camaras de seguridad se tapan la cara, anda uno con una polera roja \nUno es joven  como de 19 años y el otro como de 45, abrieron la puerta del pasaje a la fuerza",
       "location": "Maipú",
       "coordenadas": [
-        -33.497199954379,
-        -70.75328667105
+        -33.522482617465,
+        -70.79817596823
       ],
-      "fecha": "2026-10-19 22:35:13",
+      "fecha": "2026-11-12 20:43:22",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
@@ -40,16 +22,16 @@
       "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
     },
     {
-      "id": 12035729,
-      "uuid": "347a3d66-a381-50b7-99a3-5f83494f1687",
+      "id": 12183097,
+      "uuid": "bd136027-668f-5899-a79e-c139fda720be",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "Hay un hyundai blanco al lado de un camion en valle de los reyes y hay 2 personas dentro hombre y mujer, se notaba que estaban teniendo relaciones, pase recien y es de dia y se ve todo🙄😡",
+      "descripcion": "En Borgoño en el 1814 se tomaron esa casa unos pasteros y están peleando y pegándole a una mujer hasta cuando hay que aguantar hay niños que pasan y viven cerca y esos hasta con pistola andan para sacar férianos son buenos pero para venir a ver a esos simios se hacen los hueones",
       "location": "Maipú",
       "coordenadas": [
-        -33.533337884836,
-        -70.79994305228
+        -33.510140686374,
+        -70.783040431494
       ],
-      "fecha": "2026-10-19 22:34:28",
+      "fecha": "2026-11-12 20:17:49",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
@@ -57,84 +39,16 @@
       "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
     },
     {
-      "id": 12035610,
-      "uuid": "8eeadb41-c7c2-5930-85f9-3fd5cfcf9fdb",
-      "tipo_original": "Alcantarilla sin tapa",
-      "descripcion": "Mi casa esta con alcantarilla tapada",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.524341614331,
-        -70.759826749563
-      ],
-      "fecha": "2026-10-19 22:14:44",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12035462,
-      "uuid": "09f5fa71-0326-5988-8705-8a3e2d6ae685",
-      "tipo_original": "Robo a persona",
-      "descripcion": "Estafador contando historias falsas y para sacar plata todos los dias",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.510322345632,
-        -70.757432357192
-      ],
-      "fecha": "2026-10-19 21:53:31",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12035445,
-      "uuid": "ecc4b6f9-11bc-5b17-804f-ac3c4ab91d6d",
-      "tipo_original": "Robo de vehículo",
-      "descripcion": "Hola si alguien ha visto un auto Hyundai accent hsfs62 ya que hoy se lo robaron a mi tío casi llegando a Olimpo con rinconada los tipos no pudieron hacer andar el vehículo y se lo llevaron tirando por favor si alguien vio algo avisar por favor",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.504831197388,
-        -70.774079337716
-      ],
-      "fecha": "2026-10-19 21:50:29",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12035367,
-      "uuid": "7b0e9218-c34d-5ca4-af83-82d605143ead",
-      "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "venta de droga 3 hombres y 1 mujer, por favor acudir",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.494164522749,
-        -70.761742517352
-      ],
-      "fecha": "2026-10-19 21:37:54",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12035280,
-      "uuid": "b81b2b73-2cda-505c-b789-e23e8e7eb201",
+      "id": 12183082,
+      "uuid": "8783c539-d722-5e7e-8eda-7487386af45b",
       "tipo_original": "Disturbios",
-      "descripcion": "Le pegaron a una pastera en picton",
+      "descripcion": "Gente tomando en la calle, hasta cuabdo",
       "location": "Maipú",
       "coordenadas": [
-        -33.511110310592,
-        -70.789747796953
+        -33.49593996997,
+        -70.73777128011
       ],
-      "fecha": "2026-10-19 21:25:55",
+      "fecha": "2026-11-12 20:15:35",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
@@ -142,16 +56,16 @@
       "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
     },
     {
-      "id": 12035250,
-      "uuid": "fd242deb-4dc3-5f66-9e2f-377423943da1",
+      "id": 12183024,
+      "uuid": "1dba3820-8353-5309-948a-a44c297d22d1",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "Los carabineros tienen a una pareja creo que andaban robando!!!",
+      "descripcion": "cuidado una moto azul con negro tipo ktm el tipo anda con una mochila azul oscuro tipo marino, la patente la tiene oculta posible motochorro cuidado ⚠️",
       "location": "Maipú",
       "coordenadas": [
-        -33.468043927964,
-        -70.752925565259
+        -33.483613980611,
+        -70.746471360326
       ],
-      "fecha": "2026-10-19 21:23:02",
+      "fecha": "2026-11-12 20:03:27",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
@@ -159,16 +73,33 @@
       "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
     },
     {
-      "id": 12035138,
-      "uuid": "b2e66cc9-3b99-5828-a838-9f335a66ca7e",
+      "id": 12183004,
+      "uuid": "2c0c2537-0541-54e1-a9b6-0490e76ef37e",
+      "tipo_original": "Pavimento dañado",
+      "descripcion": "En el paso nivel de ferrocarril direccion hacia mall maipu, algun camion se le cayo escombro, cuidado al pasar esta peligroso",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.502455129906,
+        -70.737365595996
+      ],
+      "fecha": "2026-11-12 20:01:05",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+    },
+    {
+      "id": 12182973,
+      "uuid": "b44c6627-17e5-5c5b-a4e3-7c9bbeee8034",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "Ya están atendiendo en la casita de la droga y prostitución, ya hay autos desconocidos estacionados en las casas vecinas",
+      "descripcion": "Grifo abierto",
       "location": "Maipú",
       "coordenadas": [
-        -33.495934378067,
-        -70.752545893192
+        -33.518696021094,
+        -70.747594870627
       ],
-      "fecha": "2026-10-19 21:01:45",
+      "fecha": "2026-11-12 19:56:55",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
@@ -176,33 +107,16 @@
       "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
     },
     {
-      "id": 12034872,
-      "uuid": "d5724536-a65d-5437-b008-e44250e26695",
-      "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "Cuando sera el dia que llegue carabineros a esa casa que siempre hay peleas y venta de droga pasta base parece",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.466747556914,
-        -70.75597576797
-      ],
-      "fecha": "2026-10-19 20:12:59",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12034754,
-      "uuid": "143c9aa0-57d8-56dc-b6b8-38e74fd73af9",
+      "id": 12182957,
+      "uuid": "dc625926-d531-57fc-9163-4a3afdef1ac2",
       "tipo_original": "Disturbios",
-      "descripcion": "Hay 4 pendejos tirando limones, piedras, etc a la gente que pasa, me vinieron tirando limones por la calle y luego se fueron por el peladero cerca de la pasarela, andaban con buzos de la U y 1 era Haitiano por si los ven para que anden con cuidado",
+      "descripcion": "Grifo abierto!",
       "location": "Maipú",
       "coordenadas": [
-        -33.491834538982,
-        -70.747604012761
+        -33.518708484641,
+        -70.74984817579
       ],
-      "fecha": "2026-10-19 19:48:51",
+      "fecha": "2026-11-12 19:54:22",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
@@ -210,16 +124,16 @@
       "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
     },
     {
-      "id": 12034706,
-      "uuid": "f8bc845c-71a2-5aca-98c0-37d9157bb3fa",
+      "id": 12182717,
+      "uuid": "9248b202-fee9-5f34-a0a1-b0aefb6db67e",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "Nos robaron esta camioneta Jac en esquina blanca con lumen.  Por favor si la ven avisar.",
+      "descripcion": "dos sujetos mirando casas y moviendo portones para entrar a robar, uno con polera amarilla  y el otro con polera roja caminan por pajaritos direccion a vespucio",
       "location": "Maipú",
       "coordenadas": [
-        -33.502578273149,
-        -70.738139577979
+        -33.484363620199,
+        -70.747469889452
       ],
-      "fecha": "2026-10-19 19:38:13",
+      "fecha": "2026-11-12 19:10:51",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
@@ -227,84 +141,67 @@
       "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
     },
     {
-      "id": 12034668,
-      "uuid": "19a163f4-fb3a-50a8-bcf0-41d39cc6d6e2",
-      "tipo_original": "Robo de vehículo",
-      "descripcion": "ACABAN DE ROBAR UNA PATENTE A UN VECINO DEL SECTOR DE SU VEHÍCULO. \nSE ESTACIONARON DE LA NADA Y EN MENOS DE 10 SEGUNDOS LA SACARON. \nES UN AUTO BLANCO QUE ANDA HACIENDO LA VUELTA. \nTENGAN CUIDADO.",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.527309889138,
-        -70.793307758868
-      ],
-      "fecha": "2026-10-19 19:30:58",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12034611,
-      "uuid": "28a91b85-e1f1-5fee-99ba-80014a8b5090",
-      "tipo_original": "Fuga de agua",
-      "descripcion": "Arreglaron? El aire está asquerosoooo!!!",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.507078459807,
-        -70.796661940159
-      ],
-      "fecha": "2026-10-19 19:18:24",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12034099,
-      "uuid": "189fbeb8-ed35-568b-8b07-fb7f9577e52e",
-      "tipo_original": "Robo frustrado",
-      "descripcion": "anda un tipo en moto negra, mochila de repartidor negra haciéndose ser repartidor intentando quitar celulares cerca del colegio, lo intento pero no pudo quitar un celular",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.487180456386,
-        -70.738388487473
-      ],
-      "fecha": "2026-10-19 17:24:21",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12033890,
-      "uuid": "904f8610-15e3-50c7-9552-7cc27801b425",
-      "tipo_original": "Robo de vehículo",
-      "descripcion": "Le acaban de robar el auto a mi tío en Olimpo con rinconada por favor si alguien lo ve avisar",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.504988593131,
-        -70.774118229747
-      ],
-      "fecha": "2026-10-19 16:42:41",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12031798,
-      "uuid": "06fc629f-4889-5f66-a4bc-90a6daa58395",
+      "id": 12182640,
+      "uuid": "3657eb4c-2b52-50a3-8c8b-896ef00893d6",
       "tipo_original": "Disturbios",
-      "descripcion": "Pelea con arma blanca, el loco quedó tirado en la esquina, lo apuñalaron.. el atacante es un tal Jeremy un cabro chico",
+      "descripcion": "persona ahí en pleno conquistador llegando a rinconada tirando agua con el grifo abierto, para tirar agua y mojando autos y mojo a una persona en moto!!! como tanto",
       "location": "Maipú",
       "coordenadas": [
-        -33.545605851375,
-        -70.767498537898
+        -33.513599407452,
+        -70.79706313727
       ],
-      "fecha": "2026-10-19 04:17:40",
+      "fecha": "2026-11-12 18:54:53",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+    },
+    {
+      "id": 12182609,
+      "uuid": "54b15d1d-2c1a-520b-8cbc-20e00ea9be95",
+      "tipo_original": "Emergencia de Seguridad",
+      "descripcion": "¡Ayuda! Tengo una emergencia de seguridad",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.50418872284,
+        -70.776783546489
+      ],
+      "fecha": "2026-11-12 18:49:10",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+    },
+    {
+      "id": 12182076,
+      "uuid": "581b1aa5-edd1-5a7b-a1ce-ecb8422e0af2",
+      "tipo_original": "Pavimento dañado",
+      "descripcion": "Por favor hagan algún arreglo con los tremendos hoyos en la calle , lican Ray con av el rosal. \nCalle más utilizada para llegar al colegio Alicante.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.492277337702,
+        -70.779805669478
+      ],
+      "fecha": "2026-11-12 16:55:50",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+    },
+    {
+      "id": 12181094,
+      "uuid": "95d1fd7d-818e-5d10-8114-2974e1bdcd62",
+      "tipo_original": "Emergencia de Seguridad",
+      "descripcion": "se formo un panal de abejas fuera de mi casa ya llame al sag y dicen q ellos no pueden hacer nada q me comunique con apicultores de la camuna algun dato sobre ellos?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.50674704475,
+        -70.741145163774
+      ],
+      "fecha": "2026-11-12 13:12:27",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
