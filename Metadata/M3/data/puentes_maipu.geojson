@@ -1,0 +1,191 @@
+{
+ "type": "FeatureCollection",
+ "name": "metadata_m3_puentes_maipu",
+ "metadata": {
+  "generado_utc": "2026-11-12T20:49:16+00:00",
+  "comuna": "Maipú",
+  "total_features": 8,
+  "metadata": "M3 - Puentes, pasarelas y enlaces a desnivel",
+  "fuente": "Ministerio de Obras Públicas, servidor SIT (ArcGIS)",
+  "por_capa": {
+   "MOP · Vialidad, catastro de puentes": 2,
+   "MOP · Concesiones, puentes": 4,
+   "MOP · Concesiones, pasarelas": 0,
+   "MOP · Concesiones, enlaces": 2
+  },
+  "capas_sin_respuesta": [],
+  "cobertura": "solo estructuras de caminos de Vialidad y autopistas concesionadas",
+  "limite_comunal": "MINVU · División Político Administrativa (cod_com 13119)"
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.806928,
+     -33.506639
+    ]
+   },
+   "properties": {
+    "tipo": "puente",
+    "nombre": "Puente Rinconada 1",
+    "fuente": "MOP · Vialidad, catastro de puentes",
+    "servicio": "https://rest-sit.mop.gob.cl/arcgis/rest/services/VIALIDAD/Puentes/MapServer/0",
+    "codigo": "73P10010",
+    "camino": "Rinconada Lo Cerda - El Trebal",
+    "rol_camino": "G-260",
+    "largo_m": 14.0,
+    "ancho_total_m": 8.4,
+    "ancho_calzada_m": 7.0,
+    "carpeta": "ASFALTO",
+    "n_cepas": 0,
+    "n_vigas": 2,
+    "tuicion": "DV"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.818963,
+     -33.499604
+    ]
+   },
+   "properties": {
+    "tipo": "puente",
+    "nombre": "Puente Rinconada",
+    "fuente": "MOP · Vialidad, catastro de puentes",
+    "servicio": "https://rest-sit.mop.gob.cl/arcgis/rest/services/VIALIDAD/Puentes/MapServer/0",
+    "codigo": "73P10011",
+    "camino": "Rinconada Lo Cerda - El Trebal",
+    "rol_camino": "G-260",
+    "cruza": "RIO MAPOCHO",
+    "largo_m": 199.8,
+    "ancho_total_m": 7.7,
+    "ancho_calzada_m": 6.2,
+    "anio_construccion": 1988,
+    "carpeta": "HORMIGON",
+    "n_cepas": 5,
+    "n_vigas": 2,
+    "tuicion": "DV"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.762653,
+     -33.493033
+    ]
+   },
+   "properties": {
+    "tipo": "puente",
+    "nombre": "Puente Paso Superior",
+    "fuente": "MOP · Concesiones, puentes",
+    "servicio": "https://rest-sit.mop.gob.cl/arcgis/rest/services/CCOP/ELEMENTOS/MapServer/8",
+    "codigo": 1312,
+    "km": 10.66,
+    "observacion": "Abovedamiento Zanjón",
+    "urbano": "No",
+    "actualizado": "2023-04-28T00:00:00+00:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.787734,
+     -33.497868
+    ]
+   },
+   "properties": {
+    "tipo": "puente",
+    "nombre": "Puente Zanjon",
+    "fuente": "MOP · Concesiones, puentes",
+    "servicio": "https://rest-sit.mop.gob.cl/arcgis/rest/services/CCOP/ELEMENTOS/MapServer/8",
+    "codigo": 1315,
+    "km": 12.9,
+    "urbano": "No",
+    "actualizado": "2023-04-28T00:00:00+00:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.750203,
+     -33.488901
+    ]
+   },
+   "properties": {
+    "tipo": "puente",
+    "nombre": "Puente Zanjón de la Aguada",
+    "fuente": "MOP · Concesiones, puentes",
+    "servicio": "https://rest-sit.mop.gob.cl/arcgis/rest/services/CCOP/ELEMENTOS/MapServer/8",
+    "codigo": 23225,
+    "km": 8.24,
+    "observacion": "Vía Expresa Poniente",
+    "urbano": "No",
+    "actualizado": "2023-04-28T00:00:00+00:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.750102,
+     -33.48878
+    ]
+   },
+   "properties": {
+    "tipo": "puente",
+    "nombre": "Puente Zanjón de la Aguada",
+    "fuente": "MOP · Concesiones, puentes",
+    "servicio": "https://rest-sit.mop.gob.cl/arcgis/rest/services/CCOP/ELEMENTOS/MapServer/8",
+    "codigo": 23227,
+    "km": 8.24,
+    "observacion": "Vía Expresa Oriente",
+    "urbano": "No",
+    "actualizado": "2023-04-28T00:00:00+00:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.749129,
+     -33.490597
+    ]
+   },
+   "properties": {
+    "tipo": "enlace",
+    "nombre": "PI AMERICO VESPUCIO",
+    "fuente": "MOP · Concesiones, enlaces",
+    "servicio": "https://rest-sit.mop.gob.cl/arcgis/rest/services/CCOP/INFRA_DGC/MapServer/6"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.799202,
+     -33.507658
+    ]
+   },
+   "properties": {
+    "tipo": "enlace",
+    "nombre": "PS RINCONADA",
+    "fuente": "MOP · Concesiones, enlaces",
+    "servicio": "https://rest-sit.mop.gob.cl/arcgis/rest/services/CCOP/INFRA_DGC/MapServer/6"
+   }
+  }
+ ]
+}
