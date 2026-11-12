@@ -12,6 +12,8 @@ Endpoints (todos devuelven GeoJSON salvo /health y /api/capas):
   GET /api/route/baseline         ruta pgr_dijkstra por longitud (una ruta)
   GET /api/rutas                  k rutas pgr_dijkstra resilientes + métrica de resiliencia
   GET /api/rutas/preferencias     preferencias por defecto de navegación
+  POST /api/flota                 planificación por área con n drones (usada por el sitio)
+  GET /api/flota/preferencias     preferencias por defecto de la flota
 El sitio estático se sirve desde la carpeta "Sitio Web" montada en /app/sitio_web.
 """
 
@@ -19,7 +21,7 @@ import os
 import sys
 
 import psycopg2
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -28,12 +30,14 @@ from psycopg2.extras import RealDictCursor
 # Módulo de ruteo (docker/web/ruteo): k rutas pgr_dijkstra resilientes y métrica
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ruteo  # noqa: E402
-from ruteo.preferencias import PREFERENCIAS_DEFECTO, TIPOS_SENAL_VALIDOS  # noqa: E402
+from ruteo import flota  # noqa: E402
+from ruteo.preferencias import (CATEGORIAS_BASE_VALIDAS, OPCIONES, PREFERENCIAS_DEFECTO,  # noqa: E402
+                                PREFERENCIAS_FLOTA, TIPOS_SENAL_VALIDOS)
 
 app = FastAPI(
     title="Plataforma de Ruteo UAV e Inspección Vial",
     description="API y servidor Leaflet para visualizar infraestructura, metadata, amenazas y ruteo pgRouting",
-    version="2.1.0",
+    version="2.2.0",
 )
 
 app.add_middleware(
@@ -135,7 +139,17 @@ def get_capas():
             SELECT propiedades->>'fuente_etl' AS fuente_etl, tipo, nivel_riesgo, count(*) AS total
             FROM temp_amenazas GROUP BY 1, 2, 3 ORDER BY 1, 2, 3
         """)
-        return {"infraestructura": red, "metadata": metadata, "amenazas": amenazas}
+        try:
+            probabilidades = consultar("""
+                SELECT (SELECT count(*) FROM prob_falla_aristas) AS aristas,
+                       (SELECT count(*) FROM prob_falla_nodos) AS nodos,
+                       (SELECT min(t0) FROM prob_falla_aristas) AS t0,
+                       (SELECT min(t1) FROM prob_falla_aristas) AS t1
+            """)
+        except Exception:  # noqa: BLE001  (tablas aún no creadas)
+            probabilidades = {"aristas": 0, "nodos": 0, "t0": None, "t1": None}
+        return {"infraestructura": red, "metadata": metadata, "amenazas": amenazas,
+                "probabilidades": probabilidades}
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -164,7 +178,7 @@ def get_nodos():
 
 @app.get("/api/metadata")
 def get_metadata(
-    fuente: str = Query(None, description="fuente_etl: M1_paraderos, M2_controles_viales, M3_censo_manzanas, M4_aerodromos"),
+    fuente: str = Query(None, description="fuente_etl: M1_senaleticas, M2_lugares_publicos, M3_puentes, M4_siniestros"),
     tipo: str = None,
     comuna: str = None,
     simplificar: float = Query(0, description="Tolerancia de simplificación en grados"),
@@ -184,7 +198,7 @@ def get_metadata(
 
 @app.get("/api/amenazas")
 def get_amenazas(
-    fuente: str = Query(None, description="fuente_etl: A1_incendios, A2_clima, A3_sosafe, A4_waze"),
+    fuente: str = Query(None, description="fuente_etl: A1_incendios, A2_clima, A3_sosafe, A4_tomtom"),
     tipo: str = None,
     riesgo: str = None,
 ):
@@ -198,6 +212,31 @@ def get_amenazas(
         SELECT id, nombre, tipo, nivel_riesgo, comuna, descripcion, propiedades, geom
         FROM temp_amenazas {where}
     """, params)
+
+
+@app.get("/api/probabilidades")
+def get_probabilidades(
+    elemento: str = Query("aristas", description="aristas o nodos"),
+    minimo: float = Query(0.0, description="Probabilidad total mínima a devolver (0 a 1)"),
+    amenaza: str = Query(None, description="A1, A2, A3 o A4: filtra por la probabilidad de esa amenaza"),
+):
+    """Probabilidad de falla por enlace o nodo (tablas prob_falla_*) en GeoJSON."""
+    columna = "p_total" if not amenaza else f"p_{amenaza.lower()}"
+    if columna not in ("p_total", "p_a1", "p_a2", "p_a3", "p_a4"):
+        raise HTTPException(status_code=422, detail="amenaza debe ser A1, A2, A3 o A4")
+    if elemento == "nodos":
+        sub = f"""SELECT p.node_id AS id, p.p_total, p.p_a1, p.p_a2, p.p_a3, p.p_a4, p.n_amenazas,
+                         p.detalle, p.t0, p.t1, n.geom
+                  FROM prob_falla_nodos p JOIN network_nodes n ON n.id = p.node_id
+                  WHERE p.{columna} > %s"""
+    elif elemento == "aristas":
+        sub = f"""SELECT p.edge_id AS id, e.name, p.p_total, p.p_a1, p.p_a2, p.p_a3, p.p_a4, p.n_amenazas,
+                         p.detalle, p.t0, p.t1, e.geom
+                  FROM prob_falla_aristas p JOIN network_edges e ON e.id = p.edge_id
+                  WHERE p.{columna} > %s"""
+    else:
+        raise HTTPException(status_code=422, detail="elemento debe ser aristas o nodos")
+    return feature_collection(sub, (minimo,))
 
 
 @app.get("/api/route/baseline")
@@ -230,8 +269,7 @@ def get_preferencias_defecto():
 def get_rutas(
     inicio_lon: float, inicio_lat: float, objetivo_lon: float, objetivo_lat: float,
     k: int = None, hora_salida: str = None,
-    evitar_aerodromos: bool = None, radio_aerodromo_m: float = None,
-    evitar_paraderos: bool = None, priorizar_vulnerables: bool = None,
+    priorizar_siniestros: bool = None,
     tipos_senal: str = Query(None, description="Lista separada por comas, p. ej. senal_pare,semaforo"),
     considerar_clima: bool = None, radio_corredor_m: float = None, max_requeridas: int = None,
     velocidad_crucero_ms: float = None, autonomia_km: float = None, horizonte_h: float = None,
@@ -239,12 +277,11 @@ def get_rutas(
     """
     Planificación de rutas: con el par (inicio, objetivo) y las restricciones del usuario
     (las omitidas toman su valor por defecto) devuelve k rutas de pgr_dijkstra sobre
-    pesos resilientes (amenazas + metadata) y la métrica de resiliencia del conjunto.
+    pesos resilientes (amenazas) y la métrica de resiliencia del conjunto.
     """
     entrada = {
-        "k": k, "hora_salida": hora_salida, "evitar_aerodromos": evitar_aerodromos,
-        "radio_aerodromo_m": radio_aerodromo_m, "evitar_paraderos": evitar_paraderos,
-        "priorizar_vulnerables": priorizar_vulnerables, "tipos_senal": tipos_senal,
+        "k": k, "hora_salida": hora_salida,
+        "priorizar_siniestros": priorizar_siniestros, "tipos_senal": tipos_senal,
         "considerar_clima": considerar_clima, "radio_corredor_m": radio_corredor_m,
         "max_requeridas": max_requeridas, "velocidad_crucero_ms": velocidad_crucero_ms,
         "autonomia_km": autonomia_km,
@@ -254,6 +291,43 @@ def get_rutas(
     try:
         return ruteo.planificar(conn, inicio_lon, inicio_lat, objetivo_lon, objetivo_lat, entrada)
     except ruteo.ErrorRuteo as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+    finally:
+        conn.close()
+
+
+@app.get("/api/flota/preferencias")
+def get_preferencias_flota():
+    """Preferencias por defecto de la planificación por área y opciones válidas."""
+    return {"defecto": PREFERENCIAS_FLOTA, "tipos_senal": list(TIPOS_SENAL_VALIDOS),
+            "categorias_base": list(CATEGORIAS_BASE_VALIDAS), "opciones": OPCIONES}
+
+
+@app.post("/api/flota")
+def post_flota(cuerpo: dict = Body(..., examples=[{
+    "area": {"type": "Polygon", "coordinates": [[[-70.77, -33.523], [-70.745, -33.523],
+                                                 [-70.745, -33.498], [-70.77, -33.498], [-70.77, -33.523]]]},
+    "preferencias": {"n_drones": 3},
+}])):
+    """
+    Planificación por área con una flota de drones (Zhong et al., 2023).
+
+    Cuerpo JSON:
+      - area: polígono GeoJSON (lon, lat) o null para toda la comuna.
+      - preferencias: n_drones, bases, hora_salida, tipos_senal, considerar_clima,
+        velocidad_crucero_ms,
+        autonomia_min, reserva_bateria_pct, tiempo_recarga_min, jornada_h.
+        Las omitidas toman su valor por defecto.
+
+    Devuelve, por dron, su área, sus bases, sus salidas (rutas trazadas con
+    pgr_dijkstra) y tiempos, junto con los indicadores de la flota.
+    """
+    conn = get_db_connection()
+    try:
+        return flota.planificar_area(conn, cuerpo.get("area"), cuerpo.get("preferencias") or {})
+    except (flota.ErrorFlota, ValueError) as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")

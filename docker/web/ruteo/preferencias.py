@@ -5,31 +5,30 @@ por defecto.
 Cada preferencia transforma una capa de metadata en una restricción sobre el
 grafo:
 
-  Preferencia               Metadata   Efecto en el grafo
-  evitar_aerodromos         M4         aristas a menos de radio_aerodromo_m -> eliminadas (w = ∞)
-  evitar_paraderos          M1         aristas a menos de 25 m de un paradero -> w × factor_paradero
-                                       (los buses tapan la señalética al detenerse)
-  priorizar_vulnerables     M3         aristas junto a manzanas con V_m > 0 suben de prioridad
-                                       al elegir las aristas a inspeccionar
-  tipos_senal               M2         qué controles viales definen las aristas requeridas E_R
+  Preferencia               Capa       Efecto
+  tipos_senal               M1         qué señaléticas definen las aristas a inspeccionar
+  priorizar_siniestros      M4         aristas en zonas de siniestros CRITICA o ALTA suben de
+                                       prioridad al elegir las aristas a inspeccionar
   considerar_clima          A2         si se aplica la penalización horaria del clima
 
 Los parámetros operacionales del dron (velocidades y autonomía) también se
 pueden ajustar, pero tienen valores por defecto razonables.
+
+La planificación por área con una flota (ruteo/flota.py, POST /api/flota) usa
+PREFERENCIAS_FLOTA: cantidad de drones, tipo de bases, jornada, tipos de señal,
+clima y parámetros de la batería.
 """
 
 from datetime import datetime, timezone
 
 TIPOS_SENAL_VALIDOS = ("senal_pare", "senal_ceda_el_paso", "semaforo", "cruce_peatonal")
+# Categorías de lugares públicos (M2) donde se pueden instalar las bases
+CATEGORIAS_BASE_VALIDAS = ("salud_publica", "educacion_publica", "carabineros", "bomberos")
 
 PREFERENCIAS_DEFECTO = {
     "k": 2,                                   # rutas alternativas (mínimo k >= 2)
     "hora_salida": None,                      # None = ahora
-    "evitar_aerodromos": True,
-    "radio_aerodromo_m": 2000,                # supuesto de diseño; verificar DAN 151 (DGAC)
-    "evitar_paraderos": True,
-    "factor_paradero": 1.3,
-    "priorizar_vulnerables": True,
+    "priorizar_siniestros": True,
     "tipos_senal": ["senal_pare", "senal_ceda_el_paso", "semaforo"],
     "considerar_clima": True,
     "radio_corredor_m": 300,                  # ancho del corredor donde se buscan aristas requeridas
@@ -41,14 +40,42 @@ PREFERENCIAS_DEFECTO = {
 
 LIMITES = {
     "k": (2, 4),
-    "radio_aerodromo_m": (0, 10000),
-    "factor_paradero": (1.0, 5.0),
     "radio_corredor_m": (50, 1500),
     "max_requeridas": (2, 60),
     "velocidad_crucero_ms": (1.0, 25.0),
     "autonomia_km": (1.0, 100.0),
     "horizonte_h": (0.5, 12.0),
 }
+
+# ------------------------------------------------------------------------------
+# Planificación por área con una flota de drones (ruteo/flota.py)
+# ------------------------------------------------------------------------------
+# Parámetros del dron de referencia (DJI Matrice 30T): 41 min de vuelo; se
+# reserva un 30 % de batería para emergencias, como en Zhong et al. (2023).
+PREFERENCIAS_FLOTA = {
+    "n_drones": 3,
+    "categorias_base": list(CATEGORIAS_BASE_VALIDAS),  # recintos públicos (M2) donde instalar las bases                            # drones de la flota; cada uno cubre un área
+    "bases": "distribuidas",                  # distribuidas: una base por área; centralizada: una para todos
+    "hora_salida": None,                      # None = ahora
+    "tipos_senal": ["senal_pare", "senal_ceda_el_paso", "semaforo"],
+    "considerar_clima": True,                 # avisa qué salidas caen en horas de mal tiempo (A2)
+    "velocidad_crucero_ms": 10.0,
+    "autonomia_min": 41.0,
+    "reserva_bateria_pct": 30.0,
+    "tiempo_recarga_min": 15.0,               # cambio de batería entre salidas
+    "jornada_h": 8.0,                         # horas de vuelo diurno disponibles
+}
+
+LIMITES_FLOTA = {
+    "n_drones": (1, 10),
+    "velocidad_crucero_ms": (1.0, 25.0),
+    "autonomia_min": (5.0, 120.0),
+    "reserva_bateria_pct": (0.0, 60.0),
+    "tiempo_recarga_min": (0.0, 180.0),
+    "jornada_h": (1.0, 24.0),
+}
+
+OPCIONES = {"bases": ("distribuidas", "centralizada")}
 
 
 def _a_bool(valor):
@@ -57,14 +84,18 @@ def _a_bool(valor):
     return str(valor).strip().lower() in ("1", "true", "si", "sí", "on", "yes")
 
 
-def normalizar(entrada):
+def normalizar(entrada, defectos=None, limites=None):
     """Combina lo que ingresó el usuario con los valores por defecto.
 
+    Por defecto usa las preferencias de /api/rutas; la flota pasa
+    PREFERENCIAS_FLOTA y LIMITES_FLOTA.
     Devuelve (preferencias, lista_de_campos_que_quedaron_por_defecto).
     """
+    defectos = PREFERENCIAS_DEFECTO if defectos is None else defectos
+    limites = LIMITES if limites is None else limites
     entrada = {k: v for k, v in (entrada or {}).items() if v not in (None, "")}
     prefs, por_defecto = {}, []
-    for clave, defecto in PREFERENCIAS_DEFECTO.items():
+    for clave, defecto in defectos.items():
         if clave not in entrada:
             prefs[clave] = list(defecto) if isinstance(defecto, list) else defecto
             por_defecto.append(clave)
@@ -75,14 +106,19 @@ def normalizar(entrada):
         elif clave == "tipos_senal":
             lista = valor.split(",") if isinstance(valor, str) else list(valor)
             valor = [t.strip() for t in lista if t.strip() in TIPOS_SENAL_VALIDOS] or list(defecto)
+        elif clave == "categorias_base":
+            lista = valor.split(",") if isinstance(valor, str) else list(valor)
+            valor = [t.strip() for t in lista if t.strip() in CATEGORIAS_BASE_VALIDAS] or list(defecto)
         elif clave == "hora_salida":
             valor = str(valor)
+        elif clave in OPCIONES:
+            valor = str(valor) if str(valor) in OPCIONES[clave] else defecto
         elif isinstance(defecto, int):
             valor = int(float(valor))
         elif isinstance(defecto, float):
             valor = float(valor)
-        if clave in LIMITES:
-            minimo, maximo = LIMITES[clave]
+        if clave in limites:
+            minimo, maximo = limites[clave]
             valor = max(minimo, min(maximo, valor))
         prefs[clave] = valor
     return prefs, por_defecto

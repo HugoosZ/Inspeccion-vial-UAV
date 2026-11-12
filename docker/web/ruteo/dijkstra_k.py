@@ -2,8 +2,8 @@
 Generación de k rutas distintas con pgr_dijkstra sobre pesos resilientes.
 
 Peso de cada arista (ver README, sección 2):
-    w(e) = d(e)[km] · ρ(e) · π(e) · φ(e, t0)
-  y las aristas bloqueadas (amenazas duras o cercanas a aeródromos) quedan con
+    w(e) = d(e)[km] · ρ(e) · φ(e, t0)
+  y las aristas bloqueadas (amenazas duras) quedan con
   costo -1, que pgr_dijkstra interpreta como arista inexistente.
 
 Método de penalización iterativa para obtener k alternativas:

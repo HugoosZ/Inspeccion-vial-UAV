@@ -1,6 +1,6 @@
 """
-Acceso a PostGIS para el ruteo: nodos, amenazas por arista,
-restricciones de metadata, aristas requeridas y geometrías.
+Acceso a PostGIS para el ruteo: nodos, amenazas por arista, aristas
+requeridas (señaléticas M1 y zonas de siniestros M4) y geometrías.
 """
 
 import json
@@ -122,42 +122,13 @@ def amenazas_region(conn, bbox, t0, horizonte_h, considerar_clima):
     return Amenazas(filas, considerar_clima)
 
 
-# ------------------------------------------------------------------------------
-# Restricciones derivadas de la metadata
-# ------------------------------------------------------------------------------
-def restricciones_metadata(conn, bbox, prefs):
-    """Devuelve (aristas_eliminadas, factores) según las preferencias del usuario."""
-    caja = {"xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3]}
-    eliminadas, factores = set(), {}
-    if prefs["evitar_aerodromos"] and prefs["radio_aerodromo_m"] > 0:
-        radio = float(prefs["radio_aerodromo_m"])
-        for f in _filas(conn, """
-            SELECT DISTINCT e.id FROM network_edges e
-            JOIN temp_metadata m ON m.propiedades->>'fuente_etl' = 'M4_aerodromos'
-             AND m.geom && ST_Expand(e.geom, %(grados)s)
-             AND ST_DWithin(e.geom::geography, m.geom::geography, %(radio)s)
-            WHERE e.geom && ST_MakeEnvelope(%(xmin)s, %(ymin)s, %(xmax)s, %(ymax)s, 4326)
-        """, {**caja, "radio": radio, "grados": radio / 90_000}):
-            eliminadas.add(f["id"])
-    if prefs["evitar_paraderos"]:
-        for f in _filas(conn, """
-            SELECT DISTINCT e.id FROM network_edges e
-            JOIN temp_metadata m ON m.propiedades->>'fuente_etl' = 'M1_paraderos'
-             AND m.geom && ST_Expand(e.geom, 0.0004)
-             AND ST_DWithin(e.geom::geography, m.geom::geography, 25)
-            WHERE e.geom && ST_MakeEnvelope(%(xmin)s, %(ymin)s, %(xmax)s, %(ymax)s, 4326)
-        """, caja):
-            factores[f["id"]] = float(prefs["factor_paradero"])
-    return eliminadas, factores
-
-
 def aristas_requeridas(conn, inicio, objetivo, prefs, excluidas):
     """Aristas a inspeccionar (E_R) dentro del corredor inicio-objetivo.
 
     Una arista es candidata si tiene al menos una señal de los tipos elegidos
-    (M2) a menos de 15 m. Se ordenan por puntaje = n° de señales (+2 si está
-    junto a una manzana vulnerable y la preferencia está activa) y se toman las
-    max_requeridas mejores que no estén bloqueadas.
+    (M1) a menos de 15 m. Se ordenan por puntaje = n° de señales (+2 si cruza
+    una zona de siniestros CRITICA o ALTA de M4 y la preferencia está activa) y
+    se toman las max_requeridas mejores que no estén bloqueadas.
     """
     radio = float(prefs["radio_corredor_m"])
     filas = _filas(conn, """
@@ -173,15 +144,15 @@ def aristas_requeridas(conn, inicio, objetivo, prefs, excluidas):
         )
         SELECT c.id, c.source, c.target, c.length_m, c.name,
                (SELECT count(*) FROM temp_metadata s
-                 WHERE s.propiedades->>'fuente_etl' = 'M2_controles_viales'
+                 WHERE s.propiedades->>'fuente_etl' = 'M1_senaleticas'
                    AND s.tipo = ANY(%(tipos)s)
                    AND s.geom && ST_Expand(c.geom, 0.0002)
                    AND ST_DWithin(c.geom::geography, s.geom::geography, 15)) AS n_senales,
-               (SELECT max(NULLIF(m.propiedades->>'indice_vulnerabilidad', '')::float)
+               (SELECT max(CASE m.propiedades->>'nivel' WHEN 'CRITICA' THEN 3 WHEN 'ALTA' THEN 2 ELSE 1 END)
                   FROM temp_metadata m
-                 WHERE m.propiedades->>'fuente_etl' = 'M3_censo_manzanas'
-                   AND m.geom && ST_Expand(c.geom, 0.0002)
-                   AND ST_DWithin(c.geom::geography, m.geom::geography, 15)) AS vulnerabilidad
+                 WHERE m.propiedades->>'fuente_etl' = 'M4_siniestros'
+                   AND m.geom && c.geom
+                   AND ST_Intersects(c.geom, m.geom)) AS nivel_siniestros
         FROM cand c
     """, {"lon1": inicio["lon"], "lat1": inicio["lat"], "lon2": objetivo["lon"], "lat2": objetivo["lat"],
           "radio": radio, "grados": radio / 90_000, "tipos": list(prefs["tipos_senal"])})
@@ -190,10 +161,10 @@ def aristas_requeridas(conn, inicio, objetivo, prefs, excluidas):
     for f in filas:
         if f["n_senales"] == 0 or f["id"] in excluidas:
             continue
-        vuln = f["vulnerabilidad"]
-        puntaje = f["n_senales"] + (2 if prefs["priorizar_vulnerables"] and vuln is not None and vuln > 0 else 0)
-        candidatas.append({**f, "length_m": float(f["length_m"]), "puntaje": puntaje,
-                           "vulnerabilidad": None if vuln is None else round(float(vuln), 3)})
+        nivel = {3: "CRITICA", 2: "ALTA", 1: "MEDIA"}.get(f["nivel_siniestros"])
+        prioritaria = prefs["priorizar_siniestros"] and nivel in ("CRITICA", "ALTA")
+        candidatas.append({**f, "length_m": float(f["length_m"]), "puntaje": f["n_senales"] + (2 if prioritaria else 0),
+                           "nivel_siniestros": nivel})
     candidatas.sort(key=lambda r: (-r["puntaje"], -r["length_m"]))
     return candidatas[: int(prefs["max_requeridas"])]
 
@@ -209,3 +180,89 @@ def geometrias(conn, edge_ids):
         FROM network_edges WHERE id = ANY(%s)""", (list(set(edge_ids)),))
     return {f["id"]: {"coords": json.loads(f["g"])["coordinates"], "name": f["name"],
                       "length_m": float(f["length_m"])} for f in filas}
+
+
+# ------------------------------------------------------------------------------
+# Planificación por área (ruteo/flota.py)
+# ------------------------------------------------------------------------------
+def extension_red(conn):
+    """Rectángulo (xmin, ymin, xmax, ymax) que contiene toda la red vial."""
+    fila = _filas(conn, """
+        SELECT ST_XMin(x) AS xmin, ST_YMin(x) AS ymin, ST_XMax(x) AS xmax, ST_YMax(x) AS ymax
+        FROM (SELECT ST_Extent(geom) AS x FROM network_edges) t""")
+    f = fila[0] if fila else None
+    if not f or f["xmin"] is None:
+        return None
+    return (float(f["xmin"]), float(f["ymin"]), float(f["xmax"]), float(f["ymax"]))
+
+
+SQL_PUNTOS_INSPECCION = """
+WITH pts AS (
+    SELECT m.id, m.tipo, m.propiedades->>'fuente_etl' AS fuente, m.geom
+    FROM temp_metadata m
+    WHERE m.geom && ST_MakeEnvelope(%(xmin)s, %(ymin)s, %(xmax)s, %(ymax)s, 4326)
+      AND m.propiedades->>'fuente_etl' = 'M1_senaleticas' AND m.tipo = ANY(%(tipos)s)
+      AND (%(area)s::text IS NULL
+           OR ST_Intersects(m.geom, ST_SetSRID(ST_GeomFromGeoJSON(%(area)s::text), 4326)))
+)
+SELECT p.id AS punto_id, p.tipo, p.fuente,
+       ST_X(ST_PointOnSurface(p.geom)) AS lon, ST_Y(ST_PointOnSurface(p.geom)) AS lat,
+       e.id AS edge_id, e.source, e.target, e.length_m, e.name, e.d
+FROM pts p
+CROSS JOIN LATERAL (
+    SELECT n.id, n.source, n.target, n.length_m, n.name,
+           ST_Distance(n.geom::geography, p.geom::geography) AS d
+    FROM network_edges n
+    ORDER BY n.geom <-> p.geom
+    LIMIT 1
+) e
+WHERE e.d <= %(radio)s
+"""
+
+
+def puntos_inspeccion(conn, area_geojson, bbox, prefs, radio_m=30.0):
+    """Señaléticas (M1) de los tipos elegidos dentro del área, cada una asociada
+    a la calle (arista) más cercana a menos de radio_m metros.
+
+    area_geojson: texto GeoJSON del polígono, o None para toda la red.
+    """
+    filas = _filas(conn, SQL_PUNTOS_INSPECCION, {
+        "xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3],
+        "tipos": list(prefs["tipos_senal"]),
+        "area": area_geojson, "radio": float(radio_m)})
+    for f in filas:
+        f["length_m"] = float(f["length_m"])
+        f["lon"], f["lat"], f["d"] = float(f["lon"]), float(f["lat"]), float(f["d"])
+    return filas
+
+
+def lugares_publicos(conn, bbox, categorias):
+    """Recintos públicos (M2) de las categorías elegidas dentro del rectángulo:
+    son los sitios candidatos para instalar las bases de los drones."""
+    return [{**f, "lon": float(f["lon"]), "lat": float(f["lat"])} for f in _filas(conn, """
+        SELECT id, nombre, tipo AS categoria,
+               propiedades->>'dependencia' AS dependencia,
+               propiedades->>'direccion'   AS direccion,
+               ST_X(geom) AS lon, ST_Y(geom) AS lat
+        FROM temp_metadata
+        WHERE propiedades->>'fuente_etl' = 'M2_lugares_publicos'
+          AND tipo = ANY(%(categorias)s)
+          AND geom && ST_MakeEnvelope(%(xmin)s, %(ymin)s, %(xmax)s, %(ymax)s, 4326)
+        ORDER BY id""", {"categorias": list(categorias), "xmin": bbox[0], "ymin": bbox[1],
+                         "xmax": bbox[2], "ymax": bbox[3]})]
+
+
+def nodo_valido_mas_cercano(conn, lon, lat, excluidas=()):
+    """Nodo más cercano a (lon, lat) que tenga al menos una arista utilizable."""
+    fila = _filas(conn, """
+        SELECT n.id, ST_X(n.geom) AS lon, ST_Y(n.geom) AS lat
+        FROM network_nodes n
+        WHERE EXISTS (SELECT 1 FROM network_edges e
+                      WHERE (e.source = n.id OR e.target = n.id)
+                        AND NOT (e.id = ANY(%(excl)s::BIGINT[])))
+        ORDER BY n.geom <-> ST_SetSRID(ST_Point(%(lon)s, %(lat)s), 4326)
+        LIMIT 1""", {"lon": lon, "lat": lat, "excl": list(excluidas)})
+    if not fila:
+        return None
+    f = fila[0]
+    return {"id": int(f["id"]), "lon": float(f["lon"]), "lat": float(f["lat"])}
