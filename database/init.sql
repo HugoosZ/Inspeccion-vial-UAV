@@ -53,12 +53,12 @@ CREATE INDEX IF NOT EXISTS idx_network_edges_commune ON network_edges (commune);
 -- ------------------------------------------------------------------------------
 -- Una fila por elemento de cada fuente de metadata. La fuente se identifica con
 -- propiedades->>'fuente_etl', que agrega cada Metadata/M*/cargar.py:
---   M1_paraderos, M2_controles_viales, M3_censo_manzanas, M4_aerodromos
+--   M1_senaleticas, M2_lugares_publicos, M3_puentes, M4_siniestros
 CREATE TABLE IF NOT EXISTS temp_metadata (
     id BIGSERIAL PRIMARY KEY,
     nombre VARCHAR(150),                     -- Nombre o identificador del elemento
-    tipo VARCHAR(50) NOT NULL,               -- 'paradero', 'senal_pare', 'semaforo', 'manzana_censo', 'aerodromo', etc.
-    fuente VARCHAR(100),                     -- Fuente original: 'OpenStreetMap vía ohsome API', 'INE Censo 2024', 'DGAC', etc.
+    tipo VARCHAR(50) NOT NULL,               -- 'senal_pare', 'semaforo', 'salud_publica', 'puente', 'zona_siniestros', etc.
+    fuente VARCHAR(100),                     -- Fuente original: 'OpenStreetMap vía ohsome API', 'MINVU · Equipamientos', 'CONASET', etc.
     comuna VARCHAR(50),                      -- 'Maipú', 'Estación Central', 'Santiago'
     descripcion TEXT,
     propiedades JSONB,                       -- Atributos libres del JSON original + fuente_etl
@@ -78,13 +78,13 @@ CREATE INDEX IF NOT EXISTS idx_temp_metadata_fuente_etl ON temp_metadata ((propi
 -- ------------------------------------------------------------------------------
 -- Una fila por amenaza (o por geocerca) de cada fuente, identificada con
 -- propiedades->>'fuente_etl', que agrega cada Amenazas/A*/cargar.py:
---   A1_incendios, A2_clima, A3_sosafe, A4_waze
+--   A1_incendios, A2_clima, A3_sosafe, A4_tomtom
 -- El ruteo lee de propiedades: accion_grafo, valido_desde, valido_hasta,
 -- id_celda (A2) y radio_afectacion_m (opcional).
 CREATE TABLE IF NOT EXISTS temp_amenazas (
     id BIGSERIAL PRIMARY KEY,
     nombre VARCHAR(150),                     -- Nombre del sector o amenaza
-    tipo VARCHAR(50) NOT NULL,               -- 'incendio_forestal', 'foco_de_calor', 'clima_severo',
+    tipo VARCHAR(50) NOT NULL,               -- 'incendio_activo', 'incendio_historico', 'probabilidad_ignicion', 'clima_severo',
                                              -- 'zona_conflictiva', 'calle_cerrada', 'construccion_vial'
     nivel_riesgo VARCHAR(20),                -- 'BAJO', 'MEDIO', 'ALTO', 'CRITICO'
     comuna VARCHAR(50),                      -- 'Maipú', 'Estación Central', 'Santiago'
@@ -99,6 +99,29 @@ CREATE INDEX IF NOT EXISTS idx_temp_amenazas_tipo ON temp_amenazas (tipo);
 CREATE INDEX IF NOT EXISTS idx_temp_amenazas_riesgo ON temp_amenazas (nivel_riesgo);
 CREATE INDEX IF NOT EXISTS idx_temp_amenazas_json ON temp_amenazas USING GIN (propiedades);
 CREATE INDEX IF NOT EXISTS idx_temp_amenazas_fuente_etl ON temp_amenazas ((propiedades->>'fuente_etl'));
+
+-- ------------------------------------------------------------------------------
+-- 4b. PROBABILIDAD DE FALLA POR ENLACE Y NODO (Probabilidades/generar.py)
+-- ------------------------------------------------------------------------------
+-- Una fila por enlace o nodo con probabilidad de falla > 0 en la jornada [t0, t1]:
+-- p_total = 1 - Π_k (1 - p_k) y su desglose por amenaza (A1 a A4). detalle guarda
+-- las amenazas que más aportan. Se recalcula completa en cada ejecución.
+CREATE TABLE IF NOT EXISTS prob_falla_aristas (
+    edge_id BIGINT PRIMARY KEY,              -- network_edges.id
+    p_total DOUBLE PRECISION NOT NULL,
+    p_a1 DOUBLE PRECISION, p_a2 DOUBLE PRECISION, p_a3 DOUBLE PRECISION, p_a4 DOUBLE PRECISION,
+    n_amenazas INTEGER,
+    detalle JSONB,
+    t0 TIMESTAMPTZ, t1 TIMESTAMPTZ
+);
+CREATE TABLE IF NOT EXISTS prob_falla_nodos (
+    node_id BIGINT PRIMARY KEY,              -- network_nodes.id
+    p_total DOUBLE PRECISION NOT NULL,
+    p_a1 DOUBLE PRECISION, p_a2 DOUBLE PRECISION, p_a3 DOUBLE PRECISION, p_a4 DOUBLE PRECISION,
+    n_amenazas INTEGER,
+    detalle JSONB,
+    t0 TIMESTAMPTZ, t1 TIMESTAMPTZ
+);
 
 -- ------------------------------------------------------------------------------
 -- 5. RUTAS (pgr_dijkstra resiliente)

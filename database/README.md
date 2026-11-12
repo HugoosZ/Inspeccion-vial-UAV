@@ -45,7 +45,7 @@ erDiagram
     TEMP_METADATA {
         bigserial id PK
         varchar nombre
-        varchar tipo "paradero, senal_pare, semaforo, manzana_censo, aerodromo"
+        varchar tipo "senal_pare, semaforo, salud_publica, puente, zona_siniestros"
         varchar fuente "OSM (ohsome), INE, DGAC, SIG Maipú"
         varchar comuna
         text descripcion
@@ -56,7 +56,7 @@ erDiagram
     TEMP_AMENAZAS {
         bigserial id PK
         varchar nombre
-        varchar tipo "incendio_forestal, clima_severo, zona_conflictiva, calle_cerrada, construccion_vial"
+        varchar tipo "incendio_activo, probabilidad_ignicion, clima_severo, zona_conflictiva, calle_cerrada"
         varchar nivel_riesgo "BAJO, MEDIO, ALTO, CRITICO"
         varchar comuna
         text descripcion
@@ -88,9 +88,9 @@ erDiagram
    - El atributo `cost` es la longitud en metros (`length_m`): es el costo base, sin amenazas ni metadata. El ruteo no lo modifica; calcula los pesos resilientes $w(e)$ en cada consulta (ver sección 4).
 
 2. **Tablas Temporales/Genéricas (`temp_metadata` y `temp_amenazas`)**:
-   - **`geom geometry(Geometry, 4326)`**: Permite almacenar puntos (paraderos, señales, reportes), líneas o polígonos (manzanas, celdas de clima, geocercas de exclusión) en la misma tabla sin restricciones.
+   - **`geom geometry(Geometry, 4326)`**: Permite almacenar puntos (señales, lugares públicos, puentes, reportes), líneas o polígonos (zonas de siniestros, celdas de clima, geocercas de exclusión) en la misma tabla sin restricciones.
    - **`propiedades JSONB`**: Permite cargar cualquier estructura de atributos extraída de APIs o archivos JSON sin necesidad de alterar el esquema SQL por cada nueva fuente.
-   - **`propiedades->>'fuente_etl'`**: Identifica la fuente de cada fila (`M1_paraderos`, `M2_controles_viales`, `M3_censo_manzanas`, `M4_aerodromos`, `A1_incendios`, `A2_clima`, `A3_sosafe`, `A4_waze`). Cada `cargar.py` borra las filas de su fuente antes de insertar (carga idempotente), y el ruteo y la API filtran por ella, por lo que tiene un índice de expresión propio en ambas tablas.
+   - **`propiedades->>'fuente_etl'`**: Identifica la fuente de cada fila (`M1_senaleticas`, `M2_lugares_publicos`, `M3_puentes`, `M4_siniestros`, `A1_incendios`, `A2_clima`, `A3_sosafe`, `A4_waze`). Cada `cargar.py` borra las filas de su fuente antes de insertar (carga idempotente), y el ruteo y la API filtran por ella, por lo que tiene un índice de expresión propio en ambas tablas.
    - **Extensibilidad futura**: Una vez consolidadas las fuentes definitivas con el equipo, estas tablas se pueden normalizar a tablas especializadas.
 
 3. **Rutas (`inspection_routes`)**:
@@ -100,7 +100,7 @@ erDiagram
 
 4. **Pesos resilientes (`pesos_ruteo`, tabla temporal)**:
    - No forma parte de `init.sql`. `docker/web/ruteo/dijkstra_k.py` la crea en cada consulta de ruteo como tabla temporal de la sesión (`id`, `factor`, `uso`) y la descarta al terminar.
-   - `factor = -1` marca una arista bloqueada (amenaza dura o aeródromo); en otro caso multiplica el largo. `uso` cuenta cuántas rutas previas usaron la arista, para generar las k alternativas. El detalle está en [`docker/web/ruteo/README.md`](../docker/web/ruteo/README.md).
+   - `factor = -1` marca una arista bloqueada (amenaza dura); en otro caso multiplica el largo. `uso` cuenta cuántas rutas previas usaron la arista, para generar las k alternativas. El detalle está en [`docker/web/ruteo/README.md`](../docker/web/ruteo/README.md).
 
 5. **Función `fn_calculate_baseline_dijkstra_route`**:
    - Ruta más corta con `pgr_dijkstra` solo por `cost` (longitud), sin pesos resilientes. Sirve para comprobar que el grafo funciona (`SELECT * FROM fn_calculate_baseline_dijkstra_route(1, 100);`).
