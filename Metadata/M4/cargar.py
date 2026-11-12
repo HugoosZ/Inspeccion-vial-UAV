@@ -1,10 +1,10 @@
 """
-M4 · Carga Metadata/M4/aerodromos.geojson en temp_metadata.
+M4 · Carga Metadata/M4/data/zonas_siniestros_maipu.geojson en temp_metadata.
 
-Cada aeródromo (DGAC, exportado desde KMZ) se carga como Point con tipo
-'aerodromo'. La coordenada Z (altura 0 del KML) se elimina con ST_Force2D.
-Se cargan todos los aeródromos del archivo: en la fase 3 se filtran con
-ST_DWithin según el radio de exclusión que se adopte.
+Cada celda de 100 x 100 m queda con tipo = zona_siniestros, su nivel (CRITICA,
+ALTA, MEDIA) y los conteos de siniestros. fuente_etl = M4_siniestros.
+Los puntos individuales (siniestros_maipu.geojson) no se cargan: quedan en el
+repositorio como respaldo de cada conteo.
 
 Uso:
   python Metadata/M4/cargar.py            # carga en la BD
@@ -18,26 +18,26 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import comun_bd  # noqa: E402
 
-ARCHIVO = Path(__file__).resolve().parent / "aerodromos.geojson"
+ARCHIVO = Path(__file__).resolve().parent / "data" / "zonas_siniestros_maipu.geojson"
 
 
 def filas():
     datos = json.loads(ARCHIVO.read_text(encoding="utf-8"))
     for feat in datos.get("features", []):
-        p = feat.get("properties") or {}
-        g = feat.get("geometry")
-        if not g:
-            continue
+        p = feat["properties"]
+        lugar = p.get("ubicacion_principal") or f"celda {p['id_celda']}"
         yield {
-            "nombre": p.get("name") or "Aeródromo sin nombre",
-            "tipo": "aerodromo",
-            "fuente": "DGAC (KMZ de aeródromos)",
-            "descripcion": p.get("description") or f"{p.get('category')} - {p.get('name')}",
-            "propiedades": {k: p.get(k) for k in ("name", "layer", "category", "folder")},
-            "geometry": g,
+            "nombre": f"Zona de siniestros {p['nivel'].lower()} · {lugar}",
+            "tipo": "zona_siniestros",
+            "fuente": "CONASET · Base de siniestros 2020-2025",
+            "descripcion": f"{p['n_siniestros']} siniestros {p.get('anios') or ''} "
+                           f"({p['n_desobediencia_senal']} por desobedecer una señal, "
+                           f"{p['n_senal_defectuosa']} por señal defectuosa).",
+            "propiedades": p,
+            "geometry": feat["geometry"],
         }
 
 
 if __name__ == "__main__":
     comun_bd.cargar_env()
-    comun_bd.cargar_filas(list(filas()), "M4_aerodromos", dry_run="--dry-run" in sys.argv)
+    comun_bd.cargar_filas(list(filas()), "M4_siniestros", dry_run="--dry-run" in sys.argv)

@@ -1,61 +1,99 @@
-# Restricciones Aéreas
+# M4 · Zonas de siniestros de tránsito (CONASET)
 
-Este módulo contiene la información geoespacial oficial de la Dirección General de Aeronáutica Civil (DGAC) sobre aeródromos y zonas de exclusión aérea, junto con su validación espacial sobre los paraderos de Maipú, con el objetivo de garantizar que los drones operen fuera de áreas restringidas.
-# Documentación: restricciones aéreas y aeródromos
+Los choques derriban señales y semáforos, y donde se desobedecen las señales una señal faltante es más grave. Este módulo identifica las zonas de Maipú con más siniestros para priorizar la inspección de su señalética.
 
-## 1. Descripción
+- El manual de mantención de señales de la FHWA indica que los vehículos que chocan una señal la doblan o derriban, y que una señal regulatoria o de advertencia dañada debe reponerse de inmediato.
+- Identificar los puntos con más siniestros es el método estándar para priorizar intervenciones de seguridad vial (Cheng y Washington, 2005).
+- En Maipú, 1.005 siniestros entre 2020 y 2025 se atribuyen a desobedecer una señal (PARE, ceda el paso o luz roja) y 27 a una señal o semáforo en mal estado, mal instalado o no visible.
 
-El módulo está compuesto por el archivo `aerodromos.geojson`, que reúne el catastro georreferenciado de aeródromos y pistas de aterrizaje de la Dirección General de Aeronáutica Civil (DGAC), y por el archivo `paraderos_seguros.csv`, que contiene el cruce de seguridad aérea aplicado sobre los 942 paraderos de la comuna de Maipú. Su propósito es impedir la planificación de rutas de drones dentro de zonas de exclusión o protección aeroportuaria.
+## Archivos
 
-## 2. Fuente y extracción
+| Archivo | Rol |
+|---|---|
+| `extractor.py` | Extract + Transform: consulta CONASET, clasifica causas y agrupa en celdas |
+| `cargar.py` | Load: inserta las zonas en `temp_metadata` (`--dry-run` para probar sin BD) |
+| `data/siniestros_maipu.geojson` | Un punto por siniestro (respaldo de los conteos, no se carga) |
+| `data/zonas_siniestros_maipu.geojson` | Celdas agregadas, que se cargan en la BD |
 
-- **Fuente:** Dirección General de Aeronáutica Civil (DGAC) — Visor de zonas de vuelo (`AERODROMOS.kmz` / `doc.kml`), cruzado con el catastro de paraderos de Maipú.
-- **Formato de salida:** GeoJSON (`aerodromos.geojson`) y CSV (`paraderos_seguros.csv`).
-- **Área de interés:** Catastro nacional de aeródromos (774 registros) evaluado sobre el área comunal de Maipú, Chile.
-- **Elementos consultados:** Coordenadas puntuales (`Point`) de aeródromos y pistas chicas, comparadas contra las coordenadas de los 942 paraderos comunales.
-- **Criterio de exclusión:** Radio de seguridad mínimo de 2 km alrededor de cada aeródromo, calculado mediante distancia ortodrómica (fórmula de Haversine).
+## Fuente y acceso
 
-## 3. Estructura general
+Base de siniestros 2020-2025 de la Comisión Nacional de Seguridad de Tránsito (CONASET), publicada en su portal de datos abiertos (https://mapas-conaset.opendata.arcgis.com/), cuenta `conaset_mtt`, sin autenticación:
+`https://services3.arcgis.com/vaJl1B5HEzZj7154/arcgis/rest/services/Base_SINIESTROS_2020_2025/FeatureServer/0`
 
-### Archivo `aerodromos.geojson`
-Utiliza una estructura `FeatureCollection` acompañada de un bloque `metadata` con el resumen de generación (`layer`, `category`, `source`, `generatedAt`, `featureCount`: 774). Cada elemento de `features` es una `Feature` compuesta por:
+Se consulta con `COMUNA = 'Maipú'` y se pagina de a 2.000 registros (límite del servicio).
 
-- `properties`: metadatos del aeródromo e información de la capa KML/KMZ de origen.
-- `geometry`: geometría tipo `Point` con coordenadas en formato `[longitud, latitud, altitud]`.
+## Transformación
 
-### Archivo `paraderos_seguros.csv`
-Presenta una estructura tabular de 942 filas y 8 columnas que conserva los campos base de los paraderos de Maipú (`ID`, `Codigo`, `Latitud`, `Longitud`, `Tipo`, `Estado`, `Comuna`) y añade la columna de verificación aérea `Alerta_Aerodromo`.
+1. **Clasificación de la causa** (`CAUSA_SINI`). La base escribe la misma causa como `SENALIZACION` y `SEÑALIZACION`; se unifican antes de comparar.
+   - `desobediencia_senal`: causas que empiezan con `SEÑALIZACION DESOBEDECER` (PARE, ceda el paso, luz roja, luz intermitente, otra), salvo la indicación de un carabinero.
+   - `senal_defectuosa`: causas de señalización con `MAL ESTADO`, `DEFICIENTE`, `MAL INSTALADA` o `NO VISIBLE`.
+2. **Agregación** en celdas de 100 × 100 m (`SINIESTROS_CELDA_M`), del orden de una intersección. Se conservan las celdas con 2 o más siniestros o con al menos uno ligado a la señalización.
+3. **Nivel** por ranking de frecuencia: `CRITICA` = 5 % de las celdas con más siniestros, `ALTA` = siguiente 15 %, `MEDIA` = resto. Los cortes se calculan en cada ejecución y quedan en `metadata.cortes_n_siniestros`.
 
-## 4. Atributos principales
+## Estructura de `zonas_siniestros_maipu.geojson`
 
-### Archivo GeoJSON (`aerodromos.geojson`)
+### Bloque `metadata`
 
 | Campo | Descripción |
 |---|---|
-| `name` | Nombre oficial o identificador del aeródromo/pista (ej. `AERODROMO PELDEHUE`, `Ad. Eulogio Sánchez`) |
-| `description` | Descripción adicional del recinto en el registro KML |
-| `layer` | Nombre de la capa temática (`Aeródromos`) |
-| `category` | Categoría de restricción aérea (`Aeródromos`) |
-| `folder` | Ruta jerárquica dentro del archivo KMZ de origen (`AERODROMOS.kmz`, `Pistas chicas`, etc.) |
-| `sourceFile` | Archivo fuente extraído del paquete comprimido (`doc.kml`) |
-| `geometryType` | Tipo de geometría espacial (`Point`) |
-| `geometry.coordinates` | Arreglo de coordenadas geográficas `[longitud, latitud, altitud]` |
+| `generado_utc`, `comuna`, `total_features` | Momento, comuna y cantidad de celdas |
+| `fuente`, `url`, `filtro` | Servicio y filtro aplicado |
+| `celda_m` | Lado de la celda en metros |
+| `criterio_celdas`, `criterio_nivel` | Reglas de los pasos 2 y 3 |
+| `cortes_n_siniestros` | Siniestros mínimos para `CRITICA` y `ALTA` |
+| `total_siniestros` | Siniestros con coordenadas en Maipú |
 
-### Archivo CSV (`paraderos_seguros.csv`)
+### `properties` de cada zona
 
 | Campo | Descripción |
 |---|---|
-| `ID` | Identificador correlativo de ruteo del paradero (1 a 942) |
-| `Codigo` | Código técnico del paradero (ej. `L-13-44-15-SN`) |
-| `Latitud` | Coordenada geográfica de latitud del paradero |
-| `Longitud` | Coordenada geográfica de longitud del paradero |
-| `Tipo` | Tipología de parada (`PS`, `ET`, `PD`) |
-| `Estado` | Condición física del paradero (`CON REFUGIO`, `SIN REFUGIO`, etc.) |
-| `Comuna` | Comuna registrada (`MAIPé`) |
-| `Alerta_Aerodromo` | Estado de validación respecto al radio de exclusión de 2 km (ej. `Seguro`) |
+| `id_celda` | Índice de la celda (columna_fila) |
+| `ubicacion_principal` | Intersección más repetida en la celda (`Calle_Uno con Calle_Dos`) |
+| `n_siniestros` | Siniestros 2020-2025 en la celda |
+| `n_desobediencia_senal` | De ellos, por desobedecer una señal |
+| `n_senal_defectuosa` | De ellos, por señal defectuosa |
+| `fallecidos`, `graves`, `menos_graves`, `leves` | Víctimas por gravedad |
+| `anios` | Rango de años con siniestros |
+| `nivel` | `CRITICA`, `ALTA` o `MEDIA` |
 
-## 5. Consideraciones
+La geometría es un `Polygon` (la celda) en EPSG:4326.
 
-- **Geometría puntual y radio de resguardo:** Dado que `aerodromos.geojson` representa cada recinto como un punto (`Point`) y no como un polígono de pista, el script `procesar_aerodromos.py` proyecta un buffer radial de 2 km mediante la fórmula de Haversine para modelar el área de exclusión.
-- **Duplicidad en capas de origen:** El archivo KML fuente de la DGAC contiene registros que aparecen tanto en la carpeta general de aeródromos como en subcarpetas de pistas chicas; esto no afecta el filtrado espacial, pero debe considerarse si se realizan conteos estadísticos sobre el GeoJSON.
-- **Resultado en Maipú:** La totalidad de los 942 paraderos catastrados en la comuna de Maipú se encuentra a una distancia superior a 2 km respecto a los aeródromos registrados, quedando clasificados con `Alerta_Aerodromo = "Seguro"`.
+### `properties` de cada siniestro (`siniestros_maipu.geojson`)
+
+| Campo | Campo CONASET | Descripción |
+|---|---|---|
+| `id` | `ID` | Identificador del siniestro |
+| `anio`, `fecha`, `hora` | `AÑO`, `FECHA`, `Hora` | Momento del siniestro |
+| `tipo`, `subtipo` | `TIPO__CONA`, `TIPO_SINIE` | Colisión, choque, atropello, volcadura, … |
+| `causa` | `CAUSA_SINI` | Causa detallada (normalizada) |
+| `causa_agrupada` | `CAUSA_NUEV` | Causa agrupada por CONASET |
+| `zona` | `ZONA` | Urbana o rural |
+| `ubicacion` | `Calle_Uno`, `Calle_Dos` | Calles del siniestro |
+| `fallecidos`, `graves`, `menos_graves`, `leves` | `FALLECIDOS`, `GRAVES`, `MENOS_GRAV`, `LEVES` | Víctimas |
+| `desobediencia_senal`, `senal_defectuosa` | (calculados) | Clasificación del paso 1 |
+
+## Carga en la base de datos
+
+Cada zona va a `temp_metadata` con `tipo = zona_siniestros` y `fuente_etl = "M4_siniestros"`.
+
+## Resultado de referencia (12-11-2026)
+
+| Dato | Valor |
+|---|---|
+| Siniestros 2020-2025 en Maipú | 8.963 |
+| Por desobedecer una señal | 1.005 |
+| Por señal defectuosa | 27 |
+| Celdas conservadas | 1.144 (59 críticas, 171 altas, 914 medias) |
+| Corte `CRITICA` / `ALTA` | 23 / 9 siniestros |
+| Celda con más siniestros | Los Pajaritos con Américo Vespucio (195) |
+
+## Limitaciones
+
+- Es información **histórica** (hasta el 31-12-2025): sirve para priorizar, no para reaccionar a un choque de hoy.
+- El servicio no declara licencia ni condiciones de uso; se cita como datos abiertos de CONASET.
+
+## Referencias
+
+- CONASET. Portal de datos abiertos: georreferenciación de siniestros de tránsito. https://mapas-conaset.opendata.arcgis.com/
+- Cheng, W. y Washington, S. P. (2005). Experimental evaluation of hotspot identification methods. *Accident Analysis & Prevention*, 37(5), 870–881.
+- Federal Highway Administration. *Maintenance of Signs and Sign Supports*, cap. X, Repair and Replacement. https://highways.dot.gov/safety/local-rural/maintenance-signs-and-sign-supports/x-repair-and-replacement
