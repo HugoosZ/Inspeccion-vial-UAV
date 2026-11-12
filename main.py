@@ -13,8 +13,10 @@ funcionando de punta a punta:
                  de Infraestructura, Metadata y Amenazas, que escriben los JSON/GeoJSON
                  en las carpetas data/ de cada módulo.
   3. Carga       Ejecuta un cargar.py por cada JSON/GeoJSON y los importa a la BD.
-  4. Verificación Cuenta las filas cargadas por tabla y por fuente.
-  5. Web         Levanta el contenedor web (FastAPI + Leaflet), espera a que responda
+  4. Probabilidad Calcula la probabilidad de falla de cada enlace y nodo por amenaza
+                 (Probabilidades/generar.py).
+  5. Verificación Cuenta las filas cargadas por tabla y por fuente.
+  6. Web         Levanta el contenedor web (FastAPI + Leaflet), espera a que responda
                  y abre http://localhost:8080 en el navegador.
 
 Opciones:
@@ -51,45 +53,53 @@ URL_WEB = os.getenv("WEB_URL", "http://localhost:8080")
 EXTRACTORES = [
     {"grupo": "Infraestructura", "nombre": "Red vial OSM + elevación",
      "script": "Infraestructura/extractor.py", "timeout": 1800},
-    {"grupo": "Metadata", "nombre": "M1 Paraderos (ArcGIS DTPM)",
-     "script": "Metadata/M1/extractor.py", "cwd": "Metadata/M1"},
-    {"grupo": "Metadata", "nombre": "M2 Controles viales (ohsome)",
-     "script": "Metadata/M2/controles_viales.py", "requiere_env": "OHSOME_API_KEY"},
-    {"grupo": "Metadata", "nombre": "M3 Censo 2024 por manzana",
-     "script": "Metadata/M3/procesar_censo.py", "cwd": "Metadata/M3",
-     "requiere_archivo": "Metadata/M3/Cartografia_censo2024_Pais.gpkg",
-     "nota": "usa el ZIP versionado manzanas_maipu_completo.zip"},
-    {"grupo": "Amenazas", "nombre": "A1 Incendios (GDACS + NASA FIRMS)",
+    {"grupo": "Metadata", "nombre": "M1 Señaléticas (OSM vía ohsome)",
+     "script": "Metadata/M1/controles_viales.py", "requiere_env": "OHSOME_API_KEY"},
+    {"grupo": "Metadata", "nombre": "M2 Lugares públicos (MINVU)",
+     "script": "Metadata/M2/extractor.py"},
+    {"grupo": "Metadata", "nombre": "M3 Puentes (MOP)",
+     "script": "Metadata/M3/extractor.py"},
+    {"grupo": "Metadata", "nombre": "M4 Zonas de siniestros (CONASET)",
+     "script": "Metadata/M4/extractor.py"},
+    {"grupo": "Amenazas", "nombre": "A1 Incendios (CONAF)",
      "script": "Amenazas/A1/extractor.py"},
     {"grupo": "Amenazas", "nombre": "A2 Clima (Open-Meteo)",
      "script": "Amenazas/A2/extractor.py"},
     {"grupo": "Amenazas", "nombre": "A3 SOSAFE + clasificación",
      "script": "Amenazas/A3/run.py"},
-    {"grupo": "Amenazas", "nombre": "A4 Waze (Calles cerradas y obras)",
-     "script": "Amenazas/A4/run.py"},
+    {"grupo": "Amenazas", "nombre": "A4 Accidentes, cierres y obras (TomTom)",
+     "script": "Amenazas/A4/tomtom.py", "requiere_env": "TOMTOM_API_KEY"},
 ]
-# M4 Aeródromos (aerodromos.geojson, DGAC) es una fuente estática versionada en el repositorio.
 
 # Cargadores (Load): un cargar.py por cada JSON/GeoJSON.
 CARGADORES = [
     {"grupo": "Infraestructura", "nombre": "Nodos y aristas", "script": "Infraestructura/cargar.py",
      "critico": True},
-    {"grupo": "Metadata", "nombre": "M1 Paraderos", "script": "Metadata/M1/cargar.py"},
-    {"grupo": "Metadata", "nombre": "M2 Controles viales", "script": "Metadata/M2/cargar.py"},
-    {"grupo": "Metadata", "nombre": "M3 Censo 2024", "script": "Metadata/M3/cargar.py"},
-    {"grupo": "Metadata", "nombre": "M4 Aeródromos", "script": "Metadata/M4/cargar.py"},
+    {"grupo": "Metadata", "nombre": "M1 Señaléticas", "script": "Metadata/M1/cargar.py"},
+    {"grupo": "Metadata", "nombre": "M2 Lugares públicos", "script": "Metadata/M2/cargar.py"},
+    {"grupo": "Metadata", "nombre": "M3 Puentes", "script": "Metadata/M3/cargar.py"},
+    {"grupo": "Metadata", "nombre": "M4 Zonas de siniestros", "script": "Metadata/M4/cargar.py"},
     {"grupo": "Amenazas", "nombre": "A1 Incendios", "script": "Amenazas/A1/cargar.py"},
     {"grupo": "Amenazas", "nombre": "A2 Clima", "script": "Amenazas/A2/cargar.py"},
     {"grupo": "Amenazas", "nombre": "A3 SOSAFE", "script": "Amenazas/A3/cargar.py"},
-    {"grupo": "Amenazas", "nombre": "A4 Waze", "script": "Amenazas/A4/cargar.py"},
+    {"grupo": "Amenazas", "nombre": "A4 TomTom", "script": "Amenazas/A4/cargar_tomtom.py"},
 ]
 
-# fuente_etl de versiones anteriores (antes de renombrar a M1-M4 y A1-A4, y de quitar
-# las lluvias de Maipú). Se borran antes de cargar para que una BD ya existente no
-# conserve capas duplicadas ni amenazas que el ruteo ya no sabe interpretar.
+# Probabilidad de falla de cada enlace y nodo (punto 5 del enunciado): usa la red y
+# las amenazas ya cargadas en la BD.
+PROBABILIDADES = [
+    {"grupo": "Probabilidades", "nombre": "Probabilidad de falla por enlace y nodo",
+     "script": "Probabilidades/generar.py"},
+]
+
+# fuente_etl de versiones anteriores (antes de renombrar a M1-M4 y A1-A4, de quitar
+# las lluvias de Maipú y de reemplazar paraderos, censo y aeródromos por lugares
+# públicos, puentes y siniestros en la entrega 3). Se borran antes de cargar para que
+# una BD ya existente no conserve capas duplicadas ni datos que el ruteo ya no usa.
 FUENTES_OBSOLETAS = {
-    "temp_metadata": ("M3_controles_viales", "M5_censo_manzanas", "M6_aerodromos"),
-    "temp_amenazas": ("T2_incendios", "T3_clima", "T5_lluvias_maipu", "T6_sosafe", "T7_waze"),
+    "temp_metadata": ("M3_controles_viales", "M5_censo_manzanas", "M6_aerodromos",
+                      "M1_paraderos", "M2_controles_viales", "M3_censo_manzanas", "M4_aerodromos"),
+    "temp_amenazas": ("T2_incendios", "T3_clima", "T5_lluvias_maipu", "T6_sosafe", "T7_waze", "A4_waze"),
 }
 
 
@@ -238,10 +248,12 @@ def modo_pipeline(sin_descarga):
     if sin_descarga:
         print("\n[~] --sin-descarga: se cargan los JSON que ya están en el repositorio.")
     else:
-        resultados += ejecutar_etapa("1/2 · DESCARGA Y TRANSFORMACIÓN (Extract + Transform)", EXTRACTORES,
+        resultados += ejecutar_etapa("1/3 · DESCARGA Y TRANSFORMACIÓN (Extract + Transform)", EXTRACTORES,
                                      "la extracción falló; se usará el último JSON disponible.")
-    resultados += ejecutar_etapa("2/2 · CARGA A LA BASE DE DATOS (Load)", CARGADORES,
+    resultados += ejecutar_etapa("2/3 · CARGA A LA BASE DE DATOS (Load)", CARGADORES,
                                  "la carga falló (¿existe el JSON de entrada?).")
+    resultados += ejecutar_etapa("3/3 · PROBABILIDAD DE FALLA POR ENLACE Y NODO", PROBABILIDADES,
+                                 "no se pudo calcular la probabilidad de falla.")
 
     conteos = resumen_bd(conn)
     conn.close()
@@ -312,8 +324,8 @@ def resumen_web():
                 por_fuente[fila["fuente_etl"]] = por_fuente.get(fila["fuente_etl"], 0) + int(fila["total"])
             texto = ", ".join(f"{f} ({n})" for f, n in sorted(por_fuente.items(), key=lambda x: str(x[0])))
             print(f"[+] Capas de {grupo}: {texto or 'ninguna'}")
-        http_json("/api/rutas/preferencias")
-        print("[+] API de ruteo (pgr_dijkstra resiliente) disponible.")
+        http_json("/api/flota/preferencias")
+        print("[+] API de planificación por área con flota de drones disponible.")
     except Exception as e:  # noqa: BLE001
         print(f"[!] La web responde, pero no se pudo leer el catálogo de capas: {e}")
 
