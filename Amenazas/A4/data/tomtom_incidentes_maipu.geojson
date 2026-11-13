@@ -2,9 +2,9 @@
   "type": "FeatureCollection",
   "name": "amenaza_a4_tomtom_incidentes_maipu",
   "metadata": {
-    "generado_utc": "2026-11-12T20:49:36+00:00",
+    "generado_utc": "2026-11-13T00:58:45+00:00",
     "comuna": "Maipú",
-    "total_features": 7,
+    "total_features": 9,
     "amenaza": "A4 - Accidentes, cierres y obras viales",
     "fuente": "TomTom Traffic API · Incident Details v5",
     "aoi_maipu_bbox": [
@@ -13,9 +13,9 @@
       -70.7,
       -33.46
     ],
-    "incidentes_recibidos": 66,
+    "incidentes_recibidos": 12,
     "por_categoria": {
-      "Calle cerrada": 6,
+      "Calle cerrada": 8,
       "Obras viales": 1
     },
     "categorias_descartadas": "retenciones (6) y clima (2, 4, 5, 10, 11)"
@@ -49,14 +49,14 @@
         "descripcion": "Cerrado",
         "tramo": "Calle Las Industrias → Camino a Melipilla",
         "vias": null,
-        "largo_m": 202.8996540751,
+        "largo_m": 202.9,
         "demora_s": null,
         "magnitud_demora": "indefinida",
         "probabilidad": "probable",
         "n_reportes": null,
         "ultimo_reporte": null,
-        "nivel_riesgo": "ALTO",
-        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "NINGUNA",
         "radio_afectacion_m": 60,
         "revisar_senaletica": false,
         "valido_desde": "2026-07-23T10:27:30Z",
@@ -105,8 +105,8 @@
         "probabilidad": "probable",
         "n_reportes": null,
         "ultimo_reporte": null,
-        "nivel_riesgo": "ALTO",
-        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "NINGUNA",
         "radio_afectacion_m": 60,
         "revisar_senaletica": false,
         "valido_desde": "2026-07-26T04:50:30Z",
@@ -191,8 +191,8 @@
         "probabilidad": "probable",
         "n_reportes": null,
         "ultimo_reporte": null,
-        "nivel_riesgo": "ALTO",
-        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "NINGUNA",
         "radio_afectacion_m": 60,
         "revisar_senaletica": false,
         "valido_desde": "2026-07-25T17:03:00Z",
@@ -289,8 +289,8 @@
         "probabilidad": "probable",
         "n_reportes": null,
         "ultimo_reporte": null,
-        "nivel_riesgo": "ALTO",
-        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "NINGUNA",
         "radio_afectacion_m": 60,
         "revisar_senaletica": false,
         "valido_desde": "2026-07-25T16:02:30Z",
@@ -351,8 +351,8 @@
         "probabilidad": "probable",
         "n_reportes": null,
         "ultimo_reporte": null,
-        "nivel_riesgo": "ALTO",
-        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "NINGUNA",
         "radio_afectacion_m": 60,
         "revisar_senaletica": false,
         "valido_desde": "2026-10-26T23:52:30Z",
@@ -365,8 +365,62 @@
         "type": "LineString",
         "coordinates": [
           [
+            -70.715864,
+            -33.601058
+          ],
+          [
+            -70.715923,
+            -33.600684
+          ],
+          [
+            -70.71597,
+            -33.60038
+          ],
+          [
+            -70.716014,
+            -33.599993
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29239391948013000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29239391948013000",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "Calle cerrada",
+        "descripcion": "Cerrado",
+        "tramo": "San Bernardo → Calle Presidente Jorge Alessandri Rodríguez",
+        "vias": null,
+        "largo_m": 119.2316661057,
+        "demora_s": null,
+        "magnitud_demora": "indefinida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "NINGUNA",
+        "radio_afectacion_m": 60,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-11-12T22:42:16Z",
+        "valido_hasta": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.71566,
+            -33.597134
+          ],
+          [
+            -70.715596,
+            -33.596608
+          ],
+          [
             -70.715514,
-            -33.595933
+            -33.595929
           ],
           [
             -70.715399,
@@ -417,8 +471,8 @@
             -33.587744
           ],
           [
-            -70.714388,
-            -33.586848
+            -70.714272,
+            -33.585947
           ]
         ]
       },
@@ -433,14 +487,14 @@
         "vias": [
           "5"
         ],
-        "largo_m": 1015.6007532057,
+        "largo_m": 1250.6814152142,
         "demora_s": null,
         "magnitud_demora": "desconocida",
         "probabilidad": "probable",
         "n_reportes": null,
         "ultimo_reporte": null,
         "nivel_riesgo": "MEDIO",
-        "accion_grafo": "PENALIZAR_ARISTAS",
+        "accion_grafo": "NINGUNA",
         "radio_afectacion_m": 50,
         "revisar_senaletica": false,
         "valido_desde": "2026-11-12T10:13:45Z",
@@ -477,11 +531,49 @@
         "probabilidad": "probable",
         "n_reportes": null,
         "ultimo_reporte": null,
-        "nivel_riesgo": "ALTO",
-        "accion_grafo": "BLOQUEAR_ARISTAS",
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "NINGUNA",
         "radio_afectacion_m": 60,
         "revisar_senaletica": false,
         "valido_desde": "2026-10-14T04:07:00Z",
+        "valido_hasta": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -70.701148,
+            -33.502757
+          ],
+          [
+            -70.70189,
+            -33.502323
+          ]
+        ]
+      },
+      "properties": {
+        "id_amenaza": "TOMTOM-TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29274019176015000",
+        "fuente": "TomTom Traffic Incidents",
+        "id_tomtom": "TTI-498f1f19-6763-4bf9-a53a-942fcb4ff4c7-TTR29274019176015000",
+        "tipo_amenaza": "calle_cerrada",
+        "categoria": "Calle cerrada",
+        "descripcion": "Cerrado",
+        "tramo": "Cerrillos → Cerrillos",
+        "vias": null,
+        "largo_m": 83.9578252998,
+        "demora_s": null,
+        "magnitud_demora": "indefinida",
+        "probabilidad": "probable",
+        "n_reportes": null,
+        "ultimo_reporte": null,
+        "nivel_riesgo": "MEDIO",
+        "accion_grafo": "NINGUNA",
+        "radio_afectacion_m": 60,
+        "revisar_senaletica": false,
+        "valido_desde": "2026-11-13T00:49:15Z",
         "valido_hasta": null
       }
     }

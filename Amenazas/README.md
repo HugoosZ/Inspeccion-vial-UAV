@@ -5,9 +5,9 @@ Cada subcarpeta automatiza la extracción y transformación de una fuente de ame
 | # | Amenaza | Carpeta | Fuente | Geometría | Efecto en el grafo | Acceso |
 |---|---|---|---|---|---|---|
 | A1 | Incendios forestales y de pastizales | `A1/` | CONAF (ArcGIS) | Círculos de exclusión + puntos históricos + celdas de probabilidad de ignición | Bloqueo (activos) o penalización (controlados) | Libre |
-| A2 | Lluvia, ráfagas, baja visibilidad, tormentas | `A2/` | Open-Meteo | Polígonos (celdas 3 × 3) | Penalización o bloqueo por hora | Libre |
+| A2 | Lluvia, ráfagas, baja visibilidad, tormentas | `A2/` | Open-Meteo | Polígonos (celdas 3 × 3) | Probabilidad por hora (ensamble ECMWF/GEFS); el planificador sugiere reprogramar las salidas no aptas | Libre |
 | A3 | Zona conflictiva activa | `A3/` | SOSAFE + clasificador IA | Puntos + geocercas | Bloqueo temporal | Credenciales de la app |
-| A4 | Accidentes, calles cerradas y obras | `A4/` | TomTom Traffic API (Incident Details v5) | Puntos y tramos + radio de afectación | Bloqueo (accidente, cierre) o penalización (obras) | `TOMTOM_API_KEY` gratuita |
+| A4 | Accidentes, calles cerradas y obras | `A4/` | TomTom Traffic API (Incident Details v5) | Puntos y tramos + radio de afectación | Bloqueo del vuelo (accidente activo); cierres y obras informativos | `TOMTOM_API_KEY` gratuita |
 
 `comun.py` reúne lo compartido por A1 y A2 (A3 y A4 lo usan para la carga): área de estudio, HTTP con reintentos, geometría simple sin dependencias extra, escritura de GeoJSON y la carga idempotente a la BD. A1 usa además `Metadata/comun_arcgis.py` para consultar los servicios ArcGIS de CONAF.
 
@@ -49,9 +49,9 @@ Para el análisis operacional del sistema UAV es fundamental distinguir dos dime
 | ID | Amenaza / Fuente | Tiempo de Respuesta API (HTTP) | Frecuencia de Actualización | Latencia del Dato (Mundo Real) | Clasificación Temporal | Rol Operacional en la Misión UAV |
 |---|---|:---:|:---:|:---:|:---:|---|
 | **A1** | **Incendios**<br>*(CONAF)* | 1,0 -- 3,0 s por servicio | Diaria (registro de incendios y pronóstico de ignición) | **Horas** *(registro oficial de cada incendio confirmado)* | **Diario / Planificación previa** | Planificación previa al despegue; evita zonas con columnas de humo o combate aéreo de CONAF. |
-| **A2** | **Clima Severo**<br>*(Open-Meteo)* | 0,3 -- 0,8 s | Cada 1 a 6 horas (corridas de modelos numéricos) | **1 hora** *(resolución de pronóstico horario)* | **Pronóstico Numérico Horario** | Planificación de ventanas de vuelo seguras; penaliza aristas por hora según viento, lluvia y visibilidad. |
+| **A2** | **Clima Severo**<br>*(Open-Meteo)* | 0,3 -- 0,8 s | Cada 1 a 6 horas (corridas de modelos numéricos) | **1 hora** *(resolución de pronóstico horario)* | **Pronóstico Numérico Horario** | Planificación de ventanas de vuelo: probabilidad horaria de clima no apto para el Mavic 3E según los escenarios del ensamble. |
 | **A3** | **Incidentes Ciudadanos**<br>*(SOSAFE)* | 0,8 -- 1,5 s | Tiempo real continuo | **1 a 5 minutos** | **Tiempo Real Dinámico (Crowdsourcing)** | Alerta táctica inmediata durante el vuelo; aborta o desvía rutas ante balaceras, fuegos artificiales o cables caídos. |
-| **A4** | **Accidentes, cortes y obras**<br>*(TomTom)* | 0,5 -- 2,0 s (una consulta) | Tiempo real continuo | **2 a 5 minutos** | **Tiempo Real Dinámico (Tránsito)** | Bloqueo preventivo de vías cerradas o con maquinaria pesada en calzada antes y durante el recorrido. |
+| **A4** | **Accidentes, cortes y obras**<br>*(TomTom)* | 0,5 -- 2,0 s (una consulta) | Tiempo real continuo | **2 a 5 minutos** | **Tiempo Real Dinámico (Tránsito)** | Bloqueo del vuelo sobre accidentes activos (riesgo en tierra) y marca de reinspección; cierres y obras se informan. |
 
 ### Justificación de la Arquitectura Temporal en Tres Capas
 

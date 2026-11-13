@@ -13,8 +13,12 @@ Transform:
     Las retenciones (6) y las categorías de clima (2, 4, 5, 10, 11) se
     descartan: la congestión no afecta al dron y el clima lo cubre A2.
   - Cada incidente conserva su geometría original y un radio de afectación
-    (radio_afectacion_m): el ruteo bloquea o penaliza las aristas a menos de
-    ese radio con ST_DWithin.
+    (radio_afectacion_m).
+  - Solo un ACCIDENTE activo bloquea el vuelo (accion_grafo = BLOQUEAR_ARISTAS,
+    100 m): concentra personas y equipos de emergencia bajo la ruta (riesgo en
+    tierra, Primatesta et al., 2020). Un cierre, una obra o un carril cerrado
+    restringen a los automóviles, no el espacio aéreo, así que quedan como
+    información (accion_grafo = NINGUNA), igual que en Probabilidades/generar.py.
   - Los accidentes se marcan con revisar_senaletica = true: un choque puede
     derribar señales y semáforos (FHWA, Maintenance of Signs and Sign Supports).
 Load (archivo):
@@ -43,11 +47,11 @@ CAMPOS = ("{incidents{type,geometry{type,coordinates},properties{id,iconCategory
 # iconCategory -> (tipo_amenaza, nombre, nivel_riesgo, accion_grafo, radio_afectacion_m)
 CATEGORIAS = {
     1: ("accidente", "Accidente", "ALTO", "BLOQUEAR_ARISTAS", 100),
-    8: ("calle_cerrada", "Calle cerrada", "ALTO", "BLOQUEAR_ARISTAS", 60),
-    9: ("construccion_vial", "Obras viales", "MEDIO", "PENALIZAR_ARISTAS", 50),
-    7: ("carril_cerrado", "Carril cerrado", "MEDIO", "PENALIZAR_ARISTAS", 50),
-    3: ("condicion_peligrosa", "Condición peligrosa en la vía", "MEDIO", "PENALIZAR_ARISTAS", 50),
-    14: ("vehiculo_detenido", "Vehículo detenido", "BAJO", "PENALIZAR_ARISTAS", 30),
+    8: ("calle_cerrada", "Calle cerrada", "MEDIO", "NINGUNA", 60),
+    9: ("construccion_vial", "Obras viales", "MEDIO", "NINGUNA", 50),
+    7: ("carril_cerrado", "Carril cerrado", "BAJO", "NINGUNA", 50),
+    3: ("condicion_peligrosa", "Condición peligrosa en la vía", "BAJO", "NINGUNA", 50),
+    14: ("vehiculo_detenido", "Vehículo detenido", "BAJO", "NINGUNA", 30),
 }
 DEMORA = {0: "desconocida", 1: "menor", 2: "moderada", 3: "mayor", 4: "indefinida"}
 

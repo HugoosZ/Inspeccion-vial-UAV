@@ -1,6 +1,6 @@
 # A4 · Accidentes, calles cerradas y obras viales (TomTom)
 
-Amenaza **dinámica**: un accidente o un cierre de calle aparece y desaparece durante la jornada, y obliga a cambiar una ruta ya planificada. Además, un choque puede derribar señales y semáforos (FHWA, *Maintenance of Signs and Sign Supports*, cap. X), así que los accidentes quedan marcados para revisar la señalética del tramo.
+Amenaza **dinámica**: un accidente aparece y desaparece durante la jornada y obliga a cambiar una ruta ya planificada; los cierres y las obras se informan. Además, un choque puede derribar señales y semáforos (FHWA, *Maintenance of Signs and Sign Supports*, cap. X), así que los accidentes quedan marcados para revisar la señalética del tramo.
 
 ## Archivos
 
@@ -24,13 +24,17 @@ TomTom Traffic API, **Incident Details v5**:
 | `iconCategory` | `tipo_amenaza` | `nivel_riesgo` | `accion_grafo` | `radio_afectacion_m` |
 |---|---|---|---|---|
 | 1 Accidente | `accidente` | ALTO | `BLOQUEAR_ARISTAS` | 100 |
-| 8 Calle cerrada | `calle_cerrada` | ALTO | `BLOQUEAR_ARISTAS` | 60 |
-| 9 Obras | `construccion_vial` | MEDIO | `PENALIZAR_ARISTAS` | 50 |
-| 7 Carril cerrado | `carril_cerrado` | MEDIO | `PENALIZAR_ARISTAS` | 50 |
-| 3 Condición peligrosa | `condicion_peligrosa` | MEDIO | `PENALIZAR_ARISTAS` | 50 |
-| 14 Vehículo detenido | `vehiculo_detenido` | BAJO | `PENALIZAR_ARISTAS` | 30 |
+| 8 Calle cerrada | `calle_cerrada` | MEDIO | `NINGUNA` (informativo) | 60 |
+| 9 Obras | `construccion_vial` | MEDIO | `NINGUNA` (informativo) | 50 |
+| 7 Carril cerrado | `carril_cerrado` | BAJO | `NINGUNA` (informativo) | 50 |
+| 3 Condición peligrosa | `condicion_peligrosa` | BAJO | `NINGUNA` (informativo) | 50 |
+| 14 Vehículo detenido | `vehiculo_detenido` | BAJO | `NINGUNA` (informativo) | 30 |
 
-Se descartan las retenciones (6), porque la congestión no afecta al dron, y las categorías de clima (2, 4, 5, 10, 11), que cubre A2. Cada incidente conserva su geometría original (punto o tramo); el ruteo bloquea o penaliza las aristas a menos de `radio_afectacion_m` (`ST_DWithin`). Los radios son **supuestos de diseño configurables**.
+Se descartan las retenciones (6), porque la congestión no afecta al dron, y las categorías de clima (2, 4, 5, 10, 11), que cubre A2. Cada incidente conserva su geometría original (punto o tramo). Los radios son **supuestos de diseño configurables**.
+
+**Qué bloquea el vuelo.** Solo un **accidente activo** bloquea las calles a menos de 100 m (`ST_DWithin`). Un accidente concentra personas, vehículos detenidos y equipos de emergencia bajo la ruta, y el riesgo en tierra de un vuelo crece con la población expuesta (Primatesta et al., 2020). La calle además queda marcada para reinspección, porque un choque puede derribar señales (FHWA).
+
+Un **cierre, una obra o un carril cerrado** restringen el tránsito de automóviles, **no el espacio aéreo**, así que quedan solo como información en el mapa y en la tabla de indisponibilidad del punto 5 (`observaciones`). Es el mismo criterio de `Probabilidades/generar.py`.
 
 ## `properties` de cada incidente
 
@@ -57,7 +61,7 @@ Se descartan las retenciones (6), porque la congestión no afecta al dron, y las
 
 ## Versión anterior: Waze Live Map
 
-El módulo de Waze (`extractor.py`, `classifier.py`, `run.py`, `cargar.py`) queda en la carpeta como referencia, pero ya no lo ejecuta `main.py`.
+El módulo de Waze (`extractor.py`, `classifier.py`, `run.py`, `cargar.py`) queda en la carpeta como referencia, pero ya no lo ejecuta `main.py`. La justificación que sigue, que bloqueaba cierres y obras, corresponde al criterio anterior; el vigente es el de la sección **Transformación**.
 
 
 Este módulo automatiza la extracción, filtrado geoespacial y modelamiento operacional de eventos reportados en tiempo real por la comunidad y operadores viales a través de **Waze Live Map** para la comuna de **Maipú**.
