@@ -69,6 +69,11 @@ services:
       DB_NAME: ruteo_db
       DB_USER: ruteo_user
       DB_PASSWORD: ruteo_pass
+      # Licencia WLS académica de Gurobi para el modelo formal T2 (se leen del .env de la raíz).
+      # Sin ellas, T2 se resuelve con HiGHS y el sitio lo indica.
+      WLSACCESSID: ${WLSACCESSID:-}
+      WLSSECRET: ${WLSSECRET:-}
+      LICENSEID: ${LICENSEID:-}
     ports:
       - "8080:8080"
     volumes:

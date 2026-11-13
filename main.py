@@ -326,6 +326,8 @@ def resumen_web():
             print(f"[+] Capas de {grupo}: {texto or 'ninguna'}")
         http_json("/api/flota/preferencias")
         print("[+] API de planificación por área con flota de drones disponible.")
+        solver = http_json("/api/solver", timeout=60)
+        print(f"[+] Modelo formal T2: {solver.get('solver')} ({solver.get('detalle')})")
     except Exception as e:  # noqa: BLE001
         print(f"[!] La web responde, pero no se pudo leer el catálogo de capas: {e}")
 

@@ -12,8 +12,9 @@ Endpoints (todos devuelven GeoJSON salvo /health y /api/capas):
   GET /api/route/baseline         ruta pgr_dijkstra por longitud (una ruta)
   GET /api/rutas                  k rutas pgr_dijkstra resilientes + métrica de resiliencia
   GET /api/rutas/preferencias     preferencias por defecto de navegación
-  POST /api/flota                 planificación por área con n drones (usada por el sitio)
+  POST /api/flota                 planificación por área con n drones y las técnicas T1-T4 (usada por el sitio)
   GET /api/flota/preferencias     preferencias por defecto de la flota
+  GET /api/solver                 solver del modelo T2 (Gurobi con licencia WLS, o HiGHS de respaldo)
 El sitio estático se sirve desde la carpeta "Sitio Web" montada en /app/sitio_web.
 """
 
@@ -31,8 +32,11 @@ from psycopg2.extras import RealDictCursor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ruteo  # noqa: E402
 from ruteo import flota  # noqa: E402
-from ruteo.preferencias import (CATEGORIAS_BASE_VALIDAS, OPCIONES, PREFERENCIAS_DEFECTO,  # noqa: E402
-                                PREFERENCIAS_FLOTA, TIPOS_SENAL_VALIDOS)
+from ruteo import milp  # noqa: E402
+from ruteo.preferencias import (AMENAZAS_VALIDAS, CATEGORIAS_BASE_VALIDAS, OPCIONES,  # noqa: E402
+                                PREFERENCIAS_DEFECTO, PREFERENCIAS_FLOTA, TECNICAS_VALIDAS,
+                                TIPOS_SENAL_VALIDOS)
+from ruteo.tecnicas import NOMBRES as NOMBRES_TECNICAS  # noqa: E402
 
 app = FastAPI(
     title="Plataforma de Ruteo UAV e Inspección Vial",
@@ -302,7 +306,15 @@ def get_rutas(
 def get_preferencias_flota():
     """Preferencias por defecto de la planificación por área y opciones válidas."""
     return {"defecto": PREFERENCIAS_FLOTA, "tipos_senal": list(TIPOS_SENAL_VALIDOS),
-            "categorias_base": list(CATEGORIAS_BASE_VALIDAS), "opciones": OPCIONES}
+            "categorias_base": list(CATEGORIAS_BASE_VALIDAS), "opciones": OPCIONES,
+            "tecnicas": list(TECNICAS_VALIDAS), "nombres_tecnicas": NOMBRES_TECNICAS,
+            "amenazas": list(AMENAZAS_VALIDAS)}
+
+
+@app.get("/api/solver")
+def get_solver():
+    """Solver que usará el modelo formal T2 (comprueba la licencia de Gurobi)."""
+    return milp.estado_solver()
 
 
 @app.post("/api/flota")
@@ -312,17 +324,19 @@ def post_flota(cuerpo: dict = Body(..., examples=[{
     "preferencias": {"n_drones": 3},
 }])):
     """
-    Planificación por área con una flota de drones (Zhong et al., 2023).
+    Planificación por área con una flota de drones (Zhong et al., 2023) y
+    comparación de técnicas de ruteo (punto 6).
 
     Cuerpo JSON:
       - area: polígono GeoJSON (lon, lat) o null para toda la comuna.
-      - preferencias: n_drones, bases, hora_salida, tipos_senal, considerar_clima,
-        velocidad_crucero_ms,
-        autonomia_min, reserva_bateria_pct, tiempo_recarga_min, jornada_h.
+      - preferencias: n_drones, bases, hora_salida, tipos_senal, categorias_base,
+        tecnicas (T1..T4), amenazas (A1..A4), limite_milp_s, limite_dpso_s,
+        considerar_clima, velocidad_crucero_ms, autonomia_min,
+        reserva_bateria_pct, tiempo_recarga_min, jornada_h.
         Las omitidas toman su valor por defecto.
 
-    Devuelve, por dron, su área, sus bases, sus salidas (rutas trazadas con
-    pgr_dijkstra) y tiempos, junto con los indicadores de la flota.
+    Devuelve la instancia común (áreas, bases y calles de cada dron) y, por
+    técnica, sus rutas, indicadores y tiempo de cómputo.
     """
     conn = get_db_connection()
     try:
