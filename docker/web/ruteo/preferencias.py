@@ -1,9 +1,9 @@
 """
-Restricciones del usuario a partir de la metadata y sus valores
-por defecto.
+Parámetros de planificación configurables desde la interfaz y valores por defecto.
 
-Cada preferencia transforma una capa de metadata en una restricción sobre el
-grafo:
+En el código, "usuario" significa la persona que consulta la herramienta y
+puede cambiar sus parámetros; los parámetros omitidos toman estos valores
+predeterminados. Algunas opciones convierten metadata en criterios del grafo:
 
   Preferencia               Capa       Efecto
   tipos_senal               M1         qué señaléticas definen las aristas a inspeccionar
@@ -11,8 +11,8 @@ grafo:
                                        prioridad al elegir las aristas a inspeccionar
   considerar_clima          A2         si se aplica la penalización horaria del clima
 
-Los parámetros operacionales del dron (velocidades y autonomía) también se
-pueden ajustar, pero tienen valores por defecto razonables.
+Otras opciones configuran la misión y el dron (velocidad, autonomía, batería,
+cantidad de drones y jornada); no son restricciones derivadas de metadata.
 
 La planificación por área con una flota (ruteo/flota.py, POST /api/flota) usa
 PREFERENCIAS_FLOTA: cantidad de drones, tipo de bases, jornada, tipos de señal,
@@ -34,7 +34,7 @@ PREFERENCIAS_DEFECTO = {
     "radio_corredor_m": 300,                  # ancho del corredor donde se buscan aristas requeridas
     "max_requeridas": 30,                     # tope de |E_R| (aristas a inspeccionar)
     "velocidad_crucero_ms": 10.0,             # para estimar la duración de cada ruta
-    "autonomia_km": 20.0,                     # batería de cada dron
+    "autonomia_km": 18.9,                     # alcance útil: 10 m/s, 45 min, 30 % reserva
     "horizonte_h": 2.0,                       # ventana para evaluar amenazas en la métrica
 }
 
@@ -50,8 +50,9 @@ LIMITES = {
 # ------------------------------------------------------------------------------
 # Planificación por área con una flota de drones (ruteo/flota.py)
 # ------------------------------------------------------------------------------
-# Parámetros del dron de referencia (DJI Matrice 30T): 41 min de vuelo; se
-# reserva un 30 % de batería para emergencias, como en Zhong et al. (2023).
+# Equipo de referencia del proyecto: DJI Mavic 3E. Los 45 min son la autonomía
+# máxima nominal del fabricante; la misión real dependerá de las condiciones.
+# La velocidad de 10 m/s y la reserva de batería son supuestos del modelo.
 PREFERENCIAS_FLOTA = {
     "n_drones": 3,
     "categorias_base": list(CATEGORIAS_BASE_VALIDAS),  # recintos públicos (M2) donde instalar las bases                            # drones de la flota; cada uno cubre un área
@@ -60,7 +61,7 @@ PREFERENCIAS_FLOTA = {
     "tipos_senal": ["senal_pare", "senal_ceda_el_paso", "semaforo"],
     "considerar_clima": True,                 # avisa qué salidas caen en horas de mal tiempo (A2)
     "velocidad_crucero_ms": 10.0,
-    "autonomia_min": 41.0,
+    "autonomia_min": 45.0,
     "reserva_bateria_pct": 30.0,
     "tiempo_recarga_min": 15.0,               # cambio de batería entre salidas
     "jornada_h": 8.0,                         # horas de vuelo diurno disponibles

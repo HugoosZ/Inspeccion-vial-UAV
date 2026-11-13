@@ -43,9 +43,9 @@ $$j^{*}=\arg\min_{j\in C}\sum_{i\in \text{área}} \ell_i\,\lVert p_i-c_j\rVert$$
 
 El alcance por salida es
 
-$$C = v \cdot t_{\text{autonomía}} \cdot \left(1-\frac{\text{reserva}}{100}\right) = 10\ \tfrac{\text{m}}{\text{s}} \cdot 41\ \text{min} \cdot 0{,}7 \approx 17{,}2\ \text{km}$$
+$$C = v \cdot t_{\text{autonomía}} \cdot \left(1-\frac{\text{reserva}}{100}\right) = 10\ \tfrac{\text{m}}{\text{s}} \cdot 45\ \text{min} \cdot 0{,}7 \approx 18{,}9\ \text{km}$$
 
-con los valores por defecto (DJI Matrice 30T y 30 % de reserva, como en el paper, que reserva entre 30 y 40 %).
+con los valores de referencia configurados para el **DJI Mavic 3E**: 45 min de autonomía máxima nominal, 10 m/s de velocidad de crucero y 30 % de reserva. DJI especifica hasta 45 min bajo condiciones de ensayo; por eso el alcance calculado es una referencia teórica, no la autonomía operativa verificada de una misión. Los 10 m/s y la reserva son supuestos del proyecto, no velocidades ni márgenes garantizados por DJI. [Especificaciones oficiales del Mavic 3E](https://enterprise.dji.com/mavic-3-enterprise/specs).
 
 ### A.2 Indicadores (Zhong et al., 2023)
 
@@ -68,8 +68,8 @@ con los valores por defecto (DJI Matrice 30T y 30 % de reserva, como en el paper
 | `tipos_senal` | PARE, Ceda el paso, Semáforo | Señaléticas M1 a inspeccionar |
 | `categorias_base` | Salud, educación, Carabineros, Bomberos | Recintos públicos (M2) donde se pueden instalar las bases |
 | `considerar_clima` | Sí | Avisos de salidas con mal tiempo (A2) |
-| `velocidad_crucero_ms` | 10 | Velocidad de vuelo |
-| `autonomia_min` | 41 | Duración de la batería |
+| `velocidad_crucero_ms` | 10 | Supuesto de velocidad de crucero (m/s) |
+| `autonomia_min` | 45 | Autonomía máxima nominal de referencia del DJI Mavic 3E (min) |
 | `reserva_bateria_pct` | 30 | Batería que no se usa |
 | `tiempo_recarga_min` | 15 | Cambio de batería entre salidas |
 
@@ -165,7 +165,7 @@ Si el usuario no ingresa un valor, se usa este (`GET /api/rutas/preferencias`):
 | Ancho del corredor | 300 m |
 | Máximo de aristas requeridas | 30 |
 | Velocidad de crucero | 10 m/s |
-| Autonomía por dron | 20 km |
+| Autonomía útil por dron | 18,9 km (10 m/s, 45 min nominales, 30 % de reserva) |
 | Horizonte de amenazas | 2 h |
 
 La respuesta de `/api/rutas` incluye `preferencias_por_defecto`, con la lista de campos que quedaron por defecto.
