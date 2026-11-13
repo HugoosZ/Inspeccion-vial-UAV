@@ -101,25 +101,39 @@ CREATE INDEX IF NOT EXISTS idx_temp_amenazas_json ON temp_amenazas USING GIN (pr
 CREATE INDEX IF NOT EXISTS idx_temp_amenazas_fuente_etl ON temp_amenazas ((propiedades->>'fuente_etl'));
 
 -- ------------------------------------------------------------------------------
--- 4b. PROBABILIDAD DE FALLA POR ENLACE Y NODO (Probabilidades/generar.py)
+-- 4b. INDISPONIBILIDAD POR ENLACE Y NODO (Probabilidades/generar.py, punto 5)
 -- ------------------------------------------------------------------------------
--- Una fila por enlace o nodo con probabilidad de falla > 0 en la jornada [t0, t1]:
--- p_total = 1 - Π_k (1 - p_k) y su desglose por amenaza (A1 a A4). detalle guarda
--- las amenazas que más aportan. Se recalcula completa en cada ejecución.
+-- Una fila por enlace o nodo con algún registro en la jornada [t0, t1]. Separa la
+-- prohibición (bloqueado), la probabilidad (p_*) y la nueva demanda (p_accidente).
+-- Se recalcula completa en cada ejecución. Ver Probabilidades/README.md.
 CREATE TABLE IF NOT EXISTS prob_falla_aristas (
     edge_id BIGINT PRIMARY KEY,              -- network_edges.id
-    p_total DOUBLE PRECISION NOT NULL,
-    p_a1 DOUBLE PRECISION, p_a2 DOUBLE PRECISION, p_a3 DOUBLE PRECISION, p_a4 DOUBLE PRECISION,
-    n_amenazas INTEGER,
-    detalle JSONB,
+    p_total DOUBLE PRECISION NOT NULL,       -- proxy de indisponibilidad: 1 - (1 - p_a1)(1 - p_a2)
+    p_a1 DOUBLE PRECISION,                   -- incendio cercano en la jornada (tasa histórica CONAF, Poisson)
+    p_a2 DOUBLE PRECISION,                   -- fracción de escenarios del ensamble no aptos (peor hora); NULL sin ensamble
+    p_a3 DOUBLE PRECISION, p_a4 DOUBLE PRECISION,   -- NULL: SOSAFE y TomTom se tratan como bloqueo o nota
+    p_accidente DOUBLE PRECISION DEFAULT 0,  -- siniestro de tránsito en la jornada (CONASET): nueva demanda, no falla
+    riesgo_viento DOUBLE PRECISION DEFAULT 0,-- índice (ráfaga / 28,8 km/h)^2, máx. 1
+    contraste_visual DOUBLE PRECISION,       -- contraste relativo de la señal a 35 m (Koschmieder)
+    bloqueado BOOLEAN DEFAULT FALSE,         -- prohibición operacional en la jornada
+    motivos_bloqueo JSONB,                   -- incendio_activo, seguridad_activa, accidente_activo, meteorologia_no_apta
+    calidad TEXT,                            -- proxy_no_calibrado, proxy_historico o no_estimado
+    observaciones JSONB,                     -- notas (cierres viales, alertas informativas, ...)
     t0 TIMESTAMPTZ, t1 TIMESTAMPTZ
 );
 CREATE TABLE IF NOT EXISTS prob_falla_nodos (
     node_id BIGINT PRIMARY KEY,              -- network_nodes.id
-    p_total DOUBLE PRECISION NOT NULL,
-    p_a1 DOUBLE PRECISION, p_a2 DOUBLE PRECISION, p_a3 DOUBLE PRECISION, p_a4 DOUBLE PRECISION,
-    n_amenazas INTEGER,
-    detalle JSONB,
+    p_total DOUBLE PRECISION NOT NULL,       -- proxy de indisponibilidad: 1 - (1 - p_a1)(1 - p_a2)
+    p_a1 DOUBLE PRECISION,                   -- incendio cercano en la jornada (tasa histórica CONAF, Poisson)
+    p_a2 DOUBLE PRECISION,                   -- fracción de escenarios del ensamble no aptos (peor hora); NULL sin ensamble
+    p_a3 DOUBLE PRECISION, p_a4 DOUBLE PRECISION,   -- NULL: SOSAFE y TomTom se tratan como bloqueo o nota
+    p_accidente DOUBLE PRECISION DEFAULT 0,  -- siniestro de tránsito en la jornada (CONASET): nueva demanda, no falla
+    riesgo_viento DOUBLE PRECISION DEFAULT 0,-- índice (ráfaga / 28,8 km/h)^2, máx. 1
+    contraste_visual DOUBLE PRECISION,       -- contraste relativo de la señal a 35 m (Koschmieder)
+    bloqueado BOOLEAN DEFAULT FALSE,         -- prohibición operacional en la jornada
+    motivos_bloqueo JSONB,                   -- incendio_activo, seguridad_activa, accidente_activo, meteorologia_no_apta
+    calidad TEXT,                            -- proxy_no_calibrado, proxy_historico o no_estimado
+    observaciones JSONB,                     -- notas (cierres viales, alertas informativas, ...)
     t0 TIMESTAMPTZ, t1 TIMESTAMPTZ
 );
 
