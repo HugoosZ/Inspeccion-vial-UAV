@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import comun  # noqa: E402
+from territorio import limite_maipu, pertenece
 
 ARCHIVO = Path(__file__).resolve().parent / "data" / "incendios_maipu.geojson"
 
@@ -40,4 +41,6 @@ def mapear(feature):
 
 if __name__ == "__main__":
     comun.cargar_env()
-    comun.cargar_features(ARCHIVO, "A1_incendios", mapear, dry_run="--dry-run" in sys.argv)
+    limite = limite_maipu()
+    comun.cargar_features(ARCHIVO, "A1_incendios", mapear, dry_run="--dry-run" in sys.argv,
+                         filtrar=lambda feature: pertenece(feature, limite))

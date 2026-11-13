@@ -216,7 +216,7 @@ VALUES (%s, %s, %s, %s, %s, %s::jsonb, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
 """
 
 
-def cargar_features(ruta_geojson, fuente, mapear, dry_run=False):
+def cargar_features(ruta_geojson, fuente, mapear, dry_run=False, filtrar=None):
     """Carga un GeoJSON a temp_amenazas de forma idempotente.
 
     - fuente: valor que se guarda en propiedades->>'fuente_etl'. Antes de insertar
@@ -227,6 +227,8 @@ def cargar_features(ruta_geojson, fuente, mapear, dry_run=False):
     datos = json.loads(Path(ruta_geojson).read_text(encoding="utf-8"))
     filas = []
     for feat in datos.get("features", []):
+        if filtrar is not None and not filtrar(feat):
+            continue
         nombre, tipo, nivel, descripcion = mapear(feat)
         props = dict(feat.get("properties", {}))
         props["fuente_etl"] = fuente

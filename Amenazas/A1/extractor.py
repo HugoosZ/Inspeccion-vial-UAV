@@ -9,7 +9,7 @@ alimentan su página "Situación actual y pronóstico de incendios"):
   - PI                  probabilidad de ignición del día (pronóstico de CONAF)
 Transform:
   1. Incendios no extinguidos (En combate, Foco, Bajo observación, Controlado)
-     dentro de Maipú y sus alrededores -> polígono circular de exclusión:
+     con origen dentro del límite oficial de Maipú -> polígono de exclusión:
         radio = radio equivalente del área quemada + INCENDIOS_RADIO_M
      En combate / foco / bajo observación bloquean las aristas; controlado las
      penaliza (queda humo, pero ya no hay operación aérea de combate).
@@ -27,7 +27,6 @@ Uso:
   python extractor.py
 Variables de entorno opcionales:
   INCENDIOS_RADIO_M   margen de exclusión alrededor del fuego en metros (defecto 2000)
-  INCENDIOS_MARGEN_M  distancia a Maipú dentro de la que se consideran incendios (defecto 5000)
 """
 
 import math
@@ -41,6 +40,7 @@ sys.path.insert(0, str(DIR.parent))
 sys.path.insert(0, str(DIR.parent.parent / "Metadata"))
 import comun  # noqa: E402
 import comun_arcgis as ag  # noqa: E402
+from territorio import limite_maipu
 
 SALIDA = DIR / "data" / "incendios_maipu.geojson"
 CONAF = "https://services5.arcgis.com/A1ELWse9bRAi2JiV/arcgis/rest/services/"
@@ -101,18 +101,12 @@ def radio_quemado_m(sup_ha):
         return 0.0
 
 
-def bbox_ampliado(margen_m):
-    lon_min, lat_min, lon_max, lat_max = comun.AOI_MAIPU
-    dlon, dlat = comun.metros_a_grados(margen_m, (lat_min + lat_max) / 2)
-    return (lon_min - dlon, lat_min - dlat, lon_max + dlon, lat_max + dlat)
-
-
-def incendios(radio_m, margen_m):
-    zona = bbox_ampliado(margen_m)
+def incendios(radio_m):
+    limite = limite_maipu()
     features, vistos = [], set()
     for url, temporada in ((URL_TEMPORADA, "en curso"), (URL_ANTERIOR, "anterior")):
         print(f"[*] CONAF: incendios de la temporada {temporada}...")
-        filas = ag.consultar(url, bbox=zona)
+        filas = ag.consultar(url, bbox=comun.AOI_MAIPU)
         n_act = n_hist = 0
         for fila in filas:
             a = fila.get("attributes") or {}
@@ -124,6 +118,8 @@ def incendios(radio_m, margen_m):
                 g = fila.get("geometry") or {}
                 lon, lat = g.get("x"), g.get("y")
             if lon is None or lat is None:
+                continue
+            if not ag.dentro_de(float(lon), float(lat), limite):
                 continue
             estado = ag.texto(a.get("estado")) or "Sin estado"
             inicio = fecha_local(epoch_inicio(a))
@@ -170,11 +166,7 @@ def probabilidad_ignicion():
     if not poligonos:
         print("    [!] CONAF no publicó PI para Maipú hoy")
         return []
-    try:
-        limite = ag.limite_maipu()
-    except RuntimeError as error:
-        print(f"    [!] Sin límite comunal ({error}); la grilla cubre todo el rectángulo")
-        limite = None
+    limite = limite_maipu()
     lon_min, lat_min, lon_max, lat_max = comun.AOI_MAIPU
     dlon, dlat = comun.metros_a_grados(CELDA_PI_M, (lat_min + lat_max) / 2)
     columnas = math.ceil((lon_max - lon_min) / dlon)
@@ -210,10 +202,9 @@ def probabilidad_ignicion():
 def main():
     comun.cargar_env()
     radio_m = int(os.getenv("INCENDIOS_RADIO_M", "2000"))
-    margen_m = int(os.getenv("INCENDIOS_MARGEN_M", "5000"))
     features, consultadas = [], []
     try:
-        features += incendios(radio_m, margen_m)
+        features += incendios(radio_m)
         consultadas.append("incendios")
     except RuntimeError as error:
         print(f"[!] Incendios CONAF no disponibles: {error}")
@@ -236,7 +227,7 @@ def main():
         "consultas_exitosas": consultadas,
         "por_tipo": resumen,
         "radio_exclusion_m": radio_m,
-        "margen_busqueda_m": margen_m,
+        "ambito_geografico": "Límite comunal oficial MINVU; origen del incendio dentro de Maipú",
         "aoi_maipu_bbox": list(comun.AOI_MAIPU),
     })
 

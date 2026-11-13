@@ -22,7 +22,9 @@ CONAF publica en ArcGIS los mismos datos que muestra en su página *Situación a
 | `incendios_totales` | `…/incendios_totales/FeatureServer/0` | Incendios de la temporada anterior (julio 2025 a mayo 2026) | Al cierre de temporada |
 | `PI` | `…/PI/FeatureServer/0` | Probabilidad de ignición del día, en clases de 10 % y celdas de 2 km | Diaria |
 
-Se consultan los incendios dentro del rectángulo de Maipú ampliado en `INCENDIOS_MARGEN_M` (5 km), porque el humo de un incendio en una comuna vecina también afecta el vuelo.
+Se consulta un rectángulo de búsqueda y se conservan únicamente los incendios cuyo punto de origen está dentro del límite comunal oficial de Maipú (MINVU, copia en `Metadata/limite_maipu.geojson`). El mismo filtro se aplica al cargar archivos ya guardados en la base de datos. No se incluyen incendios de comunas vecinas ni se utiliza un margen de búsqueda adicional. Si no está disponible el límite oficial, se aborta la operación en lugar de aceptar el rectángulo completo.
+
+Las celdas de probabilidad de ignición se seleccionan por su centro dentro de Maipú. El radio de exclusión de un incendio originado en Maipú puede extenderse fuera de la comuna: representa su área de precaución, no otro incendio.
 
 Reemplaza a GDACS + NASA FIRMS de la entrega anterior: GDACS solo registra incendios de gran magnitud (la consulta devolvía 0 en Maipú) y FIRMS detecta puntos de calor por satélite, con falsas alarmas y una latencia de 3 a 6 horas. CONAF registra cada incendio confirmado en terreno.
 
@@ -51,7 +53,6 @@ Los incendios extinguidos y la probabilidad de ignición no modifican el grafo: 
 | Variable | Defecto | Descripción |
 |---|---|---|
 | `INCENDIOS_RADIO_M` | `2000` | Margen de exclusión alrededor del área quemada (m) |
-| `INCENDIOS_MARGEN_M` | `5000` | Distancia a Maipú dentro de la cual se buscan incendios (m) |
 
 ## Estructura de `incendios_maipu.geojson`
 
@@ -67,7 +68,7 @@ Los incendios extinguidos y la probabilidad de ignición no modifican el grafo: 
 | `consultas_exitosas` | `incendios` y/o `probabilidad_ignicion` |
 | `por_tipo` | Conteo por `tipo_amenaza` |
 | `radio_exclusion_m` | Margen usado en los círculos |
-| `margen_busqueda_m` | Ampliación del rectángulo de búsqueda |
+| `ambito_geografico` | Selección por origen dentro del límite comunal oficial |
 | `aoi_maipu_bbox` | Rectángulo de Maipú [oeste, sur, este, norte] |
 
 ### `properties` de los incendios (`incendio_activo` e `incendio_historico`)
