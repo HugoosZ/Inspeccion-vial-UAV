@@ -701,6 +701,8 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
                              "properties": {"tecnica": cod, "dron": d + 1, "salida": s, "tipo": sal["tipo"],
                                             "km": round(km, 2), "vuelo_min": round(vuelo, 1),
                                             "tareas": len(sal["tareas"]), "inicio": ini.isoformat(),
+                                            "fin": (ini + timedelta(minutes=vuelo)).isoformat(),
+                                            "aristas": list(aristas),
                                             "clima": aviso, "p_media": round(p_media, 4),
                                             "p_clima": None if p_clima is None else round(p_clima, 3),
                                             "aristas_bloqueadas": len(bloq)}})

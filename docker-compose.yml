@@ -79,6 +79,7 @@ services:
     volumes:
       - ./Sitio Web:/app/sitio_web:ro
       - ./docker/web:/app/server:ro
+      - ./Probabilidades:/app/Probabilidades:ro
     networks:
       - ruteo_net
 

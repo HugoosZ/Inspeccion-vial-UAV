@@ -21,6 +21,8 @@ No se convierten escalas subjetivas (BAJO, MEDIO, ALTO, CRÍTICO) en probabilida
 
 `main.py` lo ejecuta como etapa **3/3** del pipeline, después de cargar las amenazas. También se puede correr solo: `python Probabilidades/generar.py`.
 
+`calcular(..., eventos=lista)` exporta opcionalmente los eventos que originan el modelo para la simulación del punto 7, conservando las fórmulas, filas y retorno habituales. La web utiliza esa salida en memoria para compartir cada sorteo entre sus nodos y enlaces afectados; no escribe las tablas ni el JSON de probabilidades durante la simulación.
+
 ## Dron y política de vuelo (DJI Mavic 3E)
 
 | Parámetro | Valor | Origen |

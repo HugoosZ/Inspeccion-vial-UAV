@@ -297,7 +297,12 @@ def p_clima(props):
 # ------------------------------------------------------------------------------
 # Cálculo: separar prohibición, incertidumbre y nueva demanda
 # ------------------------------------------------------------------------------
-def calcular(aristas, nodos, amenazas, siniestros, t0, horas):
+def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None):
+    """Calcula las marginales; opcionalmente exporta sus eventos para el punto 7.
+
+    El mismo evento conserva una única realización sobre todos los enlaces y
+    nodos que alcanza. El sink no cambia las filas ni el retorno del punto 5.
+    """
     if horas <= 0:
         raise ValueError("El horizonte debe ser positivo")
     t1 = t0 + timedelta(hours=horas)
@@ -311,6 +316,21 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas):
     advertencias = set()
     riesgo_viento = defaultdict(list)
     contraste_visual = defaultdict(list)
+
+    def registrar_evento(identificador, fuente, keys, motivo, p=None, desde=None, hasta=None):
+        if eventos is None or not keys:
+            return
+        eventos.append({
+            "id": str(identificador), "fuente": fuente,
+            "probabilidad": p, "determinista": p is None,
+            "desde": (desde or t0).timestamp(), "hasta": (hasta or t1).timestamp(),
+            "aristas": sorted(k[1] for k in keys if k[0] == "e"),
+            "nodos": sorted(k[1] for k in keys if k[0] == "v"), "motivo": motivo,
+        })
+
+    def identidad(a):
+        props = a["props"]
+        return props.get("id_amenaza") or props.get("id_conaf") or props.get("id") or a["id"]
 
     def afectados(forma, radio):
         return [k for k in indice.candidatos(forma.caja, radio)
@@ -346,6 +366,7 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas):
             # Evento activo localizado: zona prohibida; una p no sustituye al bloqueo.
             for k in keys:
                 bloqueos[k].add("incendio_activo")
+            registrar_evento(f"A1:activo:{identidad(a)}", "A1", keys, "incendio_activo")
 
         elif fuente == "A3_sosafe":
             # Solo los eventos de seguridad peligrosos bloquean; el nivel no se
@@ -357,6 +378,8 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas):
                     bloqueos[k].add("seguridad_activa")
                 else:
                     notas[k].append("alerta_seguridad_informativa")
+            if es_peligrosa:
+                registrar_evento(f"A3:activo:{identidad(a)}", "A3", keys, "seguridad_activa")
 
         elif fuente == "A2_clima":
             if props.get("visibilidad_m") is not None:
@@ -370,15 +393,26 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas):
                 for k in keys:
                     riesgo_viento[k].append(riesgo)
             p = p_clima(props)
+            if eventos is not None:
+                hora_desde = instante(props.get("valido_desde")) or t0
+                hora_hasta = instante(props.get("valido_hasta")) or t1
+                desde, hasta = max(t0, hora_desde), min(t1, hora_hasta)
+                celda = props.get("id_celda") or identidad(a)
+                evento_clima = (f"A2:{celda}:{hora_desde.astimezone(timezone.utc).isoformat()}:"
+                                f"{hora_hasta.astimezone(timezone.utc).isoformat()}")
             if p is not None:
                 for k in keys:
                     probs[k]["clima"].append(p)
+                if eventos is not None:
+                    registrar_evento(evento_clima, "A2", keys, "meteorologia_ensamble", p, desde, hasta)
             else:
                 # Sin ensamble, el valor determinista es estado del escenario, no
                 # una probabilidad: se trata como prohibición (no simular con él).
                 if clima_no_apto(props):
                     for k in keys:
                         bloqueos[k].add("meteorologia_no_apta")
+                    if eventos is not None:
+                        registrar_evento(evento_clima, "A2", keys, "meteorologia_no_apta", desde=desde, hasta=hasta)
                 else:
                     for k in keys:
                         notas[k].append("meteo_apta_en_pronostico")
@@ -401,6 +435,10 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas):
                     notas[k].append("cierre_vial_terrestre_sin_bloqueo_aereo_confirmado")
                 else:
                     notas[k].append("incidente_tomtom")
+            if props.get("bloqueo_vuelo_confirmado") is True:
+                registrar_evento(f"A4:activo:{identidad(a)}", "A4", keys, "restriccion_vuelo_confirmada")
+            elif "acciden" in (tipo or "").lower():
+                registrar_evento(f"A4:activo:{identidad(a)}", "A4", keys, "accidente_activo")
 
     # Poisson: probabilidad de AL MENOS un incendio cercano en la jornada.
     # No es directamente probabilidad de falla del dron ni de cierre aéreo.
@@ -411,8 +449,13 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas):
             dias = max(DIAS_MIN_HISTORIA, (max(fechas) - min(fechas)).days + 1)
             conteo = defaultdict(int)
             for h in historicos:
-                for k in afectados(Forma(h["geom"]), R_HIST_INCENDIOS_M):
+                keys = afectados(Forma(h["geom"]), R_HIST_INCENDIOS_M)
+                for k in keys:
                     conteo[k] += 1
+                # Un proceso por localización histórica comparte su realización
+                # espacial; su unión reproduce la marginal Poisson con n/D.
+                registrar_evento(f"A1:historico:{identidad(h)}", "A1", keys,
+                                 "incendio_cercano_futuro", 1 - math.exp(-horas / (24 * dias)))
             for k, n in conteo.items():
                 probs[k]["incendio_historico"].append(1 - math.exp(-n / dias * horas / 24))
         else:

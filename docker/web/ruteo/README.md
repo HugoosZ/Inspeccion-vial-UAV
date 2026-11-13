@@ -18,6 +18,8 @@ El módulo tiene dos modos:
 | `datos.py` | Consultas PostGIS: nodos, amenazas por arista, restricciones de metadata, puntos a inspeccionar |
 | `dijkstra_k.py` | k rutas con `pgr_dijkstra` sobre $w(e)$, por penalización iterativa |
 | `metrica.py` | Resiliencia de k rutas |
+| `simulacion.py` | Eventos del modelo del punto 5 y sorteo reproducible por semilla (punto 7) |
+| `simulacion_servicio.py` | Conserva planes en memoria, aplica el escenario común y genera capas y cruces por técnica |
 | `__init__.py` | `planificar()`: orquesta el modo de k rutas |
 
 ---
@@ -223,7 +225,38 @@ Además de los de la sección A.2:
 
 El riesgo se evalúa **siempre con todas las amenazas**, aunque la técnica haya ruteado con menos o con ninguna. Así T1 muestra el riesgo que corre al ignorarlas.
 
-La probabilidad de completar una salida **no** es el producto de las $p_e$ de sus calles, porque el clima (A2) o un incidente afectan a muchas calles a la vez y sus fallas no son independientes. Por eso la supervivencia de las rutas se calcula con eventos correlacionados en la simulación de fallas (punto 7).
+Un evento puede afectar muchas calles y nodos a la vez. La simulación del punto 7 conserva esa relación: sortea una vez por evento y comparte el resultado entre todos sus elementos y las técnicas del plan.
+
+#### C.5.1 Simulación de fallas (punto 7)
+
+Después de **Planificar inspección**, el panel **Simulación de fallas** permite elegir una semilla entera y presionar **Simular fallas**. El servidor genera un número uniforme $U\in[0,100)$ por evento incierto y aplica la regla:
+
+$$\text{ocurre la falla si } U < 100p.$$
+
+Con $p=0$ nunca ocurre; con $p=1$ siempre ocurre. La misma semilla y los mismos datos del plan reproducen los números, aunque cambie el orden de los eventos. Los bloqueos operacionales confirmados permanecen activos sin sorteo.
+
+El escenario reutiliza las funciones del modelo de `Probabilidades/generar.py` y las fuentes cargadas en PostGIS:
+
+- **A1:** los incendios activos son bloqueos confirmados. El riesgo futuro se representa con procesos por localización histórica de CONAF; su unión conserva la tasa Poisson $1-e^{-nH/(24D)}$ del punto 5. Un incendio sorteado afecta conjuntamente a sus calles y nodos durante la ventana simulada.
+- **A2:** un sorteo por celda y hora, usando la fracción de escenarios meteorológicos no aptos calculada con la misma política del punto 5. Sin ensamble se conserva el estado determinista del pronóstico y se muestra un aviso.
+- **A3 y A4:** las alertas peligrosas y accidentes activos mantienen sus bloqueos confirmados. Los cierres terrestres, las obras informativas, `p_accidente` y los índices de viento/contraste no se convierten en fallas aleatorias de vuelo.
+
+Una falla de nodo también impide utilizar las calles incidentes. El mapa superpone aristas y nodos afectados, distingue bloqueos confirmados de fallas sorteadas y permite ocultar cada capa. Los popups y la tabla de eventos muestran la causa, probabilidad, número y umbral.
+
+Las cuatro técnicas conservan sus recorridos originales y reciben **el mismo escenario**. La tabla adicional identifica salidas que cruzan elementos indisponibles. Para A2 se contrasta el intervalo del evento con el horario estimado de paso por cada arista, manteniendo la velocidad constante del planificador. El mapa resume los elementos afectados en algún momento de la jornada; por eso una calle coloreada no implica que todas las salidas la crucen durante la falla. Las salidas que exceden la ventana se identifican aparte.
+
+**Restablecer simulación** retira el escenario del mapa y conserva el plan. Cambiar el área, limpiar o calcular otro plan descarta el escenario anterior. La simulación no modifica la red ni las probabilidades persistidas en la base de datos.
+
+API:
+
+```text
+POST /api/flota                 -> respuesta habitual + plan_id
+POST /api/flota/simulacion      {"plan_id": "...", "semilla": 7}
+```
+
+El servidor conserva hasta cuatro planes durante 30 minutos. El primer sorteo congela el modelo de eventos para ese plan; los siguientes reutilizan las mismas entradas para comparar semillas. Si el plan expira, se reinicia el servidor o cambia la geometría de su red antes de cargar el escenario, hay que volver a planificar.
+
+La respuesta incluye `semilla`, `t0`, `t1`, `eventos`, `resumen`, capas GeoJSON de nodos/aristas y el detalle de cruces por técnica. Al actualizar el servicio web, `docker compose up -d --build web` incorpora el montaje de solo lectura del modelo de probabilidades.
 
 ### C.6 Verificación y calibración
 

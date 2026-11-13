@@ -108,6 +108,20 @@
   .leyenda-tec div { display: flex; align-items: center; gap: 6px; }
   .leyenda-tec .linea { width: 22px; height: 0; border-top-width: 4px; border-top-style: solid; flex-shrink: 0; }
   #resultado .tabla-drones td { white-space: nowrap; }
+  #simulacion { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--borde); font-size: 12px; }
+  #simulacion h2 { margin-bottom: 6px; }
+  #simulacion label { display: inline-flex; align-items: center; gap: 5px; }
+  #simulacion .controles-capas { display: flex; flex-wrap: wrap; gap: 5px 12px; margin: 6px 0; }
+  #simulacion table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+  #simulacion th, #simulacion td { padding: 3px 4px; border-bottom: 1px solid var(--borde); text-align: right; }
+  #simulacion th:first-child, #simulacion td:first-child { text-align: left; }
+  #simulacion .aviso { color: #b45309; margin: 4px 0; }
+  #simulacion details { margin-top: 8px; }
+  #simulacion summary { cursor: pointer; font-weight: 600; }
+  #simulacion .tabla-scroll { overflow: auto; max-height: 320px; }
+  #simulacion .evento { display: block; color: var(--suave); font-size: 11px; overflow-wrap: anywhere; }
+  #simulacion .leyenda-fallas { color: var(--suave); margin: 5px 0; }
+  #simulacion .leyenda-fallas i { display: inline-block; width: 10px; height: 10px; margin-right: 3px; }
   #alternar { display: none; }
   @media (max-width: 760px) {
     #app { flex-direction: column; }
@@ -152,6 +166,30 @@
         <button type="button" class="btn" id="btnLimpiar">Limpiar</button>
       </div>
       <div id="resultado"></div>
+      <section id="simulacion" aria-labelledby="tituloSimulacion">
+        <h2 id="tituloSimulacion">Simulación de fallas</h2>
+        <p class="ayuda">Planifica la inspección y luego sortea un escenario común para las técnicas ejecutadas.
+          La misma semilla reproduce el sorteo sobre ese plan.</p>
+        <div class="form-prefs">
+          <label for="semillaSimulacion">Semilla del escenario</label>
+          <input type="number" id="semillaSimulacion" min="0" max="2147483647" step="1" value="7">
+        </div>
+        <div class="fila-botones">
+          <button type="button" class="btn primario" id="btnSimular" disabled>Simular fallas</button>
+          <button type="button" class="btn" id="btnRestablecerSimulacion" disabled>Restablecer simulación</button>
+        </div>
+        <p class="ayuda" id="estadoSimulacion" role="status" aria-live="polite">Primero planifica una inspección.</p>
+        <div id="visibilidadSimulacion" hidden>
+          <label><input type="checkbox" id="mostrarEscenario" checked> Mostrar escenario</label>
+          <div class="controles-capas">
+            <label><input type="checkbox" id="mostrarAristasSimulacion" checked> Aristas afectadas</label>
+            <label><input type="checkbox" id="mostrarNodosSimulacion" checked> Nodos afectados</label>
+          </div>
+          <div class="leyenda-fallas"><i style="background:#e11d48"></i>Falla sorteada ·
+            <i style="background:#111827"></i>Bloqueo confirmado</div>
+        </div>
+        <div id="resultadoSimulacion"></div>
+      </section>
     </section>
     <div id="capas"></div>
     <p class="nota">Fuentes: OpenStreetMap (OSMnx, ohsome), MINVU, MOP, CONASET, CONAF, Open-Meteo,
@@ -457,12 +495,15 @@ function prepararHoras(capa) {
 // Planificación por área con una flota de drones (POST /api/flota)
 // ---------------------------------------------------------------------------
 mapa.createPane("rutas").style.zIndex = 440;
+mapa.createPane("simulacion").style.zIndex = 450;
 const COLORES = ["#1d4ed8", "#059669", "#c026d3", "#ea580c", "#0891b2",
                  "#be123c", "#65a30d", "#7c3aed", "#b45309", "#0f766e"];
 const colorDron = d => COLORES[(d - 1) % COLORES.length];
 const ruteo = { area: null, comuna: false, vertices: [], dibujando: false, capaArea: null,
                 guia: null, capas: {}, defecto: null, tipos: [], categoriasBase: [], opciones: {},
-                tecnicas: [], amenazas: [], resultado: null, leyenda: null };
+                tecnicas: [], amenazas: [], resultado: null, leyenda: null,
+                calculando: false, peticion: 0, solicitud: null };
+const simulacion = { resultado: null, capas: {}, cargando: false, peticion: 0, solicitud: null, pagina: 0, error: null };
 
 const CAMPOS = [
   { grupo: "Flota y jornada" },
@@ -566,10 +607,11 @@ function preferenciasUsuario() {
 
 // ----- Selección del área -----
 function actualizarBotones() {
-  document.getElementById("btnCalcular").disabled = !(ruteo.area || ruteo.comuna) || ruteo.dibujando;
+  document.getElementById("btnCalcular").disabled = !(ruteo.area || ruteo.comuna) || ruteo.dibujando || ruteo.calculando;
   document.getElementById("btnCerrar").disabled = !(ruteo.dibujando && ruteo.vertices.length >= 3);
   document.getElementById("btnDibujar").classList.toggle("activo", ruteo.dibujando);
   document.getElementById("btnComuna").classList.toggle("activo", ruteo.comuna);
+  actualizarControlesSimulacion();
 }
 
 function borrarArea() {
@@ -637,12 +679,21 @@ function areaKm2(latlngs) {
 }
 
 // ----- Resultado -----
-function limpiarRutas() {
+function limpiarRutas(cancelar = true) {
+  if (cancelar) {
+    ruteo.peticion++;
+    if (ruteo.solicitud) ruteo.solicitud.abort();
+    ruteo.solicitud = null;
+    ruteo.calculando = false;
+    document.getElementById("btnCalcular").textContent = "Planificar inspección";
+  }
+  restablecerSimulacion();
   Object.values(ruteo.capas).forEach(c => mapa.removeLayer(c));
   ruteo.capas = {};
   ruteo.resultado = null;
   actualizarLeyenda();
   document.getElementById("resultado").innerHTML = "";
+  actualizarControlesSimulacion();
 }
 
 function limpiarTodo() {
@@ -691,7 +742,7 @@ function actualizarLeyenda() {
 }
 
 function dibujarResultado(r) {
-  limpiarRutas();
+  limpiarRutas(false);
   ruteo.resultado = r;
   const capas = r.capas;
   const centralizada = r.preferencias.bases === "centralizada";
@@ -835,11 +886,193 @@ function dibujarResultado(r) {
     if (capa) e.target.checked ? capa.addTo(mapa) : mapa.removeLayer(capa);
     actualizarLeyenda();
   }));
+  actualizarControlesSimulacion();
+}
+
+// P7: sortea eventos sobre el plan guardado y superpone sus elementos indisponibles.
+function actualizarControlesSimulacion() {
+  const disponible = !!(ruteo.resultado && ruteo.resultado.plan_id);
+  const btn = document.getElementById("btnSimular");
+  btn.disabled = !disponible || ruteo.calculando || simulacion.cargando;
+  btn.textContent = simulacion.cargando ? "Simulando…" : "Simular fallas";
+  document.getElementById("semillaSimulacion").disabled = ruteo.calculando || simulacion.cargando;
+  document.getElementById("btnRestablecerSimulacion").disabled =
+    !(simulacion.resultado || simulacion.cargando || simulacion.error);
+  const estado = document.getElementById("estadoSimulacion");
+  estado.classList.toggle("aviso", !!simulacion.error);
+  estado.textContent = ruteo.calculando ? "Espera a que termine la planificación." :
+    simulacion.cargando ? "Sorteando el escenario para el plan actual…" :
+    simulacion.error || (simulacion.resultado ? `Último sorteo: semilla ${fmt(simulacion.resultado.semilla)}.` :
+      disponible ? "Plan listo. Elige una semilla y simula las fallas." : "Primero planifica una inspección.");
+}
+
+function quitarCapasSimulacion() {
+  Object.values(simulacion.capas).forEach(c => mapa.removeLayer(c));
+  simulacion.capas = {};
+}
+
+function restablecerSimulacion(restaurarSemilla = false) {
+  simulacion.peticion++;
+  if (simulacion.solicitud) simulacion.solicitud.abort();
+  simulacion.solicitud = null;
+  simulacion.cargando = false;
+  simulacion.resultado = null;
+  simulacion.error = null;
+  simulacion.pagina = 0;
+  quitarCapasSimulacion();
+  if (restaurarSemilla) document.getElementById("semillaSimulacion").value = 7;
+  document.getElementById("visibilidadSimulacion").hidden = true;
+  ["mostrarEscenario", "mostrarAristasSimulacion", "mostrarNodosSimulacion"]
+    .forEach(id => { document.getElementById(id).checked = true; });
+  document.getElementById("resultadoSimulacion").innerHTML = "";
+  actualizarControlesSimulacion();
+}
+
+function actualizarCapasSimulacion() {
+  const visible = document.getElementById("mostrarEscenario").checked;
+  [["aristas", "mostrarAristasSimulacion"], ["nodos", "mostrarNodosSimulacion"]].forEach(([tipo, id]) => {
+    const capa = simulacion.capas[tipo];
+    if (capa) visible && document.getElementById(id).checked ? capa.addTo(mapa) : mapa.removeLayer(capa);
+  });
+}
+
+const numeroSimulacion = v => v == null ? "—" : Number(v).toLocaleString("es-CL", { maximumFractionDigits: 8 });
+const probabilidadSimulacion = v => v == null ? "—" : `${numeroSimulacion(100 * v)} %`;
+const fechaSimulacion = v => v == null ? "—" :
+  new Date(typeof v === "number" ? v * 1000 : v).toLocaleString("es-CL");
+
+function popupSimulacion(f, tipo) {
+  const p = f.properties || {}, eventos = p.eventos || [];
+  const detalle = eventos.slice(0, 20).map(e => `<div><b>${escapar(e.fuente)}</b> · ${escapar(e.motivo)}<br>${
+    e.determinista ? "Bloqueo confirmado, sin sorteo" :
+      `U = ${escapar(numeroSimulacion(e.numero_0_100))}; p = ${escapar(probabilidadSimulacion(e.probabilidad))}`}</div>`).join("");
+  return popup({ nombre: `${tipo} ${p.id}` }, {
+    estado: p.estado === "confirmada" ? "bloqueo confirmado" : "falla sorteada",
+    motivo: (p.motivos || []).join(", "),
+  }) + detalle + (eventos.length > 20 ? `<div>Y ${fmt(eventos.length - 20)} evento(s) más.</div>` : "");
+}
+
+function mostrarEventosSimulacion() {
+  const eventos = simulacion.resultado.eventos || [], porPagina = 200;
+  const paginas = Math.max(1, Math.ceil(eventos.length / porPagina));
+  simulacion.pagina = Math.max(0, Math.min(simulacion.pagina, paginas - 1));
+  const inicio = simulacion.pagina * porPagina, fin = Math.min(inicio + porPagina, eventos.length);
+  const contenedor = document.getElementById("eventosSimulacion");
+  if (!eventos.length) { contenedor.textContent = "No hay eventos aplicables al plan en esta ventana."; return; }
+  contenedor.innerHTML = `<p class="ayuda">Eventos ${fmt(inicio + 1)}–${fmt(fin)} de ${fmt(eventos.length)}.</p>
+    <div class="tabla-scroll"><table>
+      <tr><th>Evento</th><th>U</th><th>100 × p</th><th>Ocurre</th></tr>
+      ${eventos.slice(inicio, fin).map(e => `<tr>
+        <td>${escapar(e.fuente)}<span class="evento">${escapar(e.motivo)}</span>
+          <span class="evento">${escapar(e.id)} · ${fmt(e.aristas_afectadas)} aristas · ${fmt(e.nodos_afectados)} nodos</span>
+          <span class="evento">${escapar(fechaSimulacion(e.desde))} – ${escapar(fechaSimulacion(e.hasta))}</span></td>
+        <td>${e.determinista ? "—" : escapar(numeroSimulacion(e.numero_0_100))}</td>
+        <td>${e.determinista ? "—" : escapar(numeroSimulacion(e.umbral_pct))}</td>
+        <td>${e.determinista ? "Confirmado" : e.ocurre ? "Sí" : "No"}</td></tr>`).join("")}
+    </table></div>
+    ${paginas > 1 ? `<div class="fila-botones">
+      <button type="button" class="btn" id="eventosAnteriores" ${simulacion.pagina === 0 ? "disabled" : ""}>Anteriores</button>
+      <button type="button" class="btn" id="eventosSiguientes" ${simulacion.pagina + 1 === paginas ? "disabled" : ""}>Siguientes</button>
+      <span>Página ${fmt(simulacion.pagina + 1)} de ${fmt(paginas)}</span></div>` : ""}`;
+  if (paginas > 1) {
+    document.getElementById("eventosAnteriores").addEventListener("click", () => {
+      simulacion.pagina--; mostrarEventosSimulacion();
+    });
+    document.getElementById("eventosSiguientes").addEventListener("click", () => {
+      simulacion.pagina++; mostrarEventosSimulacion();
+    });
+  }
+}
+
+function dibujarSimulacion(r) {
+  quitarCapasSimulacion();
+  simulacion.resultado = r;
+  simulacion.pagina = 0;
+  const color = f => f.properties.estado === "confirmada" ? "#111827" : "#e11d48";
+  simulacion.capas.aristas = L.geoJSON(r.capas.aristas, { pane: "simulacion",
+    style: f => ({ color: color(f), weight: 5, opacity: 0.85,
+      dashArray: f.properties.estado === "confirmada" ? null : "5 4" }),
+    onEachFeature: (f, l) => l.bindPopup(popupSimulacion(f, "Arista")) });
+  simulacion.capas.nodos = L.geoJSON(r.capas.nodos, {
+    pointToLayer: (f, ll) => L.circleMarker(ll, { pane: "simulacion", radius: 5.5, color: "#fff",
+      weight: 1.5, fillColor: color(f), fillOpacity: 1 }),
+    onEachFeature: (f, l) => l.bindPopup(popupSimulacion(f, "Nodo")) });
+  document.getElementById("visibilidadSimulacion").hidden = false;
+  actualizarCapasSimulacion();
+  const s = r.resumen;
+  document.getElementById("resultadoSimulacion").innerHTML = `
+    <p class="ayuda"><b>Escenario con semilla ${fmt(r.semilla)}</b><br>
+      ${escapar(fechaSimulacion(r.t0))} – ${escapar(fechaSimulacion(r.t1))}</p>
+    <p class="ayuda">Regla: <b>${escapar(r.regla)}</b>, con 0 ≤ U &lt; 100.
+      Los bloqueos confirmados se aplican sin sorteo.</p>
+    ${(r.advertencias || []).map(a => `<div class="aviso">⚠ ${escapar(a)}</div>`).join("")}
+    <table>
+      <tr><td>Eventos sorteados · ocurridos</td><td>${fmt(s.eventos_sorteados)} · ${fmt(s.eventos_ocurridos)}</td></tr>
+      <tr><td>Bloqueos confirmados</td><td>${fmt(s.bloqueos_confirmados)}</td></tr>
+      <tr><td>Aristas · nodos afectados</td><td>${fmt(s.aristas_afectadas)} · ${fmt(s.nodos_afectados)}</td></tr>
+      <tr><td>Salidas afectadas</td><td>${fmt(s.rutas_afectadas)}</td></tr>
+    </table>
+    <div class="tabla-scroll"><table>
+      <tr><th>Técnica</th><th>Salidas evaluadas</th><th>Afectadas</th><th>Fuera de ventana</th></tr>
+      ${Object.keys(NOMBRE_TECNICA).map(c => {
+        const t = r.tecnicas[c];
+        return `<tr><td title="${escapar(NOMBRE_TECNICA[c])}">${c}</td>${t ?
+          `<td>${fmt(t.salidas_evaluadas)}</td><td>${fmt(t.rutas_afectadas)}</td><td>${fmt(t.fuera_ventana)}</td>` :
+          '<td colspan="3">No evaluada</td>'}</tr>`;
+      }).join("")}
+    </table></div>
+    <p class="ayuda">Se señalan salidas que cruzan elementos indisponibles durante su horario;
+      las rutas originales se conservan. Las salidas completamente fuera de la ventana no se evalúan;
+      en las parcialmente incluidas se revisa solo el periodo simulado.</p>
+    <details><summary>Números sorteados y eventos (${fmt((r.eventos || []).length)})</summary>
+      <div id="eventosSimulacion"></div></details>`;
+  mostrarEventosSimulacion();
+}
+
+async function simularFallas() {
+  const planId = ruteo.resultado && ruteo.resultado.plan_id;
+  if (!planId || ruteo.calculando || simulacion.cargando) return;
+  const campo = document.getElementById("semillaSimulacion"), semilla = Number(campo.value);
+  if (campo.value === "" || !Number.isInteger(semilla) || semilla < 0 || semilla > 2147483647) {
+    simulacion.error = "La semilla debe ser un entero entre 0 y 2147483647.";
+    actualizarControlesSimulacion();
+    campo.reportValidity();
+    return;
+  }
+  const peticion = ++simulacion.peticion;
+  simulacion.solicitud = new AbortController();
+  simulacion.cargando = true;
+  simulacion.error = null;
+  actualizarControlesSimulacion();
+  try {
+    const resp = await fetch(`${API}/api/flota/simulacion`, { method: "POST",
+      headers: { "Content-Type": "application/json" }, signal: simulacion.solicitud.signal,
+      body: JSON.stringify({ plan_id: planId, semilla }) });
+    const datos = await resp.json();
+    if (peticion !== simulacion.peticion || !ruteo.resultado || ruteo.resultado.plan_id !== planId) return;
+    if (!resp.ok) throw new Error(typeof datos.detail === "string" ? datos.detail : resp.statusText);
+    if (datos.plan_id !== planId) throw new Error("El escenario no corresponde al plan actual. Vuelve a simular.");
+    dibujarSimulacion(datos);
+  } catch (e) {
+    if (e.name !== "AbortError" && peticion === simulacion.peticion) simulacion.error = e.message;
+  } finally {
+    if (peticion === simulacion.peticion) {
+      simulacion.cargando = false;
+      simulacion.solicitud = null;
+      actualizarControlesSimulacion();
+    }
+  }
 }
 
 async function calcularRutas() {
+  if (ruteo.calculando) return;
   const btn = document.getElementById("btnCalcular");
   const cuerpo = { area: ruteo.comuna ? null : ruteo.area, preferencias: preferenciasUsuario() };
+  limpiarRutas();
+  const peticion = ++ruteo.peticion;
+  ruteo.solicitud = new AbortController();
+  ruteo.calculando = true;
+  actualizarBotones();
   btn.disabled = true; btn.textContent = "Planificando…";
   document.getElementById("resultado").innerHTML =
     `<p class="ayuda">Calculando las técnicas elegidas… T2 (Gurobi) puede usar hasta
@@ -847,15 +1080,22 @@ async function calcularRutas() {
       ${document.getElementById("p_limite_dpso_s").value || ruteo.defecto.limite_dpso_s} s.</p>`;
   try {
     const resp = await fetch(`${API}/api/flota`, { method: "POST", headers: { "Content-Type": "application/json" },
+                                                 signal: ruteo.solicitud.signal,
                                                  body: JSON.stringify(cuerpo) });
     const datos = await resp.json();
+    if (peticion !== ruteo.peticion) return;
     if (!resp.ok) throw new Error(datos.detail || resp.statusText);
     dibujarResultado(datos);
   } catch (e) {
-    document.getElementById("resultado").innerHTML = `<div class="aviso">⚠ ${escapar(e.message)}</div>`;
+    if (e.name !== "AbortError" && peticion === ruteo.peticion)
+      document.getElementById("resultado").innerHTML = `<div class="aviso">⚠ ${escapar(e.message)}</div>`;
   } finally {
-    btn.textContent = "Planificar inspección";
-    actualizarBotones();
+    if (peticion === ruteo.peticion) {
+      ruteo.calculando = false;
+      ruteo.solicitud = null;
+      btn.textContent = "Planificar inspección";
+      actualizarBotones();
+    }
   }
 }
 
@@ -881,6 +1121,10 @@ async function iniciarRuteo() {
   document.getElementById("btnCalcular").addEventListener("click", calcularRutas);
   document.getElementById("btnLimpiar").addEventListener("click", limpiarTodo);
   document.getElementById("btnDefecto").addEventListener("click", aplicarDefecto);
+  document.getElementById("btnSimular").addEventListener("click", simularFallas);
+  document.getElementById("btnRestablecerSimulacion").addEventListener("click", () => restablecerSimulacion(true));
+  ["mostrarEscenario", "mostrarAristasSimulacion", "mostrarNodosSimulacion"]
+    .forEach(id => document.getElementById(id).addEventListener("change", actualizarCapasSimulacion));
 }
 
 // ---------------------------------------------------------------------------

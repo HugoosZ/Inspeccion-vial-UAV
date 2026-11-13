@@ -13,6 +13,7 @@ Endpoints (todos devuelven GeoJSON salvo /health y /api/capas):
   GET /api/rutas                  k rutas pgr_dijkstra resilientes + métrica de resiliencia
   GET /api/rutas/preferencias     preferencias por defecto de navegación
   POST /api/flota                 planificación por área con n drones y las técnicas T1-T4 (usada por el sitio)
+  POST /api/flota/simulacion      sorteo reproducible de fallas sobre un plan calculado
   GET /api/flota/preferencias     preferencias por defecto de la flota
   GET /api/solver                 solver del modelo T2 (Gurobi con licencia WLS, o HiGHS de respaldo)
 El sitio estático se sirve desde la carpeta "Sitio Web" montada en /app/sitio_web.
@@ -33,6 +34,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ruteo  # noqa: E402
 from ruteo import flota  # noqa: E402
 from ruteo import milp  # noqa: E402
+from ruteo import simulacion_servicio  # noqa: E402
 from ruteo.preferencias import (AMENAZAS_VALIDAS, CATEGORIAS_BASE_VALIDAS, OPCIONES,  # noqa: E402
                                 PREFERENCIAS_DEFECTO, PREFERENCIAS_FLOTA, TECNICAS_VALIDAS,
                                 TIPOS_SENAL_VALIDOS)
@@ -339,12 +341,39 @@ def post_flota(cuerpo: dict = Body(..., examples=[{
         Las omitidas toman su valor por defecto.
 
     Devuelve la instancia común (áreas, bases y calles de cada dron) y, por
-    técnica, sus rutas, indicadores y tiempo de cómputo.
+    técnica, sus rutas, indicadores y tiempo de cómputo. plan_id permite
+    simular fallas sobre ese mismo plan durante los próximos 30 minutos.
     """
     conn = get_db_connection()
     try:
-        return flota.planificar_area(conn, cuerpo.get("area"), cuerpo.get("preferencias") or {})
+        resultado = flota.planificar_area(conn, cuerpo.get("area"), cuerpo.get("preferencias") or {})
+        resultado["plan_id"] = simulacion_servicio.registrar_plan(resultado)
+        return resultado
     except (flota.ErrorFlota, ValueError) as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+    finally:
+        conn.close()
+
+
+@app.post("/api/flota/simulacion")
+def post_simulacion(cuerpo: dict = Body(..., examples=[{"plan_id": "id devuelto por /api/flota", "semilla": 7}])):
+    """Sortea eventos del punto 5 y señala cruces de las rutas con sus fallas.
+
+    Usa el mismo escenario para todas las técnicas del plan. Un evento
+    confirmado permanece bloqueado; los demás ocurren si U < 100*p.
+    La semilla es un entero entre 0 y 2147483647. No modifica el plan ni la BD.
+    """
+    semilla = cuerpo.get("semilla", 7)
+    if isinstance(semilla, bool) or not isinstance(semilla, int) or not 0 <= semilla <= 2147483647:
+        raise HTTPException(status_code=422, detail="La semilla debe ser un entero entre 0 y 2147483647.")
+    conn = get_db_connection()
+    try:
+        return simulacion_servicio.simular_plan(conn, cuerpo.get("plan_id"), semilla)
+    except simulacion_servicio.PlanNoDisponible as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
