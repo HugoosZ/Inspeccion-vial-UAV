@@ -10,6 +10,9 @@ predeterminados. Algunas opciones convierten metadata en criterios del grafo:
   priorizar_siniestros      M4         aristas en zonas de siniestros CRITICA o ALTA suben de
                                        prioridad al elegir las aristas a inspeccionar
   considerar_clima          A2         si se aplica la penalización horaria del clima
+  amenazas (flota)          A1-A4      qué amenazas bloquean calles y entran en p(e) del costo
+                                       resiliente (T2, T3 y T4); vacía = ruteo sin amenazas
+  tecnicas (flota)          -          técnicas de ruteo a ejecutar (T1 a T4, punto 6)
 
 Otras opciones configuran la misión y el dron (velocidad, autonomía, batería,
 cantidad de drones y jornada); no son restricciones derivadas de metadata.
@@ -24,6 +27,10 @@ from datetime import datetime, timezone
 TIPOS_SENAL_VALIDOS = ("senal_pare", "senal_ceda_el_paso", "semaforo", "cruce_peatonal")
 # Categorías de lugares públicos (M2) donde se pueden instalar las bases
 CATEGORIAS_BASE_VALIDAS = ("salud_publica", "educacion_publica", "carabineros", "bomberos")
+# Amenazas que el ruteo puede considerar (bloqueos y probabilidad de falla del punto 5)
+AMENAZAS_VALIDAS = ("A1", "A2", "A3", "A4")
+# Técnicas de ruteo comparadas (punto 6 del enunciado), ver ruteo/tecnicas.py
+TECNICAS_VALIDAS = ("T1", "T2", "T3", "T4")
 
 PREFERENCIAS_DEFECTO = {
     "k": 2,                                   # rutas alternativas (mínimo k >= 2)
@@ -54,9 +61,13 @@ LIMITES = {
 # máxima nominal del fabricante; la misión real dependerá de las condiciones.
 # La velocidad de 10 m/s y la reserva de batería son supuestos del modelo.
 PREFERENCIAS_FLOTA = {
-    "n_drones": 3,
-    "categorias_base": list(CATEGORIAS_BASE_VALIDAS),  # recintos públicos (M2) donde instalar las bases                            # drones de la flota; cada uno cubre un área
+    "n_drones": 3,                            # drones de la flota; cada uno cubre un área
+    "categorias_base": list(CATEGORIAS_BASE_VALIDAS),  # recintos públicos (M2) donde instalar las bases
     "bases": "distribuidas",                  # distribuidas: una base por área; centralizada: una para todos
+    "tecnicas": list(TECNICAS_VALIDAS),       # técnicas de ruteo a ejecutar y comparar
+    "amenazas": list(AMENAZAS_VALIDAS),       # amenazas que bloquean o encarecen las calles
+    "limite_milp_s": 60.0,                    # tiempo máximo de Gurobi (T2) para toda el área
+    "limite_dpso_s": 20.0,                    # tiempo máximo de la metaheurística (T4) para toda el área
     "hora_salida": None,                      # None = ahora
     "tipos_senal": ["senal_pare", "senal_ceda_el_paso", "semaforo"],
     "considerar_clima": True,                 # avisa qué salidas caen en horas de mal tiempo (A2)
@@ -74,7 +85,12 @@ LIMITES_FLOTA = {
     "reserva_bateria_pct": (0.0, 60.0),
     "tiempo_recarga_min": (0.0, 180.0),
     "jornada_h": (1.0, 24.0),
+    "limite_milp_s": (5.0, 600.0),
+    "limite_dpso_s": (2.0, 300.0),
 }
+
+LISTAS = {"tipos_senal": TIPOS_SENAL_VALIDOS, "categorias_base": CATEGORIAS_BASE_VALIDAS,
+          "amenazas": AMENAZAS_VALIDAS, "tecnicas": TECNICAS_VALIDAS}
 
 OPCIONES = {"bases": ("distribuidas", "centralizada")}
 
@@ -104,12 +120,13 @@ def normalizar(entrada, defectos=None, limites=None):
         valor = entrada[clave]
         if isinstance(defecto, bool):
             valor = _a_bool(valor)
-        elif clave == "tipos_senal":
+        elif clave in LISTAS:
             lista = valor.split(",") if isinstance(valor, str) else list(valor)
-            valor = [t.strip() for t in lista if t.strip() in TIPOS_SENAL_VALIDOS] or list(defecto)
-        elif clave == "categorias_base":
-            lista = valor.split(",") if isinstance(valor, str) else list(valor)
-            valor = [t.strip() for t in lista if t.strip() in CATEGORIAS_BASE_VALIDAS] or list(defecto)
+            validos = LISTAS[clave]
+            valor = [t.strip() for t in lista if t.strip() in validos]
+            # amenazas puede quedar vacía (ruteo sin amenazas); las demás vuelven al defecto
+            if not valor and clave != "amenazas":
+                valor = list(defecto)
         elif clave == "hora_salida":
             valor = str(valor)
         elif clave in OPCIONES:

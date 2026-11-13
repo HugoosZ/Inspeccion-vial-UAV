@@ -77,15 +77,18 @@ class Amenazas:
     """Amenazas que afectan a cada arista dentro de la ventana [t0, t1].
 
     - bloqueadas: aristas con una amenaza dura (A1 incendio, A3 SOSAFE,
-      A4 Waze) -> se eliminan del grafo de pgr_dijkstra.
+      A4 TomTom) -> se eliminan del grafo de pgr_dijkstra.
     - factor_estatico: penalización permanente en la ventana (PENALIZAR, POSTERGAR).
     - temporales: intervalos (desde, hasta, factor) del clima (A2), que dependen
       de la hora a la que el dron cruza la arista.
     - eventos: para la métrica, cada arista -> {clave_evento: probabilidad}.
     """
 
-    def __init__(self, filas, considerar_clima=True):
+    def __init__(self, filas, considerar_clima=True, amenazas=None):
         self.bloqueadas, self.factor_estatico, self.temporales, self.eventos = set(), {}, {}, {}
+        if amenazas is not None:
+            # solo las amenazas elegidas por el usuario (fuente_etl A1_..., A2_..., ...)
+            filas = [f for f in filas if (f["fuente"] or "")[:2] in amenazas]
         self.n_amenazas = len({f["amenaza_id"] for f in filas})
         for f in filas:
             e, nivel, accion = f["edge_id"], f["nivel_riesgo"] or "MEDIO", f["accion"]
@@ -115,11 +118,35 @@ class Amenazas:
         return factor
 
 
-def amenazas_region(conn, bbox, t0, horizonte_h, considerar_clima):
+def amenazas_region(conn, bbox, t0, horizonte_h, considerar_clima, amenazas=None):
     t1 = t0 + timedelta(hours=horizonte_h)
     filas = _filas(conn, SQL_AMENAZAS_ARISTA, {
         "xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3], "t0": t0, "t1": t1})
-    return Amenazas(filas, considerar_clima)
+    return Amenazas(filas, considerar_clima, amenazas)
+
+
+def probabilidades_aristas(conn, bbox, amenazas):
+    """Probabilidad de falla de cada arista del rectángulo (punto 5, tabla
+    prob_falla_aristas), combinando solo las amenazas elegidas:
+        p(e) = 1 - prod_{k elegidas} (1 - p_k(e))
+    Devuelve (dict edge_id -> p, ventana (t0, t1) en que se calculó) o
+    ({}, None) si la tabla no existe o está vacía."""
+    if not amenazas:
+        return {}, None
+    columnas = " * ".join(f"(1 - COALESCE(p.p_{a.lower()}, 0))" for a in amenazas)
+    try:
+        filas = _filas(conn, f"""
+            SELECT p.edge_id, 1 - {columnas} AS p, p.t0, p.t1
+            FROM prob_falla_aristas p JOIN network_edges e ON e.id = p.edge_id
+            WHERE e.geom && ST_MakeEnvelope(%(xmin)s, %(ymin)s, %(xmax)s, %(ymax)s, 4326)""",
+                       {"xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3]})
+    except Exception:  # noqa: BLE001  (tabla aún no creada: se ejecuta antes Probabilidades/generar.py)
+        conn.rollback()
+        return {}, None
+    if not filas:
+        return {}, None
+    ventana = (filas[0]["t0"], filas[0]["t1"])
+    return {int(f["edge_id"]): float(f["p"]) for f in filas if f["p"] and f["p"] > 0}, ventana
 
 
 def aristas_requeridas(conn, inicio, objetivo, prefs, excluidas):
