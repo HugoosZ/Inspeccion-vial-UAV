@@ -97,6 +97,16 @@
   details.dron summary { cursor: pointer; }
   details.dron ol { margin: 4px 0 4px 18px; padding: 0; }
   #resultado label { display: inline-flex; gap: 5px; align-items: center; }
+  #resultado .tabla-tec td, #resultado .tabla-tec th { white-space: nowrap; font-size: 11.5px; padding: 3px 3px; }
+  #resultado .tabla-tec td:first-child { white-space: normal; }
+  details.tec { margin: 4px 0; font-size: 12px; }
+  details.tec summary { cursor: pointer; }
+  details.tec table td { text-align: left !important; }
+  .leyenda-tec { background: var(--bg); color: var(--texto); border: 1px solid var(--borde); border-radius: 8px;
+    box-shadow: var(--sombra); padding: 6px 10px; font-size: 12px; line-height: 1.5; max-width: 380px; }
+  .leyenda-tec b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--suave); }
+  .leyenda-tec div { display: flex; align-items: center; gap: 6px; }
+  .leyenda-tec .linea { width: 22px; height: 0; border-top-width: 4px; border-top-style: solid; flex-shrink: 0; }
   #resultado .tabla-drones td { white-space: nowrap; }
   #alternar { display: none; }
   @media (max-width: 760px) {
@@ -441,7 +451,8 @@ const COLORES = ["#1d4ed8", "#059669", "#c026d3", "#ea580c", "#0891b2",
                  "#be123c", "#65a30d", "#7c3aed", "#b45309", "#0f766e"];
 const colorDron = d => COLORES[(d - 1) % COLORES.length];
 const ruteo = { area: null, comuna: false, vertices: [], dibujando: false, capaArea: null,
-                guia: null, capas: {}, defecto: null, tipos: [], categoriasBase: [], opciones: {} };
+                guia: null, capas: {}, defecto: null, tipos: [], categoriasBase: [], opciones: {},
+                tecnicas: [], amenazas: [], resultado: null, leyenda: null };
 
 const CAMPOS = [
   { grupo: "Flota y jornada" },
@@ -453,7 +464,14 @@ const CAMPOS = [
     valores: () => ruteo.categoriasBase, nombres: () => NOMBRE_LUGAR },
   { grupo: "Qué inspeccionar" },
   { id: "tipos_senal", etiqueta: "Señaléticas (M1)", tipo: "tipos" },
+  { grupo: "Técnicas de ruteo" },
+  { id: "tecnicas", etiqueta: "Técnicas a ejecutar y comparar", tipo: "lista",
+    valores: () => ruteo.tecnicas, nombres: () => NOMBRE_TECNICA },
+  { id: "limite_milp_s", etiqueta: "Tiempo máximo de Gurobi, T2 (s)", tipo: "num", paso: 5 },
+  { id: "limite_dpso_s", etiqueta: "Tiempo máximo de DA-DPSO, T4 (s)", tipo: "num", paso: 1 },
   { grupo: "Restricciones" },
+  { id: "amenazas", etiqueta: "Amenazas que considera el ruteo (T2, T3 y T4)", tipo: "lista", vacio: true,
+    valores: () => ruteo.amenazas, nombres: () => NOMBRE_AMENAZA },
   { id: "considerar_clima", etiqueta: "Avisar salidas con mal tiempo (A2)", tipo: "bool" },
   { grupo: "Dron" },
   { id: "velocidad_crucero_ms", etiqueta: "Velocidad de crucero (m/s)", tipo: "num", paso: 0.5 },
@@ -461,6 +479,14 @@ const CAMPOS = [
   { id: "reserva_bateria_pct", etiqueta: "Reserva de batería (%)", tipo: "num", paso: 5 },
   { id: "tiempo_recarga_min", etiqueta: "Cambio de batería entre salidas (min)", tipo: "num", paso: 1 },
 ];
+const NOMBRE_TECNICA = { T1: "T1 · pgr_dijkstra por distancia", T2: "T2 · Modelo MILP (Gurobi)",
+                         T3: "T3 · pgr_dijkstra resiliente", T4: "T4 · Metaheurística DA-DPSO" };
+const NOMBRE_AMENAZA = { A1: "A1 · Incendios", A2: "A2 · Clima", A3: "A3 · SOSAFE", A4: "A4 · TomTom" };
+// Cada técnica con su color y trazo; las de abajo se dibujan más anchas para que se vean al superponerse
+const ESTILO_TECNICA = { T1: { color: "#64748b", weight: 7, opacity: 0.45 },
+                         T2: { color: "#7c3aed", weight: 5.5, opacity: 0.6 },
+                         T3: { color: "#2563eb", weight: 3.5, opacity: 0.9 },
+                         T4: { color: "#059669", weight: 2, opacity: 1 } };
 const NOMBRE_TIPO = { senal_pare: "PARE", senal_ceda_el_paso: "Ceda el paso", semaforo: "Semáforo",
                       cruce_peatonal: "Cruce peatonal" };
 
@@ -510,7 +536,7 @@ function preferenciasUsuario() {
       if (v.length && v.slice().sort().join() !== d.tipos_senal.slice().sort().join()) p.tipos_senal = v;
     } else if (c.tipo === "lista") {
       const v = [...document.querySelectorAll(`input[name="p_${c.id}"]:checked`)].map(x => x.value);
-      if (v.length && v.slice().sort().join() !== (d[c.id] || []).slice().sort().join()) p[c.id] = v;
+      if ((v.length || c.vacio) && v.slice().sort().join() !== (d[c.id] || []).slice().sort().join()) p[c.id] = v;
     } else if (c.tipo === "bool") {
       const v = document.getElementById(`p_${c.id}`).checked;
       if (v !== !!d[c.id]) p[c.id] = v;
@@ -604,6 +630,8 @@ function areaKm2(latlngs) {
 function limpiarRutas() {
   Object.values(ruteo.capas).forEach(c => mapa.removeLayer(c));
   ruteo.capas = {};
+  ruteo.resultado = null;
+  actualizarLeyenda();
   document.getElementById("resultado").innerHTML = "";
 }
 
@@ -630,46 +658,76 @@ function iconoBase(texto, color) {
 }
 const nombreBase = b => (b.lugar && b.lugar.nombre) || `calle (nodo ${b.id})`;
 
+const seg = v => v == null ? "—" : (v < 10 ? `${v.toFixed(1)} s` : `${Math.round(v)} s`);
+const pct2 = v => v == null ? "—" : `${(v * 100).toFixed(2)} %`;
+
+function actualizarLeyenda() {
+  if (ruteo.leyenda) { mapa.removeControl(ruteo.leyenda); ruteo.leyenda = null; }
+  const r = ruteo.resultado;
+  if (!r) return;
+  const visibles = Object.keys(r.tecnicas).filter(c => ruteo.capas[`tec_${c}`] && mapa.hasLayer(ruteo.capas[`tec_${c}`]));
+  if (!visibles.length) return;
+  ruteo.leyenda = L.control({ position: "bottomright" });
+  ruteo.leyenda.onAdd = () => {
+    const div = L.DomUtil.create("div", "leyenda-tec");
+    div.innerHTML = `<b>Técnicas de ruteo</b>` + visibles.map(c => {
+      const t = r.tecnicas[c], e = ESTILO_TECNICA[c];
+      return `<div><span class="linea" style="border-top-color:${e.color}"></span>
+        ${c} · ${escapar(t.nombre)} · cómputo ${seg(t.tiempo_calculo_s)}</div>`;
+    }).join("");
+    return div;
+  };
+  ruteo.leyenda.addTo(mapa);
+}
+
 function dibujarResultado(r) {
   limpiarRutas();
+  ruteo.resultado = r;
   const capas = r.capas;
   const centralizada = r.preferencias.bases === "centralizada";
-  r.drones.forEach(dr => {
-    const d = dr.dron, color = colorDron(d), grupo = L.featureGroup();
-    L.geoJSON({ type: "FeatureCollection", features: capas.areas.features.filter(f => f.properties.dron === d) },
-      { pane: "rutas", interactive: false,
-        style: { color, weight: 1.5, dashArray: "4 4", fillColor: color, fillOpacity: 0.08 } }).addTo(grupo);
-    L.geoJSON({ type: "FeatureCollection", features: capas.tareas.features.filter(f => f.properties.dron === d) },
-      { pane: "rutas", style: { color, weight: 8, opacity: 0.35 },
-        onEachFeature: (f, l) => l.bindPopup(popup({ nombre: f.properties.nombre || "Calle a inspeccionar" }, {
-          dron: d, id_arista: f.properties.id, puntos: f.properties.puntos,
-          señales: Object.entries(f.properties.tipos || {}).map(([k, v]) => `${NOMBRE_TIPO[k] || k} ×${v}`).join(", ") })) }).addTo(grupo);
-    L.geoJSON({ type: "FeatureCollection", features: capas.rutas.features.filter(f => f.properties.dron === d) },
-      { pane: "rutas",
-        style: f => ({ color, weight: f.properties.tipo === "traslado" ? 2.5 : 3,
-                       opacity: 0.95, dashArray: f.properties.tipo === "traslado" ? "8 6" : null }),
-        onEachFeature: (f, l) => l.bindPopup(popup({ nombre: `Dron ${d} · ${f.properties.tipo === "traslado"
-            ? "traslado entre bases" : `salida ${f.properties.salida}`}` }, {
-          km: f.properties.km, vuelo_min: f.properties.vuelo_min, calles: f.properties.tareas,
-          inicio: hora(f.properties.inicio), clima: f.properties.clima || "sin aviso" })) }).addTo(grupo);
-    capas.bases.features.filter(f => f.properties.dron === d).forEach(f => {
-      const p = f.properties, [lon, lat] = f.geometry.coordinates;
-      const texto = centralizada ? "B" : (p.orden > 1 ? `${d}${String.fromCharCode(96 + p.orden)}` : `${d}`);
-      const colorB = centralizada ? "#0f172a" : color;
-      if (p.despegue && (p.despegue[0] !== lon || p.despegue[1] !== lat)) {
-        L.polyline([[lat, lon], [p.despegue[1], p.despegue[0]]],
-          { pane: "rutas", color: colorB, weight: 2, dashArray: "2 4", interactive: false }).addTo(grupo);
-      }
-      const titulo = p.nombre || (centralizada ? "Base común" : `Base del dron ${d}`);
-      L.marker([lat, lon], { icon: iconoBase(texto, colorB), pane: "rutas" })
-        .bindPopup(popup({ nombre: titulo }, {
-          base: centralizada ? "común a todos los drones" : `dron ${d}${p.orden > 1 ? ` (sector ${p.orden})` : ""}`,
-          recinto: NOMBRE_LUGAR[p.categoria] || "sin recinto público (calle)",
-          dependencia: p.dependencia, dirección: p.direccion,
-          despegue: p.nombre ? `calle a ${p.distancia_m} m del recinto (nodo ${p.nodo})` : `nodo ${p.nodo}` }))
-        .addTo(grupo);
-    });
-    ruteo.capas[`dron_${d}`] = grupo.addTo(mapa);
+
+  // Instancia común: áreas de cada dron, calles a inspeccionar y bases
+  const instancia = L.featureGroup();
+  L.geoJSON(capas.areas, { pane: "rutas", interactive: false,
+    style: f => ({ color: colorDron(f.properties.dron), weight: 1.5, dashArray: "4 4",
+                   fillColor: colorDron(f.properties.dron), fillOpacity: 0.06 }) }).addTo(instancia);
+  L.geoJSON(capas.tareas, { pane: "rutas",
+    style: f => ({ color: colorDron(f.properties.dron), weight: 9, opacity: 0.25 }),
+    onEachFeature: (f, l) => l.bindPopup(popup({ nombre: f.properties.nombre || "Calle a inspeccionar" }, {
+      dron: f.properties.dron, id_arista: f.properties.id, puntos: f.properties.puntos,
+      "probabilidad de falla": pctP(f.properties.p_falla),
+      señales: Object.entries(f.properties.tipos || {}).map(([k, v]) => `${NOMBRE_TIPO[k] || k} ×${v}`).join(", ") })) })
+    .addTo(instancia);
+  capas.bases.features.forEach(f => {
+    const p = f.properties, d = p.dron, [lon, lat] = f.geometry.coordinates;
+    const texto = centralizada ? "B" : (p.orden > 1 ? `${d}${String.fromCharCode(96 + p.orden)}` : `${d}`);
+    const colorB = centralizada ? "#0f172a" : colorDron(d);
+    if (p.despegue && (p.despegue[0] !== lon || p.despegue[1] !== lat)) {
+      L.polyline([[lat, lon], [p.despegue[1], p.despegue[0]]],
+        { pane: "rutas", color: colorB, weight: 2, dashArray: "2 4", interactive: false }).addTo(instancia);
+    }
+    L.marker([lat, lon], { icon: iconoBase(texto, colorB), pane: "rutas" })
+      .bindPopup(popup({ nombre: p.nombre || (centralizada ? "Base común" : `Base del dron ${d}`) }, {
+        base: centralizada ? "común a todos los drones" : `dron ${d}${p.orden > 1 ? ` (sector ${p.orden})` : ""}`,
+        recinto: NOMBRE_LUGAR[p.categoria] || "sin recinto público (calle)",
+        dependencia: p.dependencia, dirección: p.direccion,
+        despegue: p.nombre ? `calle a ${p.distancia_m} m del recinto (nodo ${p.nodo})` : `nodo ${p.nodo}` }))
+      .addTo(instancia);
+  });
+  ruteo.capas.instancia = instancia.addTo(mapa);
+
+  // Una capa por técnica (T1 abajo, T4 arriba)
+  const codigos = Object.keys(r.tecnicas);
+  codigos.forEach(c => {
+    const t = r.tecnicas[c], e = ESTILO_TECNICA[c];
+    ruteo.capas[`tec_${c}`] = L.geoJSON(t.rutas, { pane: "rutas",
+      style: f => ({ ...e, dashArray: f.properties.tipo === "traslado" ? "8 6" : null }),
+      onEachFeature: (f, l) => l.bindPopup(popup({ nombre: `${c} · dron ${f.properties.dron} · ${
+          f.properties.tipo === "traslado" ? "traslado entre bases" : `salida ${f.properties.salida}`}` }, {
+        técnica: t.nombre, km: f.properties.km, vuelo_min: f.properties.vuelo_min, calles: f.properties.tareas,
+        inicio: hora(f.properties.inicio), "prob. de falla media": pctP(f.properties.p_media),
+        "calles bloqueadas cruzadas": f.properties.aristas_bloqueadas, clima: f.properties.clima || "sin aviso" })) })
+      .addTo(mapa);
   });
   if (capas.postergadas.features.length) {
     ruteo.capas.postergadas = L.geoJSON(capas.postergadas, { pane: "rutas",
@@ -679,24 +737,46 @@ function dibujarResultado(r) {
   }
   const todo = L.featureGroup(Object.values(ruteo.capas));
   if (todo.getLayers().length) mapa.fitBounds(todo.getBounds(), { padding: [30, 30] });
+  actualizarLeyenda();
 
   const s = r.resumen;
-  const filas = r.drones.map(dr => `
-    <tr>
-      <td><label><input type="checkbox" checked data-capa="dron_${dr.dron}">
-        <span class="linea" style="border-top-color:${colorDron(dr.dron)}"></span>${dr.dron}</label></td>
-      <td>${fmt(dr.tareas)}</td><td>${dr.km_total.toLocaleString("es-CL")}</td>
-      <td title="${dr.traslados ? `${dr.traslados} traslado(s) entre bases` : ""}">${dr.salidas}${dr.traslados ? `+${dr.traslados}` : ""}</td><td>${horaCorta(dr.tiempo_min)}</td><td>${pct(dr.repeticion_rho)}</td>
-    </tr>`).join("");
-  const detalle = r.drones.map(dr => `
-    <details class="dron"><summary><span class="linea" style="border-top-color:${colorDron(dr.dron)}"></span>
-      Dron ${dr.dron}: ${dr.puntos} señales en ${dr.tareas} calles · ${dr.km_inspeccion} km a inspeccionar ·
-      base${dr.bases.length > 1 ? "s" : ""}: ${dr.bases.map(b => escapar(nombreBase(b))).join(" → ")}</summary>
-      <ol>${dr.detalle_salidas.map(x => `<li>${hora(x.inicio)}–${hora(x.fin)} ·
-        ${x.tipo === "traslado" ? "traslado a la siguiente base" : `${x.tareas} calles`} · ${x.km} km
-        ${x.clima ? `<span class="aviso">· ${escapar(x.clima)}</span>` : ""}</li>`).join("")}</ol>
-    </details>`).join("");
-  // Recintos públicos donde quedó cada base
+  const filasTec = codigos.map(c => {
+    const t = r.tecnicas[c], m = t.resumen, e = ESTILO_TECNICA[c];
+    return `<tr>
+      <td><label title="${escapar(t.metodo)}"><input type="checkbox" checked data-capa="tec_${c}">
+        <span class="linea" style="border-top-color:${e.color}"></span>${c}</label></td>
+      <td>${horaCorta(m.tiempo_global_min)}</td><td>${m.km_total_Dis.toLocaleString("es-CL")}</td>
+      <td>${m.km_esperados.toLocaleString("es-CL")}</td>
+      <td>${m.aristas_bloqueadas}</td><td>${seg(t.tiempo_calculo_s)}</td></tr>`;
+  }).join("");
+  const detalleTec = codigos.map(c => {
+    const t = r.tecnicas[c], dt = t.detalle;
+    const extra = {
+      "costo de las calles": t.costo === "distancia" ? "largo (sin amenazas)" : "largo / (1 − p)",
+      "objetivo del modelo": `${dt.minutos_modelo} min (vuelo + cambios de batería, suma de sectores)`,
+      "prob. de falla media por metro": pct2(t.resumen.p_media_km),
+      "salidas · η · β": `${t.resumen.salidas} · ${pct(t.resumen.eficiencia_eta)} · ${pct(t.resumen.utilizacion_beta)}`,
+    };
+    if (c === "T2") Object.assign(extra, {
+      solver: dt.solver || "—", estado: (dt.estados || []).join(", ") || "—",
+      "cota inferior": dt.cota_inferior_min != null ? `${dt.cota_inferior_min} min` : "—",
+      "brecha (gap)": dt.gap != null ? pct2(dt.gap) : "—",
+      tamaño: dt.variables ? `${fmt(dt.variables)} variables (${fmt(dt.binarias)} binarias), ${fmt(dt.restricciones)} restricciones` : "—",
+      "límite de tiempo": `${dt.limite_s} s` });
+    if (c === "T4") Object.assign(extra, {
+      iteraciones: fmt(dt.iteraciones), "soluciones evaluadas": fmt(dt.evaluaciones),
+      "búsquedas locales": fmt(dt.busquedas_locales), "mejora sobre T3": pct2(dt.mejora_sobre_T3),
+      "población · semilla": `${dt.poblacion} · ${dt.semilla}`, "límite de tiempo": `${dt.limite_s} s` });
+    return `<details class="tec"><summary><span class="linea" style="border-top-color:${ESTILO_TECNICA[c].color}"></span>
+      ${escapar(t.nombre)}</summary><p class="ayuda">${escapar(t.metodo)}</p>
+      <table>${Object.entries(extra).map(([k, v]) => `<tr><td>${escapar(k)}</td><td>${escapar(v)}</td></tr>`).join("")}</table>
+      ${dt.nota ? `<div class="aviso">${escapar(dt.nota)}</div>` : ""}
+      ${t.avisos.map(a => `<div class="aviso">⚠ ${escapar(a)}</div>`).join("")}
+      <table class="tabla-drones"><tr><th>Dron</th><th>Calles</th><th>Km</th><th>Salidas</th><th>Tiempo</th><th>ρ</th></tr>
+      ${t.drones.map(dr => `<tr><td>${dr.dron}</td><td>${fmt(dr.tareas)}</td><td>${dr.km_total.toLocaleString("es-CL")}</td>
+        <td>${dr.salidas}${dr.traslados ? `+${dr.traslados}` : ""}</td><td>${horaCorta(dr.tiempo_min)}</td>
+        <td>${pct(dr.repeticion_rho)}</td></tr>`).join("")}</table></details>`;
+  }).join("");
   const vistos = new Set();
   const listaBases = `<div class="grupo">Bases (recintos públicos, M2)</div><ol class="bases">${
     capas.bases.features.filter(f => {
@@ -712,32 +792,35 @@ function dibujarResultado(r) {
   document.getElementById("resultado").innerHTML = `
     ${r.avisos.map(a => `<div class="aviso">⚠ ${escapar(a)}</div>`).join("")}
     <table>
-      <tr><th>Indicador</th><th>Valor</th></tr>
-      <tr><td><b>Tiempo de inspección global T</b></td><td><b>${horas(s.tiempo_global_min)}</b></td></tr>
+      <tr><th>Instancia común</th><th>Valor</th></tr>
       <tr><td>Señales · calles a inspeccionar</td><td>${fmt(s.puntos)} · ${fmt(s.calles_a_inspeccionar)}</td></tr>
       <tr><td>Km a inspeccionar</td><td>${s.km_a_inspeccionar.toLocaleString("es-CL")} km</td></tr>
-      <tr><td>Kilometraje total Dis</td><td>${s.km_total_Dis.toLocaleString("es-CL")} km</td></tr>
-      <tr><td>Eficiencia η (inspección / total)</td><td>${pct(s.eficiencia_eta)}</td></tr>
-      <tr><td>Uso equilibrado β (mín / máx)</td><td>${pct(s.utilizacion_beta)}</td></tr>
-      <tr><td>Repetición media ρ</td><td>${pct(s.repeticion_rho_media)}</td></tr>
-      <tr><td>Salidas · bases</td><td>${s.salidas} · ${s.bases}</td></tr>
+      <tr><td>Drones · bases · sectores</td><td>${s.drones} · ${s.bases} · ${s.sectores}</td></tr>
       <tr><td>Alcance por salida</td><td>${s.capacidad_salida_km} km</td></tr>
+      <tr><td>Amenazas en la jornada · consideradas</td><td>${s.amenazas_en_jornada} · ${
+        s.amenazas_consideradas.length ? s.amenazas_consideradas.join(", ") : "ninguna"}</td></tr>
       <tr><td>Postergadas · fuera de alcance</td><td>${s.postergadas} · ${s.fuera_de_alcance}</td></tr>
     </table>
-    <table class="tabla-drones">
-      <tr><th>Dron</th><th>Calles</th><th>Km</th><th>Salidas</th><th>Tiempo</th><th>ρ</th></tr>
-      ${filas}
-    </table>
+    <label class="ayuda"><input type="checkbox" checked data-capa="instancia"> Áreas, calles a inspeccionar y bases</label>
+    <div style="overflow-x:auto"><table class="tabla-tec">
+      <tr><th>Técnica</th><th title="Tiempo de inspección global (el dron que más tarda)">T</th><th>Km</th>
+        <th title="Km esperados: suma de largo / (1 − p) con todas las amenazas">Km esp.</th>
+        <th title="Calles bloqueadas por amenazas activas que la ruta cruza">Bloq.</th>
+        <th title="Tiempo de cálculo de la técnica">Cálculo</th></tr>
+      ${filasTec}
+    </table></div>
+    ${detalleTec}
     ${listaBases}
     ${capas.postergadas.features.length ? `<label class="ayuda"><input type="checkbox" checked data-capa="postergadas">
       Calles postergadas por amenazas (gris punteado)</label>` : ""}
-    ${detalle}
-    <p class="ayuda">${escapar(r.metodo)}</p>
+    <p class="ayuda">${escapar(r.metodo)} El riesgo (km esperados, p media y calles bloqueadas) se evalúa siempre con
+      todas las amenazas, aunque la técnica no las haya considerado.</p>
     <p class="ayuda">Inicio ${new Date(r.hora_salida).toLocaleString("es-CL")} · preferencias por defecto usadas:
       ${r.preferencias_por_defecto.length} de ${Object.keys(r.preferencias).length}.</p>`;
   document.querySelectorAll("#resultado input[data-capa]").forEach(chk => chk.addEventListener("change", e => {
     const capa = ruteo.capas[e.target.dataset.capa];
     if (capa) e.target.checked ? capa.addTo(mapa) : mapa.removeLayer(capa);
+    actualizarLeyenda();
   }));
 }
 
@@ -746,7 +829,9 @@ async function calcularRutas() {
   const cuerpo = { area: ruteo.comuna ? null : ruteo.area, preferencias: preferenciasUsuario() };
   btn.disabled = true; btn.textContent = "Planificando…";
   document.getElementById("resultado").innerHTML =
-    '<p class="ayuda">Calculando con pgr_dijkstraCostMatrix y pgr_dijkstra… (toda la comuna puede tardar un minuto)</p>';
+    `<p class="ayuda">Calculando las técnicas elegidas… T2 (Gurobi) puede usar hasta
+      ${document.getElementById("p_limite_milp_s").value || ruteo.defecto.limite_milp_s} s y T4 hasta
+      ${document.getElementById("p_limite_dpso_s").value || ruteo.defecto.limite_dpso_s} s.</p>`;
   try {
     const resp = await fetch(`${API}/api/flota`, { method: "POST", headers: { "Content-Type": "application/json" },
                                                  body: JSON.stringify(cuerpo) });
@@ -766,6 +851,7 @@ async function iniciarRuteo() {
     const r = await obtener("/api/flota/preferencias");
     ruteo.defecto = r.defecto; ruteo.tipos = r.tipos_senal; ruteo.opciones = r.opciones;
     ruteo.categoriasBase = r.categorias_base || [];
+    ruteo.tecnicas = r.tecnicas || []; ruteo.amenazas = r.amenazas || [];
     construirFormulario();
   } catch (e) {
     document.getElementById("formPrefs").textContent = "No se pudieron cargar las preferencias por defecto.";
