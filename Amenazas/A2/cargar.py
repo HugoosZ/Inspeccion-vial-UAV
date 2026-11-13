@@ -19,6 +19,8 @@ def mapear(feature):
     p = feature["properties"]
     nombre = f"Clima severo celda {p['id_celda']} {p['valido_desde'][:16]}"
     desc = f"{', '.join(p['motivos'])}. Válido {p['valido_desde']} a {p['valido_hasta']}."
+    if p.get("p_no_apto_ensamble") is not None:
+        desc += f" Escenarios del ensamble no aptos: {100 * p['p_no_apto_ensamble']:.0f} %."
     return nombre, p["tipo_amenaza"], p["nivel_riesgo"], desc
 
 
