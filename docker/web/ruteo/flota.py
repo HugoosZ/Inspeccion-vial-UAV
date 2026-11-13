@@ -23,7 +23,7 @@ Inspection of Roads Fusing Distributed Droneport Site Selection" (Sensors
 Pasos:
   1. Tareas: cada señalética M1 de los tipos elegidos dentro del área se asocia
      a su calle más cercana; cada calle con señal es una tarea. Las tareas sobre
-     calles bloqueadas (incendio, SOSAFE, Waze) se postergan.
+     calles bloqueadas (incendio, SOSAFE, cierres de TomTom) se postergan.
   2. Partición equilibrada: k-medias con capacidad, donde la carga de cada
      tarea es su largo más una estimación del traslado hasta la siguiente.
   3. Bases: una por área, en un recinto público (M2: salud, educación,
@@ -41,17 +41,26 @@ Pasos:
        - trazado de cada traslado sobre la red con pgr_dijkstra.
   5. Tiempos: vuelo a velocidad de crucero + recarga entre salidas; avisos de
      las salidas que coinciden con horas de mal tiempo (A2).
+
+Técnicas (punto 6, ruteo/tecnicas.py): los pasos 1 a 3 forman una instancia
+común (calles, partición, bases y sectores) y el paso 4 se resuelve con cada
+técnica elegida: T1 pgr_dijkstra por distancia, T2 MILP con Gurobi, T3
+pgr_dijkstra resiliente (el procedimiento descrito arriba) y T4 DA-DPSO. El
+riesgo de cada plan se evalúa con todas las amenazas.
 """
 
 import json
 import math
+import time
 from collections import Counter, defaultdict
 from datetime import timedelta
 
 import numpy as np
 from psycopg2.extras import execute_values
 
-from . import datos, preferencias
+from . import datos, dpso, milp, preferencias
+from .tecnicas import (COSTO, NOMBRES, constructiva, costo_salida, factible,  # noqa: F401
+                       factor_resiliente, minutos_sector, prob_desde_eventos)
 
 
 class ErrorFlota(ValueError):
@@ -80,6 +89,17 @@ SQL_ARISTAS = """
     FROM network_edges e LEFT JOIN pesos_flota p ON p.id = e.id
     WHERE e.geom && ST_MakeEnvelope({xmin}, {ymin}, {xmax}, {ymax}, 4326)
 """
+# T1: costo = largo de la calle, sin amenazas
+SQL_ARISTAS_DISTANCIA = """
+    SELECT e.id, e.source, e.target, e.length_m AS cost,
+           CASE WHEN e.reverse_cost < 0 THEN -1 ELSE e.length_m END AS reverse_cost
+    FROM network_edges e
+    WHERE e.geom && ST_MakeEnvelope({xmin}, {ymin}, {xmax}, {ymax}, 4326)
+"""
+# Tope de calles por sector para el modelo exacto (T2): con 200 calles el
+# modelo tiene ~160.000 arcos antes de la reducción; sobre eso el sector
+# conserva la solución de T3 y se informa.
+MAX_TAREAS_MILP = 200
 
 
 # ------------------------------------------------------------------------------
@@ -217,18 +237,22 @@ def envolvente(puntos):
 # pgRouting
 # ------------------------------------------------------------------------------
 class Red:
-    """Grafo con pesos de la consulta: aristas bloqueadas (-1) y factores."""
+    """Grafo con pesos de la consulta: aristas bloqueadas (-1) y factores.
 
-    def __init__(self, bloqueadas, factores):
-        self.bloqueadas = set(bloqueadas)
-        self.factores = {e: f for e, f in factores.items() if e not in self.bloqueadas and f != 1.0}
+    solo_distancia=True es la red de T1: costo = largo, sin bloqueos."""
+
+    def __init__(self, bloqueadas=(), factores=None, solo_distancia=False):
+        self.solo_distancia = solo_distancia
+        self.bloqueadas = set() if solo_distancia else set(bloqueadas)
+        self.factores = {} if solo_distancia else {
+            e: f for e, f in (factores or {}).items() if e not in self.bloqueadas and f != 1.0}
 
     def factor(self, e):
         return -1.0 if e in self.bloqueadas else self.factores.get(e, 1.0)
 
-    @staticmethod
-    def sql(bbox):
-        return SQL_ARISTAS.format(xmin=bbox[0], ymin=bbox[1], xmax=bbox[2], ymax=bbox[3])
+    def sql(self, bbox):
+        plantilla = SQL_ARISTAS_DISTANCIA if self.solo_distancia else SQL_ARISTAS
+        return plantilla.format(xmin=bbox[0], ymin=bbox[1], xmax=bbox[2], ymax=bbox[3])
 
 
 def preparar_pesos(conn, red):
@@ -284,85 +308,6 @@ def tramos(conn, red, bbox, pares):
 
 
 # ------------------------------------------------------------------------------
-# Orden de visita de un dron (regla del tramo pendiente más cercano + batería)
-# ------------------------------------------------------------------------------
-def ordenar_tareas(M, ib, U, V, Lt, capacidad):
-    """Arma las salidas de un dron.
-
-    M: matriz de costos; ib: índice de la base; U, V, Lt: índices de los
-    extremos y costo de cada tarea; capacidad: metros por salida.
-    Devuelve (salidas, inalcanzables). Cada salida es una lista de
-    (tarea, indice_entrada, indice_salida).
-    """
-    T = len(U)
-    ida_vuelta = np.minimum(M[ib, U] + Lt + M[V, ib], M[ib, V] + Lt + M[U, ib])
-    inalcanzables = [int(j) for j in np.where(~(ida_vuelta <= capacidad))[0]]
-    pendiente = ida_vuelta <= capacidad
-    salidas = []
-    while pendiente.any():
-        actual, usado, seq = ib, 0.0, []
-        while True:
-            cand = np.where(pendiente)[0]
-            if not len(cand):
-                break
-            dU, dV = M[actual, U[cand]], M[actual, V[cand]]
-            # entrar por U y salir por V, o al revés; debe alcanzar para volver
-            okU = usado + dU + Lt[cand] + M[V[cand], ib] <= capacidad
-            okV = usado + dV + Lt[cand] + M[U[cand], ib] <= capacidad
-            clave = np.minimum(np.where(okU, dU, np.inf), np.where(okV, dV, np.inf))
-            if not np.isfinite(clave).any():
-                break
-            j = int(np.argmin(clave))
-            t = int(cand[j])
-            if okU[j] and (not okV[j] or dU[j] <= dV[j]):
-                entrada, salida, d = int(U[t]), int(V[t]), dU[j]
-            else:
-                entrada, salida, d = int(V[t]), int(U[t]), dV[j]
-            usado += d + Lt[t]
-            seq.append((t, entrada, salida))
-            pendiente[t] = False
-            actual = salida
-        if not seq:
-            break
-        salidas.append(seq)
-    return salidas, inalcanzables
-
-
-def costo_salida(M, ib, seq, Lt):
-    if not seq:
-        return 0.0
-    c = M[ib, seq[0][1]] + M[seq[-1][2], ib]
-    for (t, e, s), (_, e2, _) in zip(seq, seq[1:]):
-        c += M[s, e2]
-    return c + sum(Lt[t] for t, _, _ in seq)
-
-
-def dos_opt(M, ib, seq, max_pasadas=20):
-    """Mejora 2-opt de una salida: invierte tramos de la secuencia (y el sentido
-    de recorrido de cada tarea invertida) si eso acorta los traslados.
-    Supone costos simétricos (la red se carga no dirigida)."""
-    seq = list(seq)
-    n = len(seq)
-    if n < 3:
-        return seq
-    for _ in range(max_pasadas):
-        mejoro = False
-        for i in range(n - 1):
-            previo = ib if i == 0 else seq[i - 1][2]
-            for j in range(i + 1, n):
-                siguiente = ib if j == n - 1 else seq[j + 1][1]
-                delta = (M[previo, seq[j][2]] + M[seq[i][1], siguiente]
-                         - M[previo, seq[i][1]] - M[seq[j][2], siguiente])
-                if delta < -1e-6:
-                    seq[i:j + 1] = [(t, s, e) for t, e, s in reversed(seq[i:j + 1])]
-                    mejoro = True
-                    previo = ib if i == 0 else seq[i - 1][2]
-        if not mejoro:
-            break
-    return seq
-
-
-# ------------------------------------------------------------------------------
 # Planificación
 # ------------------------------------------------------------------------------
 def _carga_estimada(P, largos):
@@ -400,30 +345,11 @@ def _sectores(P, largos, capacidad, n_tareas):
         m += 1
 
 
-def _rutear_sector(conn, red, base, grupo, capacidad, margen=MARGEN_RED_M):
-    """Salidas de un sector desde su base.
-
-    Devuelve (salidas, inalcanzables). Cada salida es un dict con la secuencia
-    de pasos ("tramo", origen, destino) / ("tarea", arista); los tramos se
-    trazan después con pgr_dijkstra (materializar) solo para el plan elegido.
-
-    La red se recorta al rectángulo del sector más un margen; si alguna tarea
-    queda sin camino (el acceso pasa por fuera del recorte), se reintenta con
-    un margen mayor."""
-    vids = [base["id"]] + sorted({v for t in grupo for v in (t["source"], t["target"])} - {base["id"]})
-    idx = {v: i for i, v in enumerate(vids)}
-    lon = [t["lon"] for t in grupo] + [base["lon"]]
-    lat = [t["lat"] for t in grupo] + [base["lat"]]
-    bbox = expandir_bbox((min(lon), min(lat), max(lon), max(lat)), margen)
-    M = matriz_costos(conn, red, bbox, vids)
-    U = np.array([idx[t["source"]] for t in grupo])
-    V = np.array([idx[t["target"]] for t in grupo])
-    Lt = np.array([t["length_m"] * max(red.factor(t["id"]), 1.0) for t in grupo])
-    orden, fuera = ordenar_tareas(M, 0, U, V, Lt, capacidad)
-    finito = np.isfinite(M)
-    Mf = np.where(finito, M, 0)
-    if np.allclose(Mf, Mf.T, rtol=1e-6, atol=1e-3):
-        orden = [dos_opt(M, 0, seq) for seq in orden]
+def a_salidas(ctx, orden, M, Lt):
+    """Convierte las salidas de una técnica (listas de (tarea, entrada, salida))
+    en pasos ("tramo", origen, destino) / ("tarea", arista); los tramos se
+    trazan después con pgr_dijkstra (materializar)."""
+    vids, grupo = ctx["vids"], ctx["grupo"]
     salidas = []
     for seq in orden:
         pasos, anterior = [], 0
@@ -432,13 +358,45 @@ def _rutear_sector(conn, red, base, grupo, capacidad, margen=MARGEN_RED_M):
             pasos.append(("tarea", grupo[t]["id"]))
             anterior = s
         pasos.append(("tramo", vids[anterior], vids[0]))
-        salidas.append({"tipo": "inspeccion", "pasos": pasos, "bbox": bbox,
+        salidas.append({"tipo": "inspeccion", "pasos": pasos, "bbox": ctx["bbox"],
                         "tareas": [grupo[t]["id"] for t, _, _ in seq],
-                        "metros": float(costo_salida(M, 0, seq, Lt))})
+                        "metros": costo_salida(M, 0, seq, Lt)})
+    return salidas
+
+
+def _rutear_sector(conn, red, base, grupo, capacidad, margen=MARGEN_RED_M):
+    """Salidas de un sector desde su base con la técnica T3 (constructiva
+    sobre costos resilientes), que define la instancia común.
+
+    Devuelve (salidas, inalcanzables, contextos). Cada contexto guarda la
+    matriz de costos y las tareas del sector para que T1, T2 y T4 resuelvan
+    exactamente el mismo subproblema.
+
+    La red se recorta al rectángulo del sector más un margen; si alguna tarea
+    queda sin camino (el acceso pasa por fuera del recorte), se reintenta con
+    un margen mayor."""
+    t0 = time.perf_counter()
+    vids = [base["id"]] + sorted({v for t in grupo for v in (t["source"], t["target"])} - {base["id"]})
+    idx = {v: i for i, v in enumerate(vids)}
+    lon = [t["lon"] for t in grupo] + [base["lon"]]
+    lat = [t["lat"] for t in grupo] + [base["lat"]]
+    bbox = expandir_bbox((min(lon), min(lat), max(lon), max(lat)), margen)
+    M = matriz_costos(conn, red, bbox, vids)
+    t_matriz = time.perf_counter() - t0
+    U = np.array([idx[t["source"]] for t in grupo])
+    V = np.array([idx[t["target"]] for t in grupo])
+    Lt = np.array([t["length_m"] * max(red.factor(t["id"]), 1.0) for t in grupo])
+    orden, fuera = constructiva(M, 0, U, V, Lt, capacidad)
+    ctx = {"base": base, "grupo": grupo, "vids": vids, "bbox": bbox, "M": M, "U": U, "V": V,
+           "Lt": Lt, "fuera": fuera, "orden": orden, "t_matriz": t_matriz,
+           "t_orden": time.perf_counter() - t0 - t_matriz}
+    salidas = a_salidas(ctx, orden, M, Lt)
     if fuera and margen < MARGEN_MAX_M:
-        otras, fuera_ids = _rutear_sector(conn, red, base, [grupo[j] for j in fuera], capacidad, MARGEN_MAX_M)
-        return salidas + otras, fuera_ids
-    return salidas, [grupo[j]["id"] for j in fuera]
+        otras, fuera_ids, ctxs = _rutear_sector(conn, red, base, [grupo[j] for j in fuera], capacidad, MARGEN_MAX_M)
+        for c in ctxs:
+            c["reintento"] = True      # mismo sector, red recortada con más margen
+        return salidas + otras, fuera_ids, [ctx] + ctxs
+    return salidas, [grupo[j]["id"] for j in fuera], [ctx]
 
 
 def materializar(conn, red, salidas):
@@ -511,11 +469,13 @@ def _rutear_dron(conn, red, base, tareas, capacidad, proy, droneports=True, ubic
 
     ubicar: UbicadorBases.elegir, para la base de cada sector (excluir: recintos
     que ya son base de otros drones).
-    Devuelve (salidas, inalcanzables, bases_usadas). Las salidas son de tipo
-    'inspeccion' o 'traslado' (vuelo de una base a otra).
+    Devuelve (salidas, inalcanzables, bases_usadas, pasos). Las salidas son de
+    tipo 'inspeccion' o 'traslado' (vuelo de una base a otra); pasos es la
+    secuencia ("sector", contexto) / ("traslado", salida) con la que las otras
+    técnicas rearman el plan del dron sobre los mismos sectores.
     """
     if not tareas:
-        return [], [], [base]
+        return [], [], [base], []
     P = proy.xy([t["lon"] for t in tareas], [t["lat"] for t in tareas])
     largos = np.array([t["length_m"] for t in tareas])
     if droneports:
@@ -525,7 +485,7 @@ def _rutear_dron(conn, red, base, tareas, capacidad, proy, droneports=True, ubic
         etiquetas = particion_equilibrada(P, largos, m) if m > 1 else np.zeros(len(tareas), int)
     restantes = sorted(set(etiquetas.tolist()))
     un_sector = len(restantes) == 1
-    salidas, inalcanzables, bases_usadas = [], [], []
+    salidas, inalcanzables, bases_usadas, pasos = [], [], [], []
     posicion = proy.xy([base["lon"]], [base["lat"]])[0]
     base_actual = None
     while restantes:
@@ -542,133 +502,137 @@ def _rutear_dron(conn, red, base, tareas, capacidad, proy, droneports=True, ubic
                                   max(base_actual["lon"], base_sector["lon"]), max(base_actual["lat"], base_sector["lat"])),
                                  MARGEN_MAX_M)
             d = float(np.hypot(*(proy.xy([base_sector["lon"]], [base_sector["lat"]])[0] - posicion)))
-            salidas.append({"tipo": "traslado", "pasos": [("tramo", base_actual["id"], base_sector["id"])],
-                            "bbox": caja, "tareas": [], "metros": FACTOR_RODEO * d})
+            traslado = {"tipo": "traslado", "pasos": [("tramo", base_actual["id"], base_sector["id"])],
+                        "bbox": caja, "tareas": [], "metros": FACTOR_RODEO * d}
+            salidas.append(traslado)
+            pasos.append(("traslado", traslado))
         if not bases_usadas or bases_usadas[-1]["id"] != base_sector["id"]:
             bases_usadas.append(base_sector)
-        sal, fuera = _rutear_sector(conn, red, base_sector, grupo, capacidad)
+        sal, fuera, ctxs = _rutear_sector(conn, red, base_sector, grupo, capacidad)
+        pasos += [("sector", c) for c in ctxs]
         salidas += sal
         inalcanzables += fuera
         base_actual = base_sector
         posicion = proy.xy([base_sector["lon"]], [base_sector["lat"]])[0]
-    return salidas, inalcanzables, bases_usadas
+    return salidas, inalcanzables, bases_usadas, pasos
 
 
-def planificar_area(conn, area, entrada_prefs):
-    prefs, por_defecto = preferencias.normalizar(
-        entrada_prefs, preferencias.PREFERENCIAS_FLOTA, preferencias.LIMITES_FLOTA)
-    t0 = preferencias.hora_salida(prefs)
-    avisos = []
+def _resolver_tecnicas(conn, plan, tecs, red_dist, prefs, capacidad):
+    """Ejecuta cada técnica sobre los sectores de la instancia común.
 
-    poligono, bbox_area = validar_area(area)
-    if bbox_area is None:
-        bbox_area = datos.extension_red(conn)
-        if bbox_area is None:
-            raise ErrorFlota("La red vial está vacía: ejecuta Infraestructura/cargar.py")
-    bbox_red = expandir_bbox(bbox_area, MARGEN_RED_M + 2000)
+    Devuelve {codigo: {"ordenes": {id(ctx): (salidas, M, Lt)}, "info": {...}}}."""
+    v, recarga = prefs["velocidad_crucero_ms"], prefs["tiempo_recarga_min"]
+    conv = 1.0 / (60.0 * v)
+    ctxs = [c for (_, _, _, pasos) in plan for tipo, c in pasos if tipo == "sector"]
+    for c in ctxs:
+        fuera = set(c["fuera"])
+        c["R"] = [j for j in range(len(c["grupo"])) if j not in fuera]
+    total = sum(len(c["R"]) for c in ctxs) or 1
+    resultados = {}
+    for cod in tecs:
+        t_ini = time.perf_counter()
+        ordenes, info = {}, {"sectores": len(ctxs), "minutos_modelo": 0.0}
+        segundos_matriz = 0.0
+        for c in ctxs:
+            R = c["R"]
+            pos = {j: k for k, j in enumerate(R)}
+            U, V = c["U"][R], c["V"][R]
+            semilla = [[(pos[t], e, s) for t, e, s in seq] for seq in c["orden"]]
 
-    # Amenazas vigentes durante la jornada
-    amen = datos.amenazas_region(conn, bbox_red, t0, prefs["jornada_h"], prefs["considerar_clima"])
-    red = Red(set(amen.bloqueadas), amen.factor_estatico)
+            def volver(salidas):
+                return [[(R[t], e, s) for t, e, s in seq] for seq in salidas]
 
-    # 1. Tareas: calles con señal dentro del área
-    puntos = datos.puntos_inspeccion(conn, json.dumps(poligono) if poligono else None,
-                                     bbox_area, prefs, RADIO_ASIGNACION_M)
-    if not puntos:
-        raise ErrorFlota("No hay señales de los tipos elegidos dentro del área.")
-    por_arista = defaultdict(list)
-    for p in puntos:
-        por_arista[p["edge_id"]].append(p)
-    tareas, postergadas = [], []
-    for e, ps in por_arista.items():
-        t = {"id": int(e), "source": int(ps[0]["source"]), "target": int(ps[0]["target"]),
-             "length_m": ps[0]["length_m"], "name": ps[0]["name"],
-             "lon": float(np.mean([p["lon"] for p in ps])), "lat": float(np.mean([p["lat"] for p in ps])),
-             "n_puntos": len(ps), "tipos": dict(Counter(p["tipo"] for p in ps))}
-        if e in amen.bloqueadas:
-            postergadas.append({**t, "motivo": "amenaza activa en la jornada"})
-        else:
-            tareas.append(t)
-    if not tareas:
-        raise ErrorFlota("Todas las calles con señal del área están bloqueadas por amenazas.")
+            if not R:
+                ordenes[id(c)] = ([], c["M"], c["Lt"])
+                continue
+            if cod == "T3":
+                M, Lt, orden = c["M"], c["Lt"], c["orden"]
+                segundos_matriz += c["t_matriz"] + c["t_orden"]
+            elif cod == "T1":
+                t_m = time.perf_counter()
+                M = matriz_costos(conn, red_dist, c["bbox"], c["vids"])
+                Lt = np.array([t["length_m"] for t in c["grupo"]])
+                orden_local, _ = constructiva(M, 0, U, V, Lt[R], capacidad)
+                orden = volver(orden_local)
+                segundos_matriz += time.perf_counter() - t_m
+            elif cod == "T2":
+                M, Lt = c["M"], c["Lt"]
+                segundos_matriz += c["t_matriz"] + c["t_orden"]   # matriz + solución inicial T3
+                if len(R) > MAX_TAREAS_MILP:
+                    orden = c["orden"]
+                    info.setdefault("sectores_sin_milp", 0)
+                    info["sectores_sin_milp"] += 1
+                else:
+                    limite = max(2.0, prefs["limite_milp_s"] * len(R) / total)
+                    r = milp.resolver(M, 0, U, V, Lt[R], capacidad, conv, recarga,
+                                      inicio=semilla, limite_s=limite)
+                    orden = volver(r["salidas"]) if r.get("salidas") else c["orden"]
+                    if not r.get("salidas") or not factible(M, 0, orden, Lt, capacidad):
+                        orden = c["orden"]
+                        info["nota"] = "Un sector quedó con la solución de T3: el solver no entregó una solución factible."
+                    info["solver"] = r["solver"]
+                    info["estados"] = info.get("estados", []) + [r["estado"]]
+                    info["valor"] = info.get("valor", 0.0) + (r["valor"] or 0.0)
+                    info["cota"] = info.get("cota", 0.0) + (r["cota"] if r.get("cota") is not None else 0.0)
+                    info["variables"] = info.get("variables", 0) + r["variables"]
+                    info["binarias"] = info.get("binarias", 0) + r["binarias"]
+                    info["restricciones"] = info.get("restricciones", 0) + r["restricciones"]
+                    if r.get("nota"):
+                        info["nota"] = r["nota"]
+            elif cod == "T4":
+                M, Lt = c["M"], c["Lt"]
+                segundos_matriz += c["t_matriz"] + c["t_orden"]   # matriz + solución inicial T3
+                limite = max(1.0, prefs["limite_dpso_s"] * len(R) / total)
+                Ml = M.tolist()
+                r = dpso.resolver(Ml, 0, U.tolist(), V.tolist(), Lt[R].tolist(), capacidad, conv, recarga,
+                                  semilla_perm=[t for seq in semilla for t, _, _ in seq], limite_s=limite)
+                orden = volver(r["salidas"]) if r["salidas"] else c["orden"]
+                info["iteraciones"] = info.get("iteraciones", 0) + r["iteraciones"]
+                info["evaluaciones"] = info.get("evaluaciones", 0) + r["evaluaciones"]
+                info["busquedas_locales"] = info.get("busquedas_locales", 0) + r["busquedas_locales"]
+                info["valor_inicial"] = info.get("valor_inicial", 0.0) + minutos_sector(
+                    M, 0, c["orden"], Lt, v, recarga)          # objetivo de T3 en el sector
+                info["valor"] = info.get("valor", 0.0) + r["valor"]
+            ordenes[id(c)] = (orden, M, Lt)
+            info["minutos_modelo"] += minutos_sector(M, 0, orden, Lt, v, recarga)
+        # T1 calcula su propia matriz dentro de este tiempo; T2, T3 y T4 reutilizan la
+        # matriz resiliente de la instancia, cuyo tiempo (segundos_matriz) se les suma después.
+        info["segundos_solver"] = time.perf_counter() - t_ini
+        info["segundos_matriz"] = segundos_matriz
+        resultados[cod] = {"ordenes": ordenes, "info": info}
+    return resultados
 
-    proy = Proyeccion((bbox_area[1] + bbox_area[3]) / 2)
-    P = proy.xy([t["lon"] for t in tareas], [t["lat"] for t in tareas])
-    largos = np.array([t["length_m"] for t in tareas])
 
-    # 2-4. Partición equilibrada, bases y rutas. Se repite reponderando la carga
-    # de cada área según el tiempo que resultó, para equilibrar a los drones
-    # (objetivo de varianza mínima de Zhong et al.) y se conserva el mejor plan.
-    n = min(prefs["n_drones"], len(tareas))
-    if n < prefs["n_drones"]:
-        avisos.append(f"Solo hay {len(tareas)} calles a inspeccionar: se usan {n} drones.")
-    capacidad = (prefs["velocidad_crucero_ms"] * prefs["autonomia_min"] * 60
-                 * (1 - prefs["reserva_bateria_pct"] / 100))
-    v = prefs["velocidad_crucero_ms"]
-    recarga = prefs["tiempo_recarga_min"]
-    centralizada = prefs["bases"] == "centralizada"
+def _plan_tecnica(plan, ordenes):
+    """Plan de cada dron con las salidas de una técnica (mismos sectores y traslados)."""
+    nuevo = []
+    for salidas_t3, fuera, bases_d, pasos in plan:
+        salidas = []
+        for tipo, obj in pasos:
+            if tipo == "traslado":
+                salidas.append({k: v for k, v in obj.items() if k != "aristas"})
+            else:
+                orden, M, Lt = ordenes[id(obj)]
+                salidas += a_salidas(obj, orden, M, Lt)
+        nuevo.append((salidas, fuera, bases_d))
+    return nuevo
 
-    # Sitios candidatos para las bases: lugares públicos (M2) de las categorías elegidas
-    lugares = datos.lugares_publicos(conn, bbox_red, prefs["categorias_base"])
-    if not lugares:
-        avisos.append("No hay lugares públicos (M2) cargados para las categorías elegidas: las bases "
-                      "quedan en la calle más cercana al centro de cada área.")
-    ubicador = UbicadorBases(conn, red, proy, lugares)
 
-    def minutos_estimados(salidas, distancias):
-        vuelo = sum(m for m in distancias) / v / 60
-        return vuelo + recarga * max(0, len(salidas) - 1)
+def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, geoms, prob_eval,
+                     bloqueadas_eval, amen, prefs, capacidad, t0):
+    """Indicadores, tiempos y rutas (GeoJSON) del plan de una técnica.
 
-    preparar_pesos(conn, red)
-    carga = _carga_estimada(P, largos)
-    mejor = None
-    for _ in range(1 + REBALANCEOS):
-        etiquetas = particion_equilibrada(P, carga, n)
-        if centralizada:
-            bases = [ubicador.elegir(P, largos)] * n
-        else:
-            # sin repetir recinto: eligen primero las áreas con más calles
-            bases, usados = [None] * n, set()
-            for d in sorted(range(n), key=lambda d: -float(largos[etiquetas == d].sum())):
-                bases[d] = ubicador.elegir(P[etiquetas == d], largos[etiquetas == d], usados)
-                if bases[d]["lugar"]:
-                    usados.add(bases[d]["lugar"]["id"])
-        plan, tiempos = [], []
-        for d in range(n):
-            grupo = [t for t, e in zip(tareas, etiquetas) if e == d]
-            otros = {b["lugar"]["id"] for i, b in enumerate(bases) if i != d and b["lugar"]}
-            salidas, fuera, usadas_b = _rutear_dron(conn, red, bases[d], grupo, capacidad, proy,
-                                                     droneports=not centralizada,
-                                                     ubicar=ubicador.elegir, excluir=otros)
-            plan.append((salidas, fuera, usadas_b))
-            # metros estimados (costo ponderado); los traslados entre bases, por distancia recta
-            tiempos.append(minutos_estimados(salidas, [s["metros"] for s in salidas]))
-        T_est = max(tiempos)
-        if mejor is None or T_est < mejor[0]:
-            mejor = (T_est, etiquetas, plan)
-        activos_t = [x for x in tiempos if x > 0]
-        if n == 1 or not activos_t or min(activos_t) / max(activos_t) >= 0.9:
-            break
-        media = float(np.mean(tiempos))
-        ajuste = np.array([x / media if media else 1.0 for x in tiempos]) ** 0.8
-        carga = carga * ajuste[etiquetas]
-    _, etiquetas, plan = mejor
-    for salidas, _, _ in plan:
-        materializar(conn, red, salidas)
-    conn.rollback()  # descarta la tabla temporal pesos_flota
-
-    # 5. Métricas, tiempos y geometrías
-    usadas = {e for salidas, _, _ in plan for s in salidas for e in s["aristas"]}
-    geoms = datos.geometrias(conn, list(usadas | {t["id"] for t in tareas} | {t["id"] for t in postergadas}))
+    El riesgo se evalúa siempre con TODAS las amenazas (prob_eval,
+    bloqueadas_eval), aunque la técnica haya ruteado con menos o con ninguna:
+    así T1 muestra el riesgo que corre al ignorarlas."""
+    v, recarga = prefs["velocidad_crucero_ms"], prefs["tiempo_recarga_min"]
     largo = {e: g["length_m"] for e, g in geoms.items()}
-    tarea_por_id = {t["id"]: t for t in tareas}
-    inalcanzables = [i for _, fuera, _ in plan for i in fuera]
-    fuera_set = set(inalcanzables)
-
-    drones, rutas_fc, tareas_fc, areas_fc, bases_fc = [], [], [], [], []
-    for d, (salidas, _, bases_d) in enumerate(plan):
+    drones, rutas_fc, avisos = [], [], []
+    cruzadas, riesgo_m, metros_tot = set(), 0.0, 0.0
+    for d, (salidas, _, bases_d) in enumerate(plan_t):
         conteo = Counter(e for s in salidas for e in s["aristas"])
         dis = sum(largo.get(e, 0) * c for e, c in conteo.items())
+        esperado = sum(largo.get(e, 0) * c * factor_resiliente(prob_eval.get(e, 0.0)) for e, c in conteo.items())
         repetido = sum(largo.get(e, 0) * (c - 1) for e, c in conteo.items() if c > 1)
         ids_dron = [t["id"] for t, e in zip(tareas, etiquetas) if e == d and t["id"] not in fuera_set]
         km_insp = sum(tarea_por_id[i]["length_m"] for i in ids_dron)
@@ -693,17 +657,252 @@ def planificar_area(conn, area, entrada_prefs):
                 aviso = "mal tiempo (riesgo alto): reprogramar"
             elif clima > 1:
                 aviso = "lluvia o viento moderado"
+            # Riesgo medio de la salida: probabilidad de falla media por metro recorrido.
+            # (La probabilidad de completar la salida no es el producto de las p(e):
+            # el clima o un incidente afectan a muchas calles a la vez; eso se trata
+            # con eventos correlacionados en la simulación de fallas.)
+            metros = sum(largo.get(e, 0) for e in aristas)
+            p_media = (sum(largo.get(e, 0) * prob_eval.get(e, 0.0) for e in aristas) / metros) if metros else 0.0
+            bloq = set(aristas) & bloqueadas_eval
+            cruzadas |= bloq
+            riesgo_m += sum(largo.get(e, 0) * prob_eval.get(e, 0.0) for e in aristas)
+            metros_tot += metros
             n_insp += sal["tipo"] == "inspeccion"
             detalle.append({"salida": s, "tipo": sal["tipo"], "km": round(km, 2), "vuelo_min": round(vuelo, 1),
                             "tareas": len(sal["tareas"]), "inicio": ini.isoformat(), "fin": fin.isoformat(),
-                            "clima": aviso})
+                            "clima": aviso, "p_media": round(p_media, 4), "aristas_bloqueadas": len(bloq)})
             rutas_fc.append({"type": "Feature",
                              "geometry": {"type": "MultiLineString",
                                           "coordinates": [geoms[e]["coords"] for e in aristas if e in geoms]},
-                             "properties": {"dron": d + 1, "salida": s, "tipo": sal["tipo"], "km": round(km, 2),
-                                            "vuelo_min": round(vuelo, 1), "tareas": len(sal["tareas"]),
-                                            "inicio": ini.isoformat(), "clima": aviso}})
+                             "properties": {"tecnica": cod, "dron": d + 1, "salida": s, "tipo": sal["tipo"],
+                                            "km": round(km, 2), "vuelo_min": round(vuelo, 1),
+                                            "tareas": len(sal["tareas"]), "inicio": ini.isoformat(),
+                                            "clima": aviso, "p_media": round(p_media, 4),
+                                            "aristas_bloqueadas": len(bloq)}})
             minutos += vuelo + (recarga if s < len(salidas) else 0)
+        drones.append({
+            "dron": d + 1, "bases": bases_d, "tareas": len(ids_dron),
+            "puntos": sum(tarea_por_id[i]["n_puntos"] for i in ids_dron),
+            "km_total": round(dis / 1000, 2), "km_inspeccion": round(km_insp / 1000, 2),
+            "km_esperados": round(esperado / 1000, 2),
+            "km_repetidos": round(repetido / 1000, 2),
+            "repeticion_rho": round(repetido / dis, 3) if dis else 0.0,
+            "salidas": n_insp, "traslados": len(salidas) - n_insp,
+            "tiempo_min": round(minutos, 1), "detalle_salidas": detalle,
+        })
+    activos = [x for x in drones if x["km_total"] > 0]
+    Dis = sum(x["km_total"] for x in drones)
+    L_insp = sum(x["km_inspeccion"] for x in drones)
+    T = max((x["tiempo_min"] for x in drones), default=0.0)
+    kms = [x["km_total"] for x in activos]
+    if T / 60 > prefs["jornada_h"]:
+        avisos.append(f"La inspección toma {T / 60:.1f} h y supera la jornada de {prefs['jornada_h']:g} h.")
+    n_clima = sum(1 for x in drones for s in x["detalle_salidas"] if s["clima"])
+    if n_clima:
+        avisos.append(f"{n_clima} salida(s) coinciden con horas de mal tiempo pronosticado (A2).")
+    if cruzadas:
+        avisos.append(f"Cruza {len(cruzadas)} calle(s) bloqueadas por amenazas activas.")
+    resumen = {
+        "tiempo_global_min": round(T, 1),
+        "km_total_Dis": round(Dis, 2), "km_a_inspeccionar": round(L_insp, 2),
+        "km_esperados": round(sum(x["km_esperados"] for x in drones), 2),
+        "salidas": sum(x["salidas"] for x in drones),
+        "utilizacion_beta": round(min(kms) / max(kms), 3) if kms else None,
+        "eficiencia_eta": round(L_insp / Dis, 3) if Dis else None,
+        "repeticion_rho_media": round(float(np.mean([x["repeticion_rho"] for x in activos])), 3) if activos else None,
+        "p_media_km": round(riesgo_m / metros_tot, 4) if metros_tot else None,
+        "aristas_bloqueadas": len(cruzadas),
+    }
+    return drones, rutas_fc, resumen, avisos
+
+
+METODOS = {
+    "T1": "Costo = largo de la calle (pgr_dijkstraCostMatrix y pgr_dijkstra), sin amenazas. Orden: tramo pendiente "
+          "más cercano con batería y 2-opt (Zhong et al., 2023). Línea base.",
+    "T2": "MILP de ruteo multi-salida con batería: cada calle una vez y en un sentido (copias orientadas), "
+          "flujo de energía de una mercancía (Gavish y Graves, 1978) y número de salidas libre. Minimiza el "
+          "tiempo con costo resiliente. Arranque en caliente con T3; se informa la brecha certificada.",
+    "T3": "Costo resiliente c(e) = largo / (1 - p(e)) con la probabilidad de falla del punto 5 y aristas "
+          "bloqueadas eliminadas (pgr_dijkstra). Mismo orden constructivo que T1.",
+    "T4": "DA-DPSO: permutaciones de calles, mutación con inercia adaptativa (diversidad y estancamiento) y "
+          "cruce de orden con la mejor propia y la del enjambre (Pan et al., 2008); split óptimo (Prins, 2004), "
+          "búsqueda local lamarckiana y reinicios de búsqueda local iterada. Costo resiliente.",
+}
+
+
+def planificar_area(conn, area, entrada_prefs):
+    prefs, por_defecto = preferencias.normalizar(
+        entrada_prefs, preferencias.PREFERENCIAS_FLOTA, preferencias.LIMITES_FLOTA)
+    t0 = preferencias.hora_salida(prefs)
+    avisos = []
+
+    poligono, bbox_area = validar_area(area)
+    if bbox_area is None:
+        bbox_area = datos.extension_red(conn)
+        if bbox_area is None:
+            raise ErrorFlota("La red vial está vacía: ejecuta Infraestructura/cargar.py")
+    bbox_red = expandir_bbox(bbox_area, MARGEN_RED_M + 2000)
+
+    # Amenazas vigentes durante la jornada: las elegidas por el usuario guían el
+    # ruteo; todas se usan para evaluar el riesgo de cada técnica.
+    todas = list(preferencias.AMENAZAS_VALIDAS)
+    amen = datos.amenazas_region(conn, bbox_red, t0, prefs["jornada_h"], prefs["considerar_clima"],
+                                 prefs["amenazas"])
+    amen_eval = datos.amenazas_region(conn, bbox_red, t0, prefs["jornada_h"], True, todas)
+    prob, ventana = datos.probabilidades_aristas(conn, bbox_red, prefs["amenazas"])
+    prob_eval, _ = datos.probabilidades_aristas(conn, bbox_red, todas)
+    if not prob_eval:
+        avisos.append("No está la tabla de probabilidades de falla (punto 5): se usa la probabilidad por "
+                      "nivel de cada amenaza vigente. Ejecuta Probabilidades/generar.py.")
+        prob_eval = prob_desde_eventos(amen_eval.eventos)
+        prob = prob_desde_eventos(amen.eventos) if prefs["amenazas"] else {}
+    elif ventana and not (ventana[0] <= t0 <= ventana[1]):
+        avisos.append("Las probabilidades de falla se calcularon para otra jornada "
+                      f"({ventana[0]:%d-%m %H:%M} a {ventana[1]:%d-%m %H:%M} UTC): vuelve a ejecutar main.py.")
+    red = Red(amen.bloqueadas, {e: factor_resiliente(p) for e, p in prob.items()})
+    red_dist = Red(solo_distancia=True)
+
+    # 1. Tareas: calles con señal dentro del área
+    puntos = datos.puntos_inspeccion(conn, json.dumps(poligono) if poligono else None,
+                                     bbox_area, prefs, RADIO_ASIGNACION_M)
+    if not puntos:
+        raise ErrorFlota("No hay señales de los tipos elegidos dentro del área.")
+    por_arista = defaultdict(list)
+    for p in puntos:
+        por_arista[p["edge_id"]].append(p)
+    tareas, postergadas = [], []
+    for e, ps in por_arista.items():
+        t = {"id": int(e), "source": int(ps[0]["source"]), "target": int(ps[0]["target"]),
+             "length_m": max(float(ps[0]["length_m"]), 0.1), "name": ps[0]["name"],
+             "lon": float(np.mean([p["lon"] for p in ps])), "lat": float(np.mean([p["lat"] for p in ps])),
+             "n_puntos": len(ps), "tipos": dict(Counter(p["tipo"] for p in ps))}
+        if e in amen.bloqueadas:
+            postergadas.append({**t, "motivo": "amenaza activa en la jornada"})
+        else:
+            tareas.append(t)
+    if not tareas:
+        raise ErrorFlota("Todas las calles con señal del área están bloqueadas por amenazas.")
+
+    proy = Proyeccion((bbox_area[1] + bbox_area[3]) / 2)
+    P = proy.xy([t["lon"] for t in tareas], [t["lat"] for t in tareas])
+    largos = np.array([t["length_m"] for t in tareas])
+
+    # 2-4. Instancia común: partición equilibrada, bases y sectores. Se repite
+    # reponderando la carga de cada área según el tiempo que resultó con T3, para
+    # equilibrar a los drones (Zhong et al.) y se conserva la mejor partición.
+    n = min(prefs["n_drones"], len(tareas))
+    if n < prefs["n_drones"]:
+        avisos.append(f"Solo hay {len(tareas)} calles a inspeccionar: se usan {n} drones.")
+    capacidad = (prefs["velocidad_crucero_ms"] * prefs["autonomia_min"] * 60
+                 * (1 - prefs["reserva_bateria_pct"] / 100))
+    v = prefs["velocidad_crucero_ms"]
+    recarga = prefs["tiempo_recarga_min"]
+    centralizada = prefs["bases"] == "centralizada"
+
+    lugares = datos.lugares_publicos(conn, bbox_red, prefs["categorias_base"])
+    if not lugares:
+        avisos.append("No hay lugares públicos (M2) cargados para las categorías elegidas: las bases "
+                      "quedan en la calle más cercana al centro de cada área.")
+    ubicador = UbicadorBases(conn, red, proy, lugares)
+
+    def minutos_estimados(salidas):
+        return sum(s["metros"] for s in salidas) / v / 60 + recarga * max(0, len(salidas) - 1)
+
+    preparar_pesos(conn, red)
+    t_instancia = time.perf_counter()
+    carga = _carga_estimada(P, largos)
+    mejor = None
+    for _ in range(1 + REBALANCEOS):
+        etiquetas = particion_equilibrada(P, carga, n)
+        if centralizada:
+            bases = [ubicador.elegir(P, largos)] * n
+        else:
+            bases, usados = [None] * n, set()
+            for d in sorted(range(n), key=lambda d: -float(largos[etiquetas == d].sum())):
+                bases[d] = ubicador.elegir(P[etiquetas == d], largos[etiquetas == d], usados)
+                if bases[d]["lugar"]:
+                    usados.add(bases[d]["lugar"]["id"])
+        plan, tiempos = [], []
+        for d in range(n):
+            grupo = [t for t, e in zip(tareas, etiquetas) if e == d]
+            otros = {b["lugar"]["id"] for i, b in enumerate(bases) if i != d and b["lugar"]}
+            salidas, fuera, usadas_b, pasos = _rutear_dron(conn, red, bases[d], grupo, capacidad, proy,
+                                                           droneports=not centralizada,
+                                                           ubicar=ubicador.elegir, excluir=otros)
+            plan.append((salidas, fuera, usadas_b, pasos))
+            tiempos.append(minutos_estimados(salidas))
+        T_est = max(tiempos)
+        if mejor is None or T_est < mejor[0]:
+            mejor = (T_est, etiquetas, plan)
+        activos_t = [x for x in tiempos if x > 0]
+        if n == 1 or not activos_t or min(activos_t) / max(activos_t) >= 0.9:
+            break
+        media = float(np.mean(tiempos))
+        ajuste = np.array([x / media if media else 1.0 for x in tiempos]) ** 0.8
+        carga = carga * ajuste[etiquetas]
+    _, etiquetas, plan = mejor
+    t_instancia = time.perf_counter() - t_instancia
+
+    # 5. Técnicas sobre la instancia común
+    tecs = [t for t in preferencias.TECNICAS_VALIDAS if t in prefs["tecnicas"]]
+    resultados = _resolver_tecnicas(conn, plan, tecs, red_dist, prefs, capacidad)
+    planes = {}
+    for cod in tecs:
+        t_m = time.perf_counter()
+        planes[cod] = _plan_tecnica(plan, resultados[cod]["ordenes"])
+        for salidas, _, _ in planes[cod]:
+            materializar(conn, red_dist if cod == "T1" else red, salidas)
+        resultados[cod]["info"]["segundos_trazado"] = time.perf_counter() - t_m
+    conn.rollback()  # descarta la tabla temporal pesos_flota
+
+    # 6. Indicadores y capas
+    usadas = {e for p in planes.values() for salidas, _, _ in p for s in salidas for e in s["aristas"]}
+    geoms = datos.geometrias(conn, list(usadas | {t["id"] for t in tareas} | {t["id"] for t in postergadas}))
+    tarea_por_id = {t["id"]: t for t in tareas}
+    inalcanzables = [i for _, fuera, _, _ in plan for i in fuera]
+    fuera_set = set(inalcanzables)
+
+    salida_tecnicas = {}
+    for cod in tecs:
+        drones_t, rutas_t, resumen_t, avisos_t = _evaluar_tecnica(
+            cod, planes[cod], etiquetas, tareas, tarea_por_id, fuera_set, geoms, prob_eval,
+            amen_eval.bloqueadas, amen, prefs, capacidad, t0)
+        info = resultados[cod]["info"]
+        tiempo = info["segundos_solver"] + info["segundos_trazado"]
+        if cod != "T1":
+            tiempo += info["segundos_matriz"]      # matriz resiliente (y orden constructivo en T3)
+        detalle = {"minutos_modelo": round(info["minutos_modelo"], 1), "sectores": info["sectores"]}
+        if cod == "T2":
+            valor, cota = info.get("valor"), info.get("cota")
+            detalle.update({
+                "solver": info.get("solver"), "estados": sorted(set(info.get("estados", []))),
+                "variables": info.get("variables"), "binarias": info.get("binarias"),
+                "restricciones": info.get("restricciones"),
+                "cota_inferior_min": round(cota, 1) if cota else None,
+                "gap": round((valor - cota) / valor, 4) if valor and cota is not None else None,
+                "limite_s": prefs["limite_milp_s"], "sectores_sin_milp": info.get("sectores_sin_milp", 0),
+                "nota": info.get("nota")})
+        elif cod == "T4":
+            ini, fin = info.get("valor_inicial"), info.get("valor")
+            detalle.update({"iteraciones": info.get("iteraciones"), "evaluaciones": info.get("evaluaciones"),
+                            "busquedas_locales": info.get("busquedas_locales"),
+                            "mejora_sobre_T3": round((ini - fin) / ini, 4) if ini else None,
+                            "limite_s": prefs["limite_dpso_s"], "poblacion": dpso.POBLACION,
+                            "semilla": dpso.SEMILLA})
+        nombre = NOMBRES[cod]
+        if cod == "T2" and info.get("solver") and info["solver"] != "Gurobi":
+            nombre = f"Modelo MILP ({info['solver']}, sin licencia de Gurobi)"
+        salida_tecnicas[cod] = {
+            "codigo": cod, "nombre": nombre, "costo": COSTO[cod], "metodo": METODOS[cod],
+            "tiempo_calculo_s": round(tiempo, 2), "resumen": resumen_t, "detalle": detalle,
+            "drones": drones_t, "rutas": {"type": "FeatureCollection", "features": rutas_t},
+            "avisos": avisos_t,
+        }
+
+    # Capas comunes (iguales para todas las técnicas): calles, áreas y bases
+    tareas_fc, areas_fc, bases_fc = [], [], []
+    for d, (_, _, bases_d, _) in enumerate(plan):
+        ids_dron = [t["id"] for t, e in zip(tareas, etiquetas) if e == d and t["id"] not in fuera_set]
         coords_area = [c for i in ids_dron if i in geoms for c in geoms[i]["coords"]]
         coords_area += [[b["lon"], b["lat"]] for b in bases_d]
         casco = envolvente(coords_area)
@@ -726,33 +925,12 @@ def planificar_area(conn, area, entrada_prefs):
                 tareas_fc.append({"type": "Feature",
                                   "geometry": {"type": "LineString", "coordinates": geoms[i]["coords"]},
                                   "properties": {"dron": d + 1, "id": i, "nombre": t["name"],
-                                                 "puntos": t["n_puntos"], "tipos": t["tipos"]}})
-        drones.append({
-            "dron": d + 1, "bases": bases_d, "tareas": len(ids_dron),
-            "puntos": sum(tarea_por_id[i]["n_puntos"] for i in ids_dron),
-            "km_total": round(dis / 1000, 2), "km_inspeccion": round(km_insp / 1000, 2),
-            "km_repetidos": round(repetido / 1000, 2),
-            "repeticion_rho": round(repetido / dis, 3) if dis else 0.0,
-            "salidas": n_insp, "traslados": len(salidas) - n_insp,
-            "tiempo_min": round(minutos, 1), "detalle_salidas": detalle,
-        })
-
-    activos = [x for x in drones if x["km_total"] > 0]
-    Dis = sum(x["km_total"] for x in drones)
-    L_insp = sum(x["km_inspeccion"] for x in drones)
-    T = max((x["tiempo_min"] for x in drones), default=0.0)
-    kms = [x["km_total"] for x in activos]
-    if T / 60 > prefs["jornada_h"]:
-        avisos.append(f"La inspección completa toma {T / 60:.1f} h y supera la jornada de "
-                      f"{prefs['jornada_h']:g} h: agrega drones o reduce el área.")
-    n_clima = sum(1 for x in drones for s in x["detalle_salidas"] if s["clima"])
-    if n_clima:
-        avisos.append(f"{n_clima} salida(s) coinciden con horas de mal tiempo pronosticado (A2).")
+                                                 "puntos": t["n_puntos"], "tipos": t["tipos"],
+                                                 "p_falla": round(prob_eval.get(i, 0.0), 4)}})
     if postergadas:
         avisos.append(f"{len(postergadas)} calle(s) con señal quedan postergadas por amenazas.")
     if inalcanzables:
         avisos.append(f"{len(inalcanzables)} calle(s) quedan fuera del alcance de la batería desde su base.")
-
     postergadas_fc = [{"type": "Feature",
                        "geometry": {"type": "LineString", "coordinates": geoms[t["id"]]["coords"]},
                        "properties": {"id": t["id"], "nombre": t["name"], "motivo": t["motivo"],
@@ -764,28 +942,29 @@ def planificar_area(conn, area, entrada_prefs):
                                        "motivo": "fuera del alcance de la batería desde su base",
                                        "puntos": tarea_por_id[i]["n_puntos"]}}
                        for i in sorted(fuera_set) if i in geoms]
+    bases_dron = [{"dron": d + 1, "bases": bases_d, "tareas": int(sum(
+        1 for t, e in zip(tareas, etiquetas) if e == d and t["id"] not in fuera_set))}
+        for d, (_, _, bases_d, _) in enumerate(plan)]
     fc = lambda feats: {"type": "FeatureCollection", "features": feats}  # noqa: E731
     return {
         "area": poligono, "hora_salida": t0.isoformat(),
         "preferencias": prefs, "preferencias_por_defecto": por_defecto,
         "resumen": {
-            "drones": n, "puntos": len(puntos), "calles_a_inspeccionar": len(tareas),
-            "km_a_inspeccionar": round(L_insp, 2), "km_total_Dis": round(Dis, 2),
-            "tiempo_global_min": round(T, 1),
-            "salidas": sum(x["salidas"] for x in drones),
-            "bases": len({b["id"] for x in drones for b in x["bases"]}),
+            "drones": n, "puntos": len(puntos), "calles_a_inspeccionar": len(tareas) - len(inalcanzables),
+            "km_a_inspeccionar": round(sum(t["length_m"] for t in tareas if t["id"] not in fuera_set) / 1000, 2),
+            "bases": len({b["id"] for _, _, bs, _ in plan for b in bs}),
+            "sectores": sum(1 for _, _, _, pasos in plan for tipo, c in pasos
+                            if tipo == "sector" and not c.get("reintento")),
             "capacidad_salida_km": round(capacidad / 1000, 2),
-            "utilizacion_beta": round(min(kms) / max(kms), 3) if kms else None,
-            "eficiencia_eta": round(L_insp / Dis, 3) if Dis else None,
-            "repeticion_rho_media": round(float(np.mean([x["repeticion_rho"] for x in activos])), 3) if activos else None,
             "postergadas": len(postergadas), "fuera_de_alcance": len(inalcanzables),
-            "amenazas_en_jornada": amen.n_amenazas,
+            "amenazas_en_jornada": amen.n_amenazas, "amenazas_consideradas": prefs["amenazas"],
+            "segundos_instancia": round(t_instancia, 2),
         },
-        "drones": drones,
-        "capas": {"rutas": fc(rutas_fc), "tareas": fc(tareas_fc), "postergadas": fc(postergadas_fc),
+        "tecnicas": salida_tecnicas,
+        "drones": bases_dron,
+        "capas": {"tareas": fc(tareas_fc), "postergadas": fc(postergadas_fc),
                   "areas": fc(areas_fc), "bases": fc(bases_fc)},
-        "metodo": ("Partición equilibrada del área entre drones con bases distribuidas y, para cada dron, "
-                   "regla del tramo pendiente más cercano con límite de batería y mejora 2-opt "
-                   "(Zhong et al., 2023); distancias con pgr_dijkstraCostMatrix y trazado con pgr_dijkstra."),
+        "metodo": ("Instancia común para las técnicas: partición equilibrada del área entre drones, bases en "
+                   "recintos públicos (M2) y sectores (Zhong et al., 2023). Cada técnica rutea los mismos sectores."),
         "avisos": avisos,
     }
