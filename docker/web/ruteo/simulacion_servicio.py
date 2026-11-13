@@ -63,7 +63,7 @@ def registrar_plan(resultado):
     registro = {"creado": time.monotonic(), "rutas": rutas, "huellas": huellas,
                 "t0": _instante(resultado["hora_salida"]),
                 "horas": float(resultado["preferencias"]["jornada_h"]),
-                "requeridas": {int(t["id"]): float(t["metros"]) for t in
+                "requeridas": {int(t["id"]): t["senales"] for t in
                                resultado.get("servicio_requerido", {}).get("tareas", [])},
                 "capacidad_m": (float(resultado["preferencias"]["velocidad_crucero_ms"])
                                 * float(resultado["preferencias"]["autonomia_min"]) * 60
@@ -234,28 +234,28 @@ def simular_plan(conn, plan_id, semilla):
         incidentes[int(datos["source"])].add(e)
         incidentes[int(datos["target"])].add(e)
     afectados_e, afectados_n = defaultdict(list), defaultdict(list)
-    for evento in eventos:
+    for indice, evento in enumerate(eventos):
         if not evento["ocurre"]:
             continue
         ids_e = set(evento["aristas"])
         for n in evento["nodos"]:
-            afectados_n[n].append(evento)
+            afectados_n[n].append(indice)
             ids_e.update(incidentes[n])
         # Una intersección indisponible también impide usar sus calles incidentes.
         for e in ids_e:
-            afectados_e[e].append(evento)
+            afectados_e[e].append(indice)
         evento["aristas"] = sorted(ids_e)
 
     def publico(ev):
         return {k: ev[k] for k in ("id", "fuente", "motivo", "probabilidad", "numero_0_100",
                                     "umbral_pct", "ocurre", "determinista", "desde", "hasta")}
 
-    def feature(i, datos, evs):
+    def feature(i, datos, indices):
         return {"type": "Feature", "geometry": datos["geom"],
                 "properties": {"id": i, "nombre": datos.get("name"),
-                               "estado": "confirmada" if any(e["determinista"] for e in evs) else "sorteada",
-                               "motivos": sorted({e["motivo"] for e in evs}),
-                               "eventos": [publico(e) for e in evs]}}
+                               "estado": "confirmada" if any(eventos[j]["determinista"] for j in indices) else "sorteada",
+                               "motivos": sorted({eventos[j]["motivo"] for j in indices}),
+                               "eventos_idx": indices}}
 
     t0, t1 = _instante(escenario["t0"]).timestamp(), _instante(escenario["t1"]).timestamp()
     tecnicas = _evaluar_rutas(registro["rutas"], eventos, aristas, t0, t1)

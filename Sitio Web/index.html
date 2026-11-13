@@ -782,12 +782,12 @@ function actualizarResiliencia() {
   const codigos = Object.keys(NOMBRE_TECNICA);
   const metricas = codigos.flatMap(c => [metricaResiliencia(c), metricaResiliencia(c, true)]).filter(Boolean);
   const supuestos = [...new Set(metricas.flatMap(m => m.supuestos || []))];
-  const km = v => Number.isFinite(v) ? `${(v / 1000).toLocaleString("es-CL", { maximumFractionDigits: 3 })} km` : "—";
+  const senales = v => Number.isFinite(v) ? `${v.toLocaleString("es-CL", { maximumFractionDigits: 2 })} señales` : "—";
   const cobertura = (m, campo) => m && Number.isFinite(m[campo]) ? pct2(m[campo]) : "—";
   const delta = (m, campo) => m && Number.isFinite(m[campo]) ?
     `${(100 * m[campo]).toLocaleString("es-CL", { maximumFractionDigits: 2 })} puntos porcentuales` : "—";
   contenedor.innerHTML = `
-    <p class="ayuda">R mide la fracción de los km de calles requeridos originalmente que se completa.
+    <p class="ayuda">R mide la fracción de señales registradas requeridas originalmente cuya inspección se completa.
       La <b>esperanza</b> considera las probabilidades de los eventos; el <b>escenario</b> muestra una sola realización del sorteo de fallas.</p>
     <div class="tabla-scroll"><table>
       <tr><th>Técnica</th><th title="Tiempo de cálculo de la técnica de ruteo">Cómputo</th>
@@ -805,15 +805,15 @@ function actualizarResiliencia() {
       '<p class="ayuda">Simula las fallas para comparar también el servicio realizado en un mismo escenario.</p>'}
     <details><summary>Cobertura previa y pérdida de servicio</summary>
       <p class="ayuda">La cobertura previa es la parte que el plan podía atender antes de las fallas.
-        Las calles postergadas, bloqueadas o fuera de alcance siguen incluidas en los km requeridos.</p>
+        Las señales de calles postergadas, bloqueadas o fuera de alcance siguen incluidas en el total requerido.</p>
       ${codigos.filter(c => r.tecnicas[c]).map(c => {
         const m = metricaResiliencia(c), s = metricaResiliencia(c, true);
         if (!m || m.estado !== "ok") return `<div class="detalle-metrica"><b>${c}</b><p>${escapar(m && m.motivo || "Métrica no disponible.")}</p></div>`;
         return `<div class="detalle-metrica"><b>${c} · ${escapar(r.tecnicas[c].nombre)}</b>
-          <p>Requeridos: ${km(m.metros_requeridos)} · planificados: ${km(m.metros_planificados)}
+          <p>Requeridas: ${senales(m.senales_requeridas)} · planificadas: ${senales(m.senales_planificadas)}
             · cobertura previa: ${cobertura(m, "cobertura_pre")}.</p>
-          <p>Esperados: ${km(m.metros_esperados)} · cambio frente a la cobertura previa: ${delta(m, "delta_esperada")}.</p>
-          ${s && s.estado === "ok" ? `<p>Realizados en el escenario: ${km(s.metros_escenario)}
+          <p>Esperadas: ${senales(m.senales_esperadas)} · cambio frente a la cobertura previa: ${delta(m, "delta_esperada")}.</p>
+          ${s && s.estado === "ok" ? `<p>Realizadas en el escenario: ${senales(s.senales_escenario)}
             · cambio frente a la cobertura previa: ${delta(s, "delta_escenario")}.</p>` : ""}</div>`;
       }).join("")}
       ${supuestos.map(s => `<p class="ayuda">${escapar(s)}</p>`).join("")}
@@ -1047,14 +1047,18 @@ const fechaSimulacion = v => v == null ? "—" :
   new Date(typeof v === "number" ? v * 1000 : v).toLocaleString("es-CL");
 
 function popupSimulacion(f, tipo) {
-  const p = f.properties || {}, eventos = p.eventos || [];
-  const detalle = eventos.slice(0, 20).map(e => `<div><b>${escapar(e.fuente)}</b> · ${escapar(e.motivo)}<br>${
+  const p = f.properties || {}, indices = p.eventos_idx || [];
+  const eventos = simulacion.resultado.eventos;
+  const detalle = indices.slice(0, 20).map(i => {
+    const e = eventos[i];
+    return `<div><b>${escapar(e.fuente)}</b> · ${escapar(e.motivo)}<br>${
     e.determinista ? "Bloqueo confirmado, sin sorteo" :
-      `U = ${escapar(numeroSimulacion(e.numero_0_100))}; p = ${escapar(probabilidadSimulacion(e.probabilidad))}`}</div>`).join("");
+      `U = ${escapar(numeroSimulacion(e.numero_0_100))}; p = ${escapar(probabilidadSimulacion(e.probabilidad))}`}</div>`;
+  }).join("");
   return popup({ nombre: `${tipo} ${p.id}` }, {
     estado: p.estado === "confirmada" ? "bloqueo confirmado" : "falla sorteada",
     motivo: (p.motivos || []).join(", "),
-  }) + detalle + (eventos.length > 20 ? `<div>Y ${fmt(eventos.length - 20)} evento(s) más.</div>` : "");
+  }) + detalle + (indices.length > 20 ? `<div>Y ${fmt(indices.length - 20)} evento(s) más.</div>` : "");
 }
 
 function mostrarEventosSimulacion() {
@@ -1097,11 +1101,11 @@ function dibujarSimulacion(r) {
   simulacion.capas.aristas = L.geoJSON(r.capas.aristas, { pane: "simulacion",
     style: f => ({ color: color(f), weight: 5, opacity: 0.85,
       dashArray: f.properties.estado === "confirmada" ? null : "5 4" }),
-    onEachFeature: (f, l) => l.bindPopup(popupSimulacion(f, "Arista")) });
+    onEachFeature: (f, l) => l.bindPopup(() => popupSimulacion(f, "Arista")) });
   simulacion.capas.nodos = L.geoJSON(r.capas.nodos, {
     pointToLayer: (f, ll) => L.circleMarker(ll, { pane: "simulacion", radius: 5.5, color: "#fff",
       weight: 1.5, fillColor: color(f), fillOpacity: 1 }),
-    onEachFeature: (f, l) => l.bindPopup(popupSimulacion(f, "Nodo")) });
+    onEachFeature: (f, l) => l.bindPopup(() => popupSimulacion(f, "Nodo")) });
   document.getElementById("visibilidadSimulacion").hidden = false;
   actualizarCapasSimulacion();
   const s = r.resumen;

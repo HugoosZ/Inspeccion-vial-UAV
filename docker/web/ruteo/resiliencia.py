@@ -1,26 +1,32 @@
 """Servicio de inspección conservado por un plan de flota (punto 8).
 
-La unidad de servicio es el metro de calle requerida original, incluso cuando
-la calle queda postergada o fuera de alcance. Para cada salida factible, la
-probabilidad de completarla es el producto de las supervivencias de sus
-eventos únicos y de los eventos de sus dependencias. Un bloqueo confirmado
-anula esa probabilidad. Una salida comprende acceso, inspección y retorno.
+La unidad de servicio es la señal requerida original, incluso cuando su calle
+queda postergada o fuera de alcance. Cada tarea aporta su conteo de señales,
+sin suponer una densidad uniforme por metro de calle. Para cada salida
+factible, la probabilidad de completarla es el producto de las supervivencias
+de sus eventos únicos y de los eventos de sus dependencias. Un bloqueo
+confirmado anula esa probabilidad. Una salida comprende acceso, inspección y
+retorno.
 
 Este módulo no consulta datos ni sortea fallas: recibe las exposiciones que
-el punto 7 ya proyectó sobre los recorridos y horarios del mismo plan. No se
-consideran respaldos implícitos entre drones ni se modifica el plan.
+el punto 7 ya proyectó sobre los recorridos y horarios del mismo plan. Se mide
+la absorción de la perturbación sobre la misión completa, sin recuperación ni
+respaldos implícitos entre drones y sin modificar el plan.
 """
 
 from collections.abc import Mapping
 from graphlib import CycleError, TopologicalSorter
+from numbers import Integral
 import math
 
 
 TECNICAS = ("T1", "T2", "T3", "T4")
 
 SUPUESTOS = (
-    "El denominador conserva todos los metros requeridos originales, incluidas "
-    "las tareas postergadas y fuera de alcance.",
+    "El denominador conserva todas las señales requeridas originales, incluidas "
+    "las de tareas postergadas y fuera de alcance.",
+    "Cada tarea se pondera por su conteo de señales, sin suponer una densidad "
+    "uniforme por metro de calle.",
     "Una salida aporta servicio solo si es factible, cabe completa en la jornada "
     "y sus dependencias también son factibles.",
     "La exposición comprende acceso, inspección y retorno, con los mismos "
@@ -30,7 +36,8 @@ SUPUESTOS = (
     "Un bloqueo confirmado impide completar la salida; una salida afectada "
     "pierde todas sus tareas bajo el supuesto conservador de salida completa.",
     "Cada tarea tiene una única salida factible asignada. Los drones no son "
-    "rutas alternativas de respaldo y no se replanifica después de una falla.",
+    "rutas alternativas de respaldo y no se replanifica después de una falla. "
+    "Se mide absorción de la perturbación, sin recuperación.",
 )
 
 
@@ -61,8 +68,10 @@ def _claves(valores, campo):
 def evaluar(requeridas, salidas, exposiciones, eventos_ocurridos=None):
     """Evalúa un plan sin alterar ninguna entrada.
 
-    ``requeridas`` es ``{tarea_id: metros_originales}``. Cada elemento de
-    ``salidas`` contiene ``id`` (texto único), ``dron``, ``tipo``
+    ``requeridas`` es ``{tarea_id: senales_originales}``, con conteos enteros
+    no negativos. Cada tarea se pondera por su conteo de señales y no por el
+    largo de su calle. Cada elemento de ``salidas`` contiene ``id`` (texto
+    único), ``dron``, ``tipo``
     (``inspeccion`` o ``traslado``), ``tareas`` (IDs requeridos), ``factible``
     (booleano que ya incluye batería, materialización, retorno y jornada),
     ``dependencias`` (IDs de salidas) y ``eventos`` (claves de exposición).
@@ -80,17 +89,16 @@ def evaluar(requeridas, salidas, exposiciones, eventos_ocurridos=None):
     Las coberturas y R están en [0, 1] y usan el denominador original. Los
     deltas son cobertura posterior menos cobertura previa, en esa escala.
     Se rechaza una tarea asignada a varias salidas factibles porque este plan
-    no define una política de respaldo. Sin metros requeridos, R y las
+    no define una política de respaldo. Sin señales requeridas, R y las
     coberturas quedan en None y el estado es ``no_disponible``.
     """
     if not isinstance(requeridas, Mapping) or not isinstance(exposiciones, Mapping):
         raise ValueError("Las requeridas y las exposiciones deben ser diccionarios.")
-    metros = {}
+    senales = {}
     for tarea, valor in requeridas.items():
-        largo = _numero(valor, "La longitud requerida")
-        if largo < 0:
-            raise ValueError("La longitud requerida no puede ser negativa.")
-        metros[tarea] = largo
+        if isinstance(valor, bool) or not isinstance(valor, Integral) or valor < 0:
+            raise ValueError("La cantidad de señales requeridas debe ser un entero no negativo.")
+        senales[tarea] = int(valor)
     probabilidades = {}
     for clave, valor in exposiciones.items():
         if not isinstance(clave, str) or not clave:
@@ -135,7 +143,7 @@ def evaluar(requeridas, salidas, exposiciones, eventos_ocurridos=None):
             raise ValueError(f"Las tareas de la salida {clave} deben contener IDs válidos.") from exc
         if len(tareas_unicas) != len(tareas):
             raise ValueError(f"La salida {clave} tiene tareas repetidas.")
-        if tareas_unicas - set(metros):
+        if tareas_unicas - set(senales):
             raise ValueError(f"La salida {clave} contiene una tarea requerida desconocida.")
         if tipo == "traslado" and tareas:
             raise ValueError(f"El traslado {clave} no puede aportar tareas de inspección.")
@@ -176,31 +184,31 @@ def evaluar(requeridas, salidas, exposiciones, eventos_ocurridos=None):
                 raise ValueError("Una tarea requerida está asignada a varias salidas factibles; "
                                  "el plan no define rutas de respaldo.")
             asignadas.update(tareas)
-        largo = math.fsum(metros[t] for t in salida["tareas"])
+        cantidad = sum(senales[t] for t in salida["tareas"])
         evaluadas[clave] = {
             "id": clave, "dron": salida["dron"], "tipo": salida["tipo"],
             "tareas": list(salida["tareas"]), "factible": salida["factible"],
             "factible_pre": factible, "dependencias": list(salida["dependencias"]),
             "eventos": eventos, "bloqueos_confirmados": confirmados,
             "probabilidad_completar": supervivencia, "completada_escenario": completa,
-            "metros_requeridos": largo, "metros_planificados": largo if factible else 0.0,
-            "metros_esperados": largo * supervivencia,
-            "metros_escenario": None if completa is None else largo if completa else 0.0,
+            "senales_requeridas": cantidad, "senales_planificadas": cantidad if factible else 0,
+            "senales_esperadas": cantidad * supervivencia,
+            "senales_escenario": None if completa is None else cantidad if completa else 0,
         }
 
     detalle = [evaluadas[i] for i in por_id]
-    total = math.fsum(metros.values())
-    planificados = math.fsum(s["metros_planificados"] for s in detalle)
-    esperados = math.fsum(s["metros_esperados"] for s in detalle)
-    observados = (None if ocurridos is None else
-                  math.fsum(s["metros_escenario"] for s in detalle))
-    cobertura_pre = min(1.0, planificados / total) if total else None
-    cobertura_esperada = min(cobertura_pre, max(0.0, esperados / total)) if total else None
-    cobertura_escenario = (min(cobertura_pre, max(0.0, observados / total))
-                           if total and observados is not None else None)
+    total = sum(senales.values())
+    planificadas = sum(s["senales_planificadas"] for s in detalle)
+    esperadas = math.fsum(s["senales_esperadas"] for s in detalle)
+    observadas = (None if ocurridos is None else
+                  sum(s["senales_escenario"] for s in detalle))
+    cobertura_pre = min(1.0, planificadas / total) if total else None
+    cobertura_esperada = min(cobertura_pre, max(0.0, esperadas / total)) if total else None
+    cobertura_escenario = (min(cobertura_pre, max(0.0, observadas / total))
+                           if total and observadas is not None else None)
     return {
         "estado": "ok" if total else "no_disponible",
-        "motivo": None if total else "El plan no contiene metros de servicio requeridos para evaluar.",
+        "motivo": None if total else "El plan no contiene señales requeridas para evaluar.",
         "R": cobertura_esperada if ocurridos is None else cobertura_escenario,
         "R_esperada": cobertura_esperada, "R_escenario": cobertura_escenario,
         "tipo": "esperada" if ocurridos is None else "escenario",
@@ -208,8 +216,8 @@ def evaluar(requeridas, salidas, exposiciones, eventos_ocurridos=None):
         "cobertura_escenario": cobertura_escenario,
         "delta_esperada": cobertura_esperada - cobertura_pre if total else None,
         "delta_escenario": cobertura_escenario - cobertura_pre if cobertura_escenario is not None else None,
-        "metros_requeridos": total, "metros_planificados": planificados,
-        "metros_esperados": esperados, "metros_escenario": observados,
+        "senales_requeridas": total, "senales_planificadas": planificadas,
+        "senales_esperadas": esperadas, "senales_escenario": observadas,
         "por_salida": detalle, "supuestos": list(SUPUESTOS),
     }
 

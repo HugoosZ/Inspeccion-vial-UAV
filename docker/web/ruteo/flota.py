@@ -1007,8 +1007,8 @@ def planificar_area(conn, area, entrada_prefs):
         },
         "tecnicas": salida_tecnicas,
         "servicio_requerido": {
-            "unidad": "metros_calle",
-            "tareas": [{"id": t["id"], "metros": float(t["length_m"])} for t in tareas + postergadas],
+            "unidad": "senales",
+            "tareas": [{"id": t["id"], "senales": int(t["n_puntos"])} for t in tareas + postergadas],
         },
         "drones": bases_dron,
         "capas": {"tareas": fc(tareas_fc), "postergadas": fc(postergadas_fc),
