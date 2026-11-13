@@ -47,8 +47,9 @@ Colores de riesgo, comunes a todas las amenazas: BAJO gris, MEDIO amarillo, ALTO
 | `GET /api/route/baseline` | `start_node`, `end_node` | Ruta `pgr_dijkstra` por longitud (una ruta) |
 | `GET /api/rutas` | `inicio_lon`, `inicio_lat`, `objetivo_lon`, `objetivo_lat` + restricciones opcionales | k rutas `pgr_dijkstra` sobre pesos resilientes y métrica de resiliencia |
 | `GET /api/rutas/preferencias` | — | Restricciones por defecto |
-| `POST /api/flota` | JSON con `area` (polígono o `null`) y `preferencias` (`n_drones`, `bases`, …) | Plan por área con n drones: áreas, bases, salidas trazadas con `pgr_dijkstra` e indicadores |
+| `POST /api/flota` | JSON con `area` (polígono o `null`) y `preferencias` (`n_drones`, `bases`, `tecnicas`, `amenazas`, …) | Instancia común (áreas, bases, calles) y, por técnica T1–T4, salidas trazadas con `pgr_dijkstra`, indicadores y tiempo de cálculo |
 | `GET /api/flota/preferencias` | — | Preferencias por defecto de la flota |
+| `GET /api/solver` | — | Solver del modelo T2 (Gurobi con licencia WLS o HiGHS de respaldo) |
 
 `simplificar` es la tolerancia en grados de `ST_SimplifyPreserveTopology`, para que los GeoJSON con polígonos pesen menos. La documentación interactiva de la API queda en `http://localhost:8080/docs`.
 
@@ -72,9 +73,9 @@ El panel **Planificación por área · flota UAV** permite:
 
 1. Definir el **área**: con **Dibujar área** se hace clic en cada vértice y se termina con doble clic o **Cerrar área**; con **Toda la comuna** se planifica la red completa.
 2. Elegir la **cantidad de drones** (1 a 10). Cada dron recibe una parte del área, con su propia base.
-3. Ajustar, si se quiere, las restricciones y los parámetros del dron (bases distribuidas o una sola base, recintos públicos permitidos para las bases, hora de inicio, jornada, tipos de señal, clima, velocidad, autonomía, reserva y cambio de batería). Lo que no se modifica se envía con su valor por defecto.
-4. Presionar **Planificar inspección**. El mapa muestra, con un color por dron, su área, las calles que debe inspeccionar (trazo grueso), sus salidas (trazo continuo; los traslados entre bases van punteados) y sus bases: un ícono de edificio con el número del dron sobre el recinto público elegido (CESFAM, colegio público, Carabineros o Bomberos), unido con una línea punteada a la calle desde donde despega. Al hacer clic se ve el nombre, la dependencia y la dirección del recinto, y el resultado lista la base de cada dron. Las calles postergadas por amenazas se muestran en gris punteado.
+3. Ajustar, si se quiere, las restricciones y los parámetros: técnicas de ruteo a ejecutar (T1 a T4) y sus límites de tiempo, amenazas que considera el ruteo (A1 a A4), bases distribuidas o una sola base, recintos públicos permitidos para las bases, hora de inicio, jornada, tipos de señal, aviso de clima, velocidad, autonomía, reserva y cambio de batería. Lo que no se modifica se envía con su valor por defecto.
+4. Presionar **Planificar inspección**. El mapa muestra la **instancia común**: con un color por dron, su área y las calles que debe inspeccionar (trazo grueso), y sus bases (ícono de edificio con el número del dron sobre el recinto público, unido con una línea punteada a la calle desde donde despega). Encima, **una capa por técnica** con su propio color: T1 gris, T2 violeta, T3 azul y T4 verde, de más ancha a más delgada para que se distingan al superponerse; los traslados entre bases van punteados. Las calles postergadas por amenazas se muestran en gris punteado.
 
-El panel resume el tiempo de inspección global, los km a inspeccionar, el kilometraje total, la eficiencia, el equilibrio entre drones y la repetición de calles; una tabla por dron permite ocultar o mostrar su capa, y el detalle de cada dron lista sus salidas con hora de inicio, km y aviso de clima.
+El panel resume la instancia común y compara las técnicas en una tabla: tiempo de inspección global $T$, km recorridos, km esperados ($\sum \ell/(1-p)$), probabilidad de falla media por metro, calles bloqueadas cruzadas y tiempo de cálculo. Cada fila tiene una casilla para mostrar u ocultar su capa, y la leyenda del mapa muestra el nombre y el tiempo de cálculo de las técnicas visibles. El detalle de cada técnica indica su método, el valor de su función objetivo, la brecha certificada de Gurobi (T2) o las iteraciones y la mejora sobre T3 (T4), y una tabla por dron. El riesgo se evalúa siempre con todas las amenazas, aunque la técnica no las haya considerado.
 
-El método (partición entre drones, bases, orden de visita y trazado con pgRouting) y el modo anterior de k rutas están documentados en [`docker/web/ruteo/README.md`](../docker/web/ruteo/README.md).
+El método (partición entre drones, bases, técnicas de ruteo y trazado con pgRouting) y el modo anterior de k rutas están documentados en [`docker/web/ruteo/README.md`](../docker/web/ruteo/README.md).

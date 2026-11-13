@@ -44,7 +44,8 @@ El proyecto corre íntegramente sobre Docker mediante `docker-compose`:
 ### 1. Requisitos
 - Docker Desktop (con Docker Compose) abierto.
 - Python 3 en el computador (solo la biblioteca estándar; todo el procesamiento corre en Docker).
-- Opcional: copiar `.env.example` a `.env` y completar las claves (`OHSOME_API_KEY`, SOSAFE, Gemini). Sin ellas, esos pasos se omiten y se cargan los JSON que ya están en el repositorio.
+- Opcional: copiar `.env.example` a `.env` y completar las claves (`OHSOME_API_KEY`, SOSAFE, Gemini, `TOMTOM_API_KEY`). Sin ellas, esos pasos se omiten y se cargan los JSON que ya están en el repositorio.
+- Opcional: licencia WLS académica de Gurobi (`WLSACCESSID`, `WLSSECRET`, `LICENSEID` en el `.env`) para el modelo formal T2. Sin ella, T2 se resuelve con HiGHS.
 
 ### 2. Ejecutar todo con un comando
 Desde la raíz del repositorio:
@@ -100,3 +101,5 @@ Si una fuente no responde, su extractor conserva el último JSON del repositorio
 
 ### 5. Planificar la inspección
 En el panel **Planificación por área · flota UAV** del sitio, dibuja el área a inspeccionar (o usa toda la comuna), elige la cantidad de drones y presiona **Planificar inspección**. Cada dron recibe una parte del área con su base y recorre las calles con señalética (PARE, Ceda el paso y semáforos), volviendo a la base cuando se le acaba la batería. Las distancias se calculan con `pgr_dijkstraCostMatrix` y cada traslado se traza con `pgr_dijkstra`; las calles bloqueadas por amenazas (A1, A3, A4) se postergan, y se avisa qué salidas coinciden con mal tiempo (A2). El método, basado en Zhong et al. (2023), está documentado en [`docker/web/ruteo/README.md`](docker/web/ruteo/README.md).
+
+El plan se calcula con hasta cuatro técnicas de ruteo, cada una en su propia capa del mapa y con su tiempo de cálculo en la leyenda: **T1** `pgr_dijkstra` por distancia (sin amenazas), **T2** modelo MILP resuelto con Gurobi, **T3** `pgr_dijkstra` con costo resiliente $\ell/(1-p)$ y **T4** la metaheurística DA-DPSO. Todas resuelven la misma instancia (calles, drones y bases), así que la tabla del panel compara directamente tiempo, kilometraje, km esperados y calles bloqueadas cruzadas. Para comprobar T2 y T4 contra la fuerza bruta: `docker compose exec web python /app/server/ruteo/verificar.py`.

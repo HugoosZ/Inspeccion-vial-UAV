@@ -1,4 +1,4 @@
-# Ruteo · planificación por área con una flota de drones y rutas pgr_dijkstra
+# Ruteo · planificación por área con una flota de drones y técnicas de ruteo
 
 El módulo tiene dos modos:
 
@@ -9,7 +9,11 @@ El módulo tiene dos modos:
 
 | Archivo | Contenido |
 |---|---|
-| `flota.py` | Planificación por área: tareas, partición entre drones, bases, orden de visita con batería y trazado con pgRouting |
+| `flota.py` | Planificación por área: tareas, partición entre drones, bases (instancia común) y ejecución de las técnicas T1–T4 |
+| `tecnicas.py` | Técnicas de ruteo (punto 6): costo resiliente, regla constructiva + 2-opt (T1/T3), split óptimo, objetivo común |
+| `milp.py` | T2: modelo MILP de ruteo multi-salida, resuelto con Gurobi (licencia WLS) o HiGHS de respaldo |
+| `dpso.py` | T4: metaheurística DA-DPSO con búsqueda local y reinicios |
+| `verificar.py` | Comprueba T2 y T4 contra fuerza bruta y compara las formulaciones del MILP |
 | `preferencias.py` | Restricciones del usuario y sus valores por defecto (de ambos modos) |
 | `datos.py` | Consultas PostGIS: nodos, amenazas por arista, restricciones de metadata, puntos a inspeccionar |
 | `dijkstra_k.py` | k rutas con `pgr_dijkstra` sobre $w(e)$, por penalización iterativa |
@@ -28,13 +32,13 @@ Responde al planteamiento de que el dron sale de una base, revisa una zona compl
 
 ### A.1 Pasos
 
-1. **Tareas.** Cada señalética M1 de los tipos elegidos (PARE, Ceda el paso, semáforos) dentro del área se asocia a la calle más cercana, a menos de 30 m. Cada calle con al menos una señal es una tarea. Las tareas sobre calles bloqueadas por amenazas vigentes en la jornada (A1, A3, A4) se **postergan** y se informan aparte.
+1. **Tareas.** Cada señalética M1 de los tipos elegidos (PARE, Ceda el paso, semáforos) dentro del área se asocia a la calle más cercana, a menos de 30 m. Cada calle con al menos una señal es una tarea. Las tareas sobre calles bloqueadas por las amenazas elegidas que estén vigentes en la jornada (incendio activo, SOSAFE, cierre o accidente de TomTom) se **postergan** y se informan aparte.
 2. **Partición entre drones.** k-medias con capacidad: la carga de cada tarea es su largo más 1,3 veces la distancia a la tarea vecina (estimación del traslado). Así cada dron recibe un área compacta con una carga parecida.
 3. **Bases en recintos públicos.** El sistema lo operaría la municipalidad, así que las bases se eligen entre los lugares públicos de M2 (salud, educación, Carabineros y Bomberos, filtrables con `categorias_base`). Para cada área se elige el recinto $j$ que minimiza la suma de distancias a sus calles, ponderadas por su largo $\ell_i$ (1-mediana discreta sobre sitios candidatos, como la selección de droneports de Zhong et al.):
 $$j^{*}=\arg\min_{j\in C}\sum_{i\in \text{área}} \ell_i\,\lVert p_i-c_j\rVert$$
    Dos drones no comparten recinto. El dron despega desde la calle más cercana al recinto (en el mapa, una línea punteada une el recinto con ese punto). Si un área es grande, se divide en sectores que quepan en el alcance de la batería; cada sector tiene su propio recinto (droneport distribuido) y el dron vuela de uno a otro al terminar un sector. Con `bases = centralizada` todos los drones salen de un solo recinto, para comparar. Si M2 no está cargado, la base queda en la calle más cercana a la mediana geométrica del área y el plan lo avisa.
-4. **Ruta de cada dron:**
-   - distancias entre la base y los extremos de sus tareas con **`pgr_dijkstraCostMatrix`**;
+4. **Ruta de cada dron** (técnica T3; T1, T2 y T4 resuelven este mismo paso de otra forma, sección C):
+   - costos entre la base y los extremos de sus tareas con **`pgr_dijkstraCostMatrix`**, usando el costo resiliente $c_e=\ell_e/(1-p_e)$ de la sección C.2 (calles bloqueadas fuera del grafo);
    - salidas con la regla del tramo pendiente más cercano, entrando por el extremo más cercano de cada calle; antes de tomar una tarea se verifica que alcance la batería para inspeccionarla y volver a la base, y si no alcanza el dron vuelve, cambia batería y empieza otra salida;
    - mejora **2-opt** dentro de cada salida (invierte tramos de la secuencia si acortan los traslados);
    - trazado de cada traslado sobre las calles con **`pgr_dijkstra`** (consulta con pares origen–destino).
@@ -72,6 +76,10 @@ con los valores de referencia configurados para el **DJI Mavic 3E**: 45 min de a
 | `autonomia_min` | 45 | Autonomía máxima nominal de referencia del DJI Mavic 3E (min) |
 | `reserva_bateria_pct` | 30 | Batería que no se usa |
 | `tiempo_recarga_min` | 15 | Cambio de batería entre salidas |
+| `tecnicas` | T1, T2, T3, T4 | Técnicas de ruteo a ejecutar y comparar (sección C) |
+| `amenazas` | A1, A2, A3, A4 | Amenazas que bloquean calles y entran en el costo resiliente de T2–T4; vacía = sin amenazas |
+| `limite_milp_s` | 60 | Tiempo máximo de Gurobi (T2) para toda el área, repartido entre sectores según su número de calles |
+| `limite_dpso_s` | 20 | Tiempo máximo de DA-DPSO (T4) para toda el área, repartido igual |
 
 ### A.4 Uso de la API
 
@@ -83,21 +91,205 @@ POST /api/flota
 }
 ```
 
-`area: null` planifica toda la comuna. La respuesta trae `resumen` (indicadores), `drones` (por dron: bases, calles, km, salidas con hora de inicio y aviso de clima, tiempo y $\rho$), `capas` (GeoJSON de rutas, tareas, calles postergadas, áreas y bases) y `avisos`.
+`area: null` planifica toda la comuna. La respuesta trae `resumen` (la instancia común), `capas` (GeoJSON de tareas, calles postergadas, áreas y bases, iguales para todas las técnicas), `tecnicas` (por técnica: nombre, tiempo de cálculo, indicadores, detalle del solver, drones con sus salidas y GeoJSON de rutas) y `avisos`.
 
-### A.5 Resultados de referencia (red de Maipú, 12/11/2026)
+### A.5 Resultados de referencia (red de Maipú, 13/11/2026, técnica T3)
 
-Toda la comuna, con los valores por defecto (señaléticas M1 PARE, Ceda el paso y semáforo: 1.804 calles, 169 km a inspeccionar; 23 calles postergadas por amenazas):
+Toda la comuna con los valores por defecto: señaléticas M1 PARE, Ceda el paso y semáforo; 1.807 calles y 171 km a inspeccionar; 21 calles postergadas por cierres vigentes de TomTom.
 
 | Drones | Bases | $T$ | $Dis$ | $\beta$ | Salidas |
 |---|---|---|---|---|---|
-| 1 | distribuidas | 23,6 h | 516 km | — | 33 |
-| 3 | distribuidas | 8,2 h | 522 km | 0,89 | 34 |
-| 4 | distribuidas | 5,9 h | 529 km | 0,86 | 34 |
-| 6 | distribuidas | 4,4 h | 499 km | 0,61 | 32 |
-| 6 | centralizada | 6,9 h | 772 km | 0,68 | 49 |
+| 1 | distribuidas | 25,8 h | 568 km | — | 37 |
+| 3 | distribuidas | 8,6 h | 558 km | 0,91 | 37 |
+| 4 | distribuidas | 6,2 h | 532 km | 0,87 | 35 |
+| 6 | distribuidas | 4,4 h | 537 km | 0,70 | 37 |
+| 6 | centralizada | 8,9 h | 858 km | 0,49 | 56 |
 
-Con 4 drones la inspección completa cabe en una jornada de 8 h. Con una sola base para toda la flota, el kilometraje sube un 55 % y el tiempo crece 1,6 veces respecto de bases distribuidas, porque cada salida gasta buena parte de la batería en ir y volver. Estas cifras se obtuvieron con el mismo código ejecutado sobre los GeoJSON del repositorio, reemplazando las consultas de PostGIS/pgRouting por equivalentes en Python. Con 4 drones las bases quedan en el Liceo Reino de Dinamarca, la Escuela Básica Reina de Suecia, el Centro de Educación Técnico Profesional CODEDUC y la Escuela Básica Los Alerces de Maipú. Respecto de la entrega 2 las cifras bajan porque ya no se inspeccionan los paraderos.
+- Con 4 drones la inspección completa cabe en una jornada de 8 h.
+- Con una sola base para toda la flota, el kilometraje sube un 60 % y el tiempo se duplica respecto de bases distribuidas, porque cada salida gasta buena parte de la batería en ir y volver.
+- Con 4 drones las bases quedan en el Liceo Reino de Dinamarca, los CESFAM Clotario Blest y Dr. Carlos Godoy, la Escuela Las Américas y el CETP CODEDUC. Uno de los drones tiene dos sectores.
+- Las cifras se obtuvieron con el mismo código, ejecutado sobre los GeoJSON del repositorio y reemplazando las consultas de PostGIS/pgRouting por equivalentes en Python.
+- Respecto de la versión anterior, los km suben levemente porque el costo resiliente ahora usa la probabilidad de falla del punto 5.
+
+---
+
+## C. Técnicas de ruteo comparadas (punto 6: `tecnicas.py`, `milp.py`, `dpso.py`)
+
+El sitio permite elegir una o más de cuatro técnicas; cada una queda como una capa que se puede encender o apagar, y la leyenda del mapa muestra su nombre y su tiempo de cálculo.
+
+| Técnica | Costo de cada calle | Amenazas | Cómo arma las salidas |
+|---|---|---|---|
+| **T1** · `pgr_dijkstra` por distancia | largo $\ell_e$ | ninguna (línea base) | Regla del tramo pendiente más cercano con batería + 2-opt (Zhong et al., 2023) |
+| **T2** · Modelo MILP con Gurobi | resiliente $c_e$ | bloqueos + $p(e)$ | Óptimo del modelo de la sección C.3, con brecha certificada |
+| **T3** · `pgr_dijkstra` resiliente | resiliente $c_e$ | bloqueos + $p(e)$ | Misma regla constructiva que T1 |
+| **T4** · Metaheurística DA-DPSO | resiliente $c_e$ | bloqueos + $p(e)$ | PSO discreta + split óptimo + búsqueda local (sección C.4) |
+
+### C.1 Instancia común (diseño del experimento)
+
+Las cuatro técnicas resuelven **el mismo subproblema**: las mismas calles a inspeccionar, la misma partición del área entre drones, las mismas bases en recintos públicos (M2) y los mismos sectores (pasos 1 a 3 de la sección A.1). Solo cambia el paso 4, cómo se rutea cada sector. Así, cualquier diferencia en los indicadores se debe a la técnica de ruteo y no a otra decisión (control de variables). La partición se calcula una vez, con T3, y se reutiliza.
+
+En cada sector, el subproblema es: desde la base, recorrer todas las calles requeridas en salidas que empiezan y terminan en la base, sin que ninguna salida consuma más que la batería $B$, y con un cambio de batería de $\tau$ minutos entre salidas consecutivas. Es un problema de ruteo de arcos capacitado con múltiples viajes. Las cuatro técnicas se comparan con la misma función objetivo, el tiempo del dron en el sector:
+
+$$Z=\frac{1}{60\,v}\sum_{\text{salidas}}\text{costo}+\tau\,(K-1)$$
+
+donde $K$ es el número de salidas. T2 y T4 la minimizan directamente; T1 y T3 la construyen con una regla.
+
+### C.2 Costo resiliente $c_e=\ell_e/(1-p_e)$
+
+$p_e$ es la probabilidad de falla de la calle durante la jornada (punto 5, tabla `prob_falla_aristas`), combinando solo las amenazas elegidas: $p_e=1-\prod_{k}(1-p_{k}(e))$.
+
+**Justificación.** Si cada intento de cruzar la calle falla con probabilidad $p_e$ y el dron debe repetirlo, el número de intentos sigue una distribución geométrica de media $1/(1-p_e)$. El costo esperado de la calle es entonces $\ell_e/(1-p_e)$: con $p_e=0$ vale $\ell_e$, crece de forma monótona con el riesgo y tiende a infinito cuando la calle es intransitable. Tiene unidades de metros (metros esperados), por lo que se suma directamente con la distancia sin un peso arbitrario $\lambda$, a diferencia del costo $\ell_e(1+\lambda r_e)$ de la propuesta original.
+
+- Las calles con una amenaza que **bloquea** (incendio activo, SOSAFE, cierre o accidente de TomTom) se eliminan del grafo (costo $-1$ en `pgr_dijkstra`).
+- $p_e$ se acota en $0{,}99$ (la calle cuesta como máximo 100 veces su largo) para que el costo sea finito.
+- La batería también se controla con el costo resiliente, lo que es conservador: el costo resiliente nunca es menor que la distancia real.
+- Sin la tabla del punto 5, $p_e$ se calcula con el nivel de cada amenaza vigente: BAJO 0,05 · MEDIO 0,2 · ALTO 0,5 · CRÍTICO 0,8.
+
+### C.3 T2 · Modelo MILP (`milp.py`)
+
+Cada calle $q$ se representa por dos copias orientadas, $q^+$ ($U\to V$) y $q^-$ ($V\to U$), lo que transforma el ruteo de arcos en uno de nodos (transformación CARP→VRP, Longo, Poggi de Aragão y Uchoa, 2006). Los costos $c_{ij}$ entre copias son los caminos mínimos resilientes calculados con `pgr_dijkstraCostMatrix`.
+
+$$
+\begin{aligned}
+\min\ & \kappa\Big(\sum_{(i,j)} c_{ij}\,x_{ij}+\sum_a L_a z_a\Big)+\tau\Big(\sum_a x_{0a}-1\Big)\\
+\text{s.a. }\ & z_{q^+}+z_{q^-}=1 && \forall q\quad\text{(cada calle una vez, en un sentido)}\\
+& \textstyle\sum_j x_{aj}=z_a,\ \ \sum_j x_{ja}=z_a && \forall a\quad\text{(flujo)}\\
+& \textstyle\sum_k g_{bk}=\sum_a g_{ab}+\sum_a c_{ab}x_{ab}+L_b z_b && \forall b\quad\text{(balance de energía)}\\
+& (c_{0a}+L_a)\,x_{ab}\le g_{ab}\le (B-c_{ab}-L_b-c_{b0})\,x_{ab} && \forall a\to b\\
+& g_{0b}=0,\quad g_{a0}\le (B-c_{a0})\,x_{a0}\\
+& \textstyle\sum_a x_{0a}\ \ge\ \lceil \sum_q L_q / B\rceil && \text{(desigualdad válida)}\\
+& x,z\in\{0,1\},\ g\ge 0
+\end{aligned}
+$$
+
+$\kappa=1/(60v)$ convierte metros en minutos, y $g_{ab}$ es la energía ya gastada al dejar $a$ rumbo a $b$. El número de salidas $\sum_a x_{0a}$ es una variable, así que el modelo decide cuántas recargas hacer. El balance de energía impide ciclos que no pasen por la base, porque la energía crece estrictamente a lo largo de una salida.
+
+| Decisión | Justificación |
+|---|---|
+| **Flujo de una mercancía** (Gavish y Graves, 1978) en vez de MTZ | Su relajación lineal es mucho más ajustada. Con HiGHS, en las mismas instancias, el modelo de flujo demuestra el óptimo de 6 calles en 0,8 s y de 7 calles en 5,7 y 24,5 s; MTZ tarda 27,7 s con 6 calles y no lo demuestra en 60 s con 7 (tabla C.6) |
+| Reducción previa | Se eliminan las copias que no caben solas en una salida y los arcos $a\to b$ con $c_{0a}+L_a+c_{ab}+L_b>B-c_{b0}$. Es exacta (no cambia el óptimo) y reduce el modelo |
+| Arranque en caliente con T3 | Gurobi parte de una solución factible, así que nunca entrega algo peor que T3 |
+| Brecha (gap) de parada $10^{-4}$ | Es el valor por defecto de Gurobi (`MIPGap`) |
+| Límite de tiempo (60 s por defecto, configurable) | El problema es NP-difícil, así que se informa el **gap certificado** $(\text{valor}-\text{cota})/\text{valor}$: si es 0, la solución es óptima. El límite se reparte entre sectores según su número de calles |
+| Hasta 200 calles por sector | Con 200 calles el modelo tiene unas 160.000 binarias antes de la reducción. Sobre ese tamaño el sector conserva la solución de T3 y el resultado lo indica |
+| Licencia | WLS académica (`WLSACCESSID`, `WLSSECRET`, `LICENSEID` en el `.env`). Sin ella se resuelve con HiGHS y el nombre de la técnica lo dice |
+
+**Alcance.** T2 es exacto **para cada sector**; la partición del área y las bases son comunes a todas las técnicas (C.1). Un único MILP que decidiera también la asignación de calles a drones y la ubicación de las bases no es tratable para los cientos de calles de un área real.
+
+### C.4 T4 · DA-DPSO (`dpso.py`)
+
+Es una adaptación del prototipo del grupo (`Tarea3/da_dpso_entrega`).
+
+| Componente | Qué hace | Fundamento |
+|---|---|---|
+| Representación | Permutación de las calles del sector | Toda solución es una concatenación de salidas, así que toda solución está representada |
+| Decodificador | **Split óptimo**: corta la permutación en salidas (camino mínimo en un grafo acíclico) y elige el sentido de cada calle por programación dinámica | Prins (2004). Para una permutación fija, el corte y los sentidos son óptimos, y toda partícula es factible |
+| Movimiento | $X\leftarrow c_2\otimes CR(c_1\otimes CR(w\otimes MUT(X),P_i),G)$: mutación con probabilidad $w$ (intercambio, inserción o inversión), cruce de orden con la mejor propia $P_i$ (prob. $c_1$) y con la del enjambre $G$ (prob. $c_2$) | PSO discreta de Pan, Tasgetiren y Liang (2008). El cruce de orden (Davis, 1985) conserva el orden relativo de las calles del guía |
+| Adaptación dinámica (DA) | $w=\mathrm{clip}(0{,}15+0{,}45(1-\delta)+0{,}15\min(1,s/25),\,0{,}15,\,0{,}70)$, con $\delta$ la diversidad (fracción de posiciones distintas al líder) y $s$ las iteraciones sin mejora | Exploración guiada por la diversidad (Riget y Vesterstrøm, 2002). Fórmula del prototipo del grupo |
+| Búsqueda local | Invertir sentido, reubicar, or-opt (cadenas de 2 y 3 calles), intercambio entre salidas y 2-opt. Se aplica al líder y a cada mejor personal a menos de 2 % del líder, y la mejora se reescribe en la permutación (lamarckiano) | Esquema memético con split de Prins (2004). El or-opt mueve juntas calles contiguas, típico de una red vial |
+| Reinicios | Tras 50 iteraciones sin mejora, cada partícula pasa a ser el líder perturbado con $n/5$ mutaciones y luego mejorado con búsqueda local | Búsqueda local iterada (Lourenço, Martin y Stützle, 2003) |
+| Inicialización | Una partícula es T3 y el resto, permutaciones al azar | Como Pan et al. (2008), que siembran con la heurística NEH. Garantiza que T4 nunca es peor que T3 |
+| Parada | Límite de tiempo, o 3 reinicios seguidos sin mejora | — |
+| Semilla aleatoria | 7 | Reproducibilidad |
+
+**Cambios respecto del prototipo.** El prototipo tenía cinco problemas, que esta versión corrige:
+- Corría Dijkstra en cada decodificación (0,16 s por partícula). Ahora usa matrices precalculadas con `pgr_dijkstraCostMatrix`.
+- Su `DiGraph` perdía las aristas paralelas. Ahora cada arista se identifica por su id de la red.
+- Cortaba las salidas con un prefijo voraz que, ante una tarea infactible, dejaba pendientes todas las siguientes. Ahora usa el split óptimo.
+- Su modelo "exacto" enumeraba planes completos ($|Q|!\,|D|^{|Q|}$). T2 es ahora un MILP real.
+- Usaba un objetivo lexicográfico con el riesgo primero. Ahora el riesgo entra en el costo resiliente y el objetivo es el mismo de T2.
+
+### C.5 Indicadores de cada técnica
+
+Además de los de la sección A.2:
+
+| Indicador | Definición |
+|---|---|
+| Tiempo de cálculo | Lo que tarda la técnica, incluidas su matriz de costos y el trazado con `pgr_dijkstra`. T2 y T4 incluyen la matriz resiliente y la solución inicial de T3 |
+| Km esperados | $\sum_{e\in\text{ruta}} \ell_e/(1-p_e)$, con todas las amenazas |
+| $p$ media | Probabilidad de falla media por metro recorrido, con todas las amenazas |
+| Calles bloqueadas cruzadas | Calles con una amenaza activa que bloquea y que la ruta recorre |
+| Brecha (T2) | $(\text{valor}-\text{cota inferior})/\text{valor}$ |
+
+El riesgo se evalúa **siempre con todas las amenazas**, aunque la técnica haya ruteado con menos o con ninguna. Así T1 muestra el riesgo que corre al ignorarlas.
+
+La probabilidad de completar una salida **no** es el producto de las $p_e$ de sus calles, porque el clima (A2) o un incidente afectan a muchas calles a la vez y sus fallas no son independientes. Por eso la supervivencia de las rutas se calcula con eventos correlacionados en la simulación de fallas (punto 7).
+
+### C.6 Verificación y calibración
+
+**Exactitud.** `verificar.py` compara T2 y T4 con la fuerza bruta (todas las permutaciones decodificadas con split) en instancias de 5 a 8 calles. T2 y T4 entregan siempre el óptimo, y T2 lo certifica.
+
+| Calles | Óptimo (fuerza bruta) | T3 | T2 (HiGHS) | Cota T2 | Tiempo T2 | T4 | Tiempo T4 |
+|---|---|---|---|---|---|---|---|
+| 5 | 37,318 | 38,878 | 37,318 | 37,318 | 0,2 s | 37,318 | 0,0 s |
+| 6 | 44,531 | 48,902 | 44,531 | 44,531 | 0,8 s | 44,531 | 0,0 s |
+| 6 | 65,533 | 65,909 | 65,533 | 65,533 | 0,4 s | 65,533 | 0,0 s |
+| 7 | 48,712 | 72,232 | 48,712 | 48,712 | 6,1 s | 48,712 | 0,1 s |
+| 7 | 51,778 | 55,493 | 51,778 | 51,778 | 25,4 s | 51,778 | 0,0 s |
+| 8 | 50,676 | 69,922 | 50,676 | 50,676 | 3,8 s | 50,676 | 0,1 s |
+
+Valores en minutos de la función objetivo $Z$. Las instancias son calles al azar con distancias euclidianas, que cumplen la desigualdad triangular como las de `pgr_dijkstraCostMatrix`.
+
+**Formulación del MILP.** Tiempo hasta certificar el óptimo con HiGHS, con un límite de 60 s:
+
+| Calles | Flujo (Gavish y Graves) | MTZ |
+|---|---|---|
+| 6 | 0,9 s | 27,0 s |
+| 7 | 6,0 s | no lo certifica en 60 s |
+| 8 | 3,7 s | no lo certifica en 60 s |
+| 10 | no lo certifica en 60 s | no lo certifica en 60 s |
+
+Gurobi es en general varias veces más rápido que HiGHS en modelos de este tipo; con la licencia WLS, `verificar.py` repite ambas tablas.
+
+**Calibración de DA-DPSO.** Se usaron 7 sectores reales de Maipú (de 6 a 150 calles, áreas del banco de prueba). Se probaron 9 configuraciones con 3 semillas cada una (7, 11 y 13) y un límite de 5 s, o de 10 s sobre 100 calles. La tabla muestra el exceso medio sobre la referencia: el óptimo certificado por T2 (HiGHS, hasta 600 s) para $n\le 40$, y el mejor valor encontrado por cualquier configuración para 131 y 150 calles.
+
+| Configuración | 6 | 8 | 21 | 22 | 40 | 131 | 150 |
+|---|---|---|---|---|---|---|---|
+| **Base**: población 30, $c_1=c_2=0{,}5$, $w$ adaptativa, búsqueda local y reinicios | 0 % | 0 % | 0 % | 0 % | 0 % | 1,87 % | 0,26 % |
+| Población 15 | 0 % | 0 % | 0,20 % | 0 % | 0 % | 1,28 % | 0,26 % |
+| Población 50 | 0 % | 0 % | 0 % | 0 % | 0 % | 1,92 % | 0,26 % |
+| $c_1=0{,}3$, $c_2=0{,}7$ | 0 % | 0 % | 0,10 % | 0 % | 0 % | 1,92 % | 0,26 % |
+| $c_1=0{,}7$, $c_2=0{,}3$ | 0 % | 0 % | 0 % | 0 % | 0 % | 1,92 % | 0,26 % |
+| $w$ fija 0,15 | 0 % | 0 % | 0,20 % | 0 % | 0 % | 1,92 % | 0,26 % |
+| $w$ fija 0,5 | 0 % | 0 % | 0,10 % | 0 % | 0 % | 1,92 % | 0,26 % |
+| Sin búsqueda local | 0 % | 0 % | 0,30 % | 4,58 % | 4,81 % | 8,20 % | 5,93 % |
+| Sin reinicios | 0 % | 0 % | 0,30 % | 3,99 % | 3,17 % | 1,73 % | 0,18 % |
+| *T3 (referencia)* | *3,79 %* | *0,01 %* | *0,30 %* | *5,75 %* | *8,75 %* | *8,21 %* | *6,42 %* |
+
+Lectura:
+- Con óptimo conocido ($n\le 40$), la configuración base lo alcanza en las 15 corridas. Las variantes de población, $c_1/c_2$ o $w$ fija fallan por 0,1–0,2 % en alguna semilla de $n=21$.
+- La búsqueda local y los reinicios son los componentes que más pesan: sin ellos el resultado empeora entre 3 y 8 %. La población y $c_1/c_2$ cambian poco el resultado (el método es robusto a ellos), y se dejan los valores de la configuración base.
+- En 131 calles la base queda 1,9 % sobre el mejor valor encontrado, que lo halló una sola corrida con población 15.
+
+Las cifras de esta sección y de C.7 se obtuvieron con el mismo código, ejecutado sobre los GeoJSON del repositorio y reemplazando las consultas de PostGIS/pgRouting por equivalentes en Python (sin Gurobi en ese entorno, por eso T2 usa HiGHS).
+
+### C.7 Ejemplo (banco con datos del repositorio)
+
+Área de 1,7 km² alrededor de los cierres de TomTom en Av. 5 de Abril y Los Estandartes, con 2 drones, valores por defecto, límite de 60 s para T2 y 20 s para T4. La instancia común tiene 54 calles a inspeccionar (5,9 km), 21 calles postergadas por estar bloqueadas y una base por dron: el CESFAM El Abrazo y el CETP CODEDUC.
+
+| Técnica | $T$ | Km | Km esperados | $p$ media | Calles bloqueadas cruzadas | $Z$ (resiliente) | Cálculo |
+|---|---|---|---|---|---|---|---|
+| T1 · distancia | 26,5 min | 15,2 | 83,8 | 16,7 % | **15** | — | 0,1 s |
+| T2 · MILP (HiGHS) | 42,3 min | 24,7 | 26,3 | 5,6 % | 0 | 43,8 min (cota 41,8; gap 4,5 %) | 46 s |
+| T3 · resiliente | 42,5 min | 24,8 | 26,4 | 5,6 % | 0 | 44,0 min | 0,1 s |
+| T4 · DA-DPSO | 42,3 min | 24,1 | 25,5 | 5,5 % | 0 | **42,5 min** | 3,3 s |
+
+Lectura:
+- **T1** es la más corta porque pasa por las calles cerradas. Sus km esperados (83,8) son 5,5 veces sus km reales: ignorar las amenazas no ahorra nada en esperanza.
+- **T2, T3 y T4** evitan los cierres a cambio de unos 9,5 km más.
+- Entre las técnicas resilientes, **T4** obtiene el menor $Z$. La cota inferior de T2 (41,8 min) garantiza que T4 está a lo más 1,6 % del óptimo.
+- En este banco T2 corrió con HiGHS, que en 60 s cerró el óptimo de un sector y no superó a T3 en el otro. Con Gurobi se espera cerrar la brecha.
+
+### C.8 Referencias de las técnicas
+
+- Davis, L. (1985). Applying adaptive algorithms to epistatic domains. *Proceedings of IJCAI 1985*, 162–164.
+- Gavish, B. y Graves, S. C. (1978). *The travelling salesman problem and related problems*. Working Paper OR-078-78, Operations Research Center, MIT.
+- Longo, H., Poggi de Aragão, M. y Uchoa, E. (2006). Solving capacitated arc routing problems using a transformation to the CVRP. *Computers & Operations Research*, 33(6), 1823–1837.
+- Lourenço, H. R., Martin, O. C. y Stützle, T. (2003). Iterated local search. En *Handbook of Metaheuristics* (pp. 321–353). Springer.
+- Pan, Q.-K., Tasgetiren, M. F. y Liang, Y.-C. (2008). A discrete particle swarm optimization algorithm for the no-wait flowshop scheduling problem. *Computers & Operations Research*, 35(9), 2807–2839.
+- Prins, C. (2004). A simple and effective evolutionary algorithm for the vehicle routing problem. *Computers & Operations Research*, 31(12), 1985–2002.
+- Riget, J. y Vesterstrøm, J. S. (2002). *A diversity-guided particle swarm optimizer – the ARPSO*. EVALife Technical Report 2002-02, Universidad de Aarhus.
+- Zhong, X. et al. (2023). A Route Planning Method for UAV Swarm Inspection of Roads Fusing Distributed Droneport Site Selection. *Sensors*, 23(20), 8479.
 
 ---
 
