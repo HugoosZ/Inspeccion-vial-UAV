@@ -119,17 +119,20 @@ def cargar(conn, t0, horas):
     eventos = []
     _, t1, advertencias = modelo.calcular(aristas_geom, nodos_coords, amenazas, [], t0, horas, eventos=eventos)
     with conn.cursor() as cur:
-        cur.execute("SELECT id, source, target, name, length_m FROM network_edges ORDER BY id")
+        cur.execute("SELECT id, source, target, name, length_m, ST_AsGeoJSON(geom, 6) "
+                    "FROM network_edges ORDER BY id")
         filas = cur.fetchall()
     aristas = {}
-    for identificador, source, target, nombre, longitud in filas:
+    for identificador, source, target, nombre, longitud, geometria_plan in filas:
         identificador = int(identificador)
         length_m = _numero(longitud, "La longitud del enlace")
         if length_m < 0:
             raise ValueError("La longitud del enlace no puede ser negativa.")
         aristas[identificador] = {
             "source": int(source), "target": int(target), "name": nombre,
-            "length_m": length_m, "geom": _geometria(aristas_geom[identificador]),
+            # La huella del plan utiliza esta misma precisión de PostGIS.
+            # Redondear después en Python difiere en empates a medio decimal.
+            "length_m": length_m, "geom": _geometria(json.loads(geometria_plan)),
         }
     nodos = {int(i): {"geom": _geometria({"type": "Point", "coordinates": coords})}
              for i, coords in nodos_coords.items()}

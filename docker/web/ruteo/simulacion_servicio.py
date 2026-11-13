@@ -13,7 +13,7 @@ import threading
 import time
 from uuid import uuid4
 
-from . import simulacion
+from . import resiliencia, simulacion
 
 
 MAX_PLANES = 4
@@ -55,11 +55,20 @@ def registrar_plan(resultado):
                 "dron": p["dron"], "salida": p["salida"], "tipo": p["tipo"],
                 "inicio": p["inicio"], "fin": p["fin"],
                 "aristas": tuple(int(e) for e in p["aristas"]),
+                "tareas": tuple(int(e) for e in p.get("tarea_ids", [])),
+                "camino_completo": bool(p.get("camino_completo", False)),
+                "retorno_base": bool(p.get("retorno_base", False)),
             })
     token = uuid4().hex
     registro = {"creado": time.monotonic(), "rutas": rutas, "huellas": huellas,
                 "t0": _instante(resultado["hora_salida"]),
                 "horas": float(resultado["preferencias"]["jornada_h"]),
+                "requeridas": {int(t["id"]): float(t["metros"]) for t in
+                               resultado.get("servicio_requerido", {}).get("tareas", [])},
+                "capacidad_m": (float(resultado["preferencias"]["velocidad_crucero_ms"])
+                                * float(resultado["preferencias"]["autonomia_min"]) * 60
+                                * (1 - float(resultado["preferencias"]["reserva_bateria_pct"]) / 100)),
+                "detalle_tecnicas": {c: t.get("detalle", {}) for c, t in resultado["tecnicas"].items()},
                 "modelo": None, "cerrojo": threading.Lock()}
     with _cerrojo:
         ahora = time.monotonic()
@@ -84,10 +93,10 @@ def _recuperar_plan(plan_id):
         return registro
 
 
-def _evaluar_rutas(rutas, eventos, aristas, t0, t1):
+def _evaluar_rutas(rutas, eventos, aristas, t0, t1, solo_ocurridos=True):
     por_arista, por_nodo = defaultdict(list), defaultdict(list)
     for evento in eventos:
-        if not evento["ocurre"]:
+        if solo_ocurridos and not evento["ocurre"]:
             continue
         for e in evento["aristas"]:
             por_arista[e].append(evento)
@@ -134,9 +143,8 @@ def _evaluar_rutas(rutas, eventos, aristas, t0, t1):
     return salida
 
 
-def simular_plan(conn, plan_id, semilla):
-    registro = _recuperar_plan(plan_id)
-    # El modelo queda congelado para comparar semillas sobre las mismas entradas.
+def _modelo_del_plan(conn, registro):
+    """Una única red y un catálogo de eventos para P7 y P8."""
     with registro["cerrojo"]:
         if registro["modelo"] is None:
             registro["modelo"] = simulacion.cargar(conn, registro["t0"], registro["horas"])
@@ -147,6 +155,77 @@ def simular_plan(conn, plan_id, semilla):
     if any(e not in registro["huellas"] or registro["huellas"][e] != _firma_geometria(
             modelo["aristas"][e]["geom"]["coordinates"]) for e in usadas):
         raise ValueError("La geometría de la red cambió desde el cálculo del plan. Vuelve a planificar.")
+    return modelo
+
+
+def _metricas_servicio(registro, modelo, eventos_ocurridos=None):
+    t0, t1 = _instante(modelo["t0"]).timestamp(), _instante(modelo["t1"]).timestamp()
+    # El mismo proyector horario de P7, ahora sobre TODOS los eventos. Para la
+    # esperanza se utiliza su probabilidad; para un escenario, su ocurrencia.
+    expuestas = _evaluar_rutas(registro["rutas"], modelo["eventos"], modelo["aristas"],
+                               t0, t1, solo_ocurridos=False)
+    probabilidades = {e["id"]: None if e["determinista"] else e["probabilidad"]
+                      for e in modelo["eventos"]}
+    salida = {}
+    for codigo, rutas in registro["rutas"].items():
+        inicio = time.perf_counter()
+        exposiciones = {(r["dron"], r["salida"]): r["eventos"] for r in expuestas[codigo]["detalle"]}
+        dependencias, salidas = defaultdict(list), []
+        for ruta in sorted(rutas, key=lambda r: (r["dron"], r["salida"])):
+            clave = f"{codigo}:{ruta['dron']}:{ruta['salida']}"
+            metros = sum(modelo["aristas"][e]["length_m"] for e in ruta["aristas"])
+            ini, fin = _instante(ruta["inicio"]).timestamp(), _instante(ruta["fin"]).timestamp()
+            factible = (ruta["camino_completo"] and ruta["retorno_base"]
+                        and metros <= registro["capacidad_m"] + 1e-6
+                        and ini >= t0 and fin <= t1)
+            salidas.append({"id": clave, "dron": ruta["dron"], "tipo": ruta["tipo"],
+                            "tareas": list(ruta["tareas"]), "factible": factible,
+                            "dependencias": list(dependencias[ruta["dron"]]),
+                            "eventos": exposiciones[(ruta["dron"], ruta["salida"])]})
+            if ruta["tipo"] == "traslado":
+                dependencias[ruta["dron"]].append(clave)
+        try:
+            metrica = resiliencia.evaluar(registro["requeridas"], salidas, probabilidades, eventos_ocurridos)
+        except (ValueError, TypeError, KeyError) as exc:
+            metrica = {"estado": "no_disponible", "R": None, "motivo": str(exc),
+                       "cobertura_pre": None, "cobertura_esperada": None, "cobertura_escenario": None}
+        metrica["tiempo_evaluacion_ms"] = round((time.perf_counter() - inicio) * 1000, 3)
+        salida[codigo] = metrica
+    comparacion = resiliencia.comparar(salida)
+    comparacion["observaciones"] = []
+    t2 = registro["detalle_tecnicas"].get("T2", {})
+    if t2.get("sectores_sin_milp"):
+        comparacion["observaciones"].append("T2 conserva soluciones T3 en algunos sectores; "
+                                            "se compara el plan híbrido informado.")
+    if t2.get("nota"):
+        comparacion["observaciones"].append("T2: " + t2["nota"])
+    return salida, comparacion
+
+
+def evaluar_plan(conn, plan_id):
+    """Cobertura esperada bajo el mismo modelo que utilizará el sorteo de P7."""
+    registro = _recuperar_plan(plan_id)
+    inicio = time.perf_counter()
+    try:
+        modelo = _modelo_del_plan(conn, registro)
+        tiempo_modelo = (time.perf_counter() - inicio) * 1000
+        metricas, comparacion = _metricas_servicio(registro, modelo)
+        comparacion["tiempo_modelo_ms"] = round(tiempo_modelo, 3)
+        return metricas, comparacion
+    except Exception as exc:
+        # La falta de una evaluación nunca se convierte en riesgo cero ni
+        # elimina del resultado el plan que ya pudo calcularse.
+        conn.rollback()
+        metricas = {c: {"estado": "no_disponible", "R": None,
+                       "motivo": f"{type(exc).__name__}: {exc}"} for c in registro["rutas"]}
+        comparacion = resiliencia.comparar(metricas)
+        comparacion["tiempo_modelo_ms"] = round((time.perf_counter() - inicio) * 1000, 3)
+        return metricas, comparacion
+
+
+def simular_plan(conn, plan_id, semilla):
+    registro = _recuperar_plan(plan_id)
+    modelo = _modelo_del_plan(conn, registro)
     escenario = simulacion.sortear(modelo, semilla)
     eventos = escenario["eventos"]
     aristas, nodos = modelo["aristas"], modelo["nodos"]
@@ -180,6 +259,13 @@ def simular_plan(conn, plan_id, semilla):
 
     t0, t1 = _instante(escenario["t0"]).timestamp(), _instante(escenario["t1"]).timestamp()
     tecnicas = _evaluar_rutas(registro["rutas"], eventos, aristas, t0, t1)
+    inicio_resiliencia = time.perf_counter()
+    metricas, comparacion = _metricas_servicio(
+        registro, modelo, {e["id"] for e in eventos if e["ocurre"]})
+    comparacion["semilla"] = escenario["semilla"]
+    comparacion["tiempo_evaluacion_ms"] = round((time.perf_counter() - inicio_resiliencia) * 1000, 3)
+    for codigo, tecnica in tecnicas.items():
+        tecnica["resiliencia"] = metricas[codigo]
     advertencias = list(modelo["advertencias"])
     if any(t["fuera_ventana"] for t in tecnicas.values()):
         advertencias.append("Hay salidas total o parcialmente fuera de la jornada simulada; "
@@ -198,4 +284,4 @@ def simular_plan(conn, plan_id, semilla):
                 feature(i, aristas[i], evs) for i, evs in sorted(afectados_e.items())]},
                       "nodos": {"type": "FeatureCollection", "features": [
                 feature(i, nodos[i], evs) for i, evs in sorted(afectados_n.items())]}},
-            "tecnicas": tecnicas}
+            "tecnicas": tecnicas, "comparacion_resiliencia": comparacion}

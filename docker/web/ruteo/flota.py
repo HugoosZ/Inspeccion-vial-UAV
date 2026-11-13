@@ -415,12 +415,16 @@ def materializar(conn, red, salidas):
     caminos = {caja: tramos(conn, red, caja, pares) for caja, pares in por_caja.items()}
     for s in salidas:
         aristas = []
+        completo = True
         for p in s["pasos"]:
             if p[0] == "tarea":
                 aristas.append(p[1])
             elif p[1] != p[2]:
-                aristas += caminos[s["bbox"]].get((p[1], p[2]), [])
+                camino = caminos[s["bbox"]].get((p[1], p[2]), [])
+                completo = completo and bool(camino)
+                aristas += camino
         s["aristas"] = aristas
+        s["camino_completo"] = completo
     return salidas
 
 
@@ -657,7 +661,7 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
         ids_dron = [t["id"] for t, e in zip(tareas, etiquetas) if e == d and t["id"] not in fuera_set]
         km_insp = sum(tarea_por_id[i]["length_m"] for i in ids_dron)
         minutos, detalle, n_insp = 0.0, [], 0
-        salidas = [s for s in salidas if s["aristas"]]
+        salidas = [s for s in salidas if s["aristas"] or not s.get("camino_completo", True)]
         for s, sal in enumerate(salidas, start=1):
             aristas = sal["aristas"]
             km = sum(largo.get(e, 0) for e in aristas) / 1000
@@ -665,8 +669,8 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
                 avisos.append(f"El traslado del dron {d + 1} entre bases ({km:.1f} km) supera la batería: "
                               "debe hacerse por tierra o con una recarga intermedia.")
             vuelo = km * 1000 / v / 60
-            ini = (t0 + timedelta(minutes=minutos)).replace(microsecond=0)
-            fin = (ini + timedelta(minutes=vuelo)).replace(microsecond=0)
+            ini = t0 + timedelta(minutes=minutos)
+            fin = ini + timedelta(minutes=vuelo)
             p_clima, nivel_clima = _clima_salida(aristas, ini.timestamp(), fin.timestamp(), clima)
             aviso = None
             if p_clima is not None:
@@ -703,6 +707,13 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
                                             "tareas": len(sal["tareas"]), "inicio": ini.isoformat(),
                                             "fin": (ini + timedelta(minutes=vuelo)).isoformat(),
                                             "aristas": list(aristas),
+                                            "tarea_ids": list(sal["tareas"]),
+                                            "metros_recorrido": km * 1000,
+                                            "camino_completo": sal.get("camino_completo", True),
+                                            "retorno_base": sal["tipo"] != "inspeccion" or (
+                                                bool(sal["pasos"]) and sal["pasos"][0][0] == "tramo"
+                                                and sal["pasos"][-1][0] == "tramo"
+                                                and sal["pasos"][0][1] == sal["pasos"][-1][2]),
                                             "clima": aviso, "p_media": round(p_media, 4),
                                             "p_clima": None if p_clima is None else round(p_clima, 3),
                                             "aristas_bloqueadas": len(bloq)}})
@@ -995,6 +1006,10 @@ def planificar_area(conn, area, entrada_prefs):
             "segundos_instancia": round(t_instancia, 2),
         },
         "tecnicas": salida_tecnicas,
+        "servicio_requerido": {
+            "unidad": "metros_calle",
+            "tareas": [{"id": t["id"], "metros": float(t["length_m"])} for t in tareas + postergadas],
+        },
         "drones": bases_dron,
         "capas": {"tareas": fc(tareas_fc), "postergadas": fc(postergadas_fc),
                   "areas": fc(areas_fc), "bases": fc(bases_fc)},

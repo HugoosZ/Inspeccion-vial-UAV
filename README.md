@@ -107,3 +107,7 @@ El plan se calcula con hasta cuatro técnicas de ruteo, cada una en su propia ca
 ### 6. Simular fallas
 
 Con un plan calculado, elige una **semilla** en **Simulación de fallas** y presiona **Simular fallas**. Cada evento incierto recibe un número entre 0 y 100 y ocurre cuando ese número es menor que su probabilidad expresada en porcentaje. Los eventos confirmados mantienen su bloqueo. El mismo escenario se aplica a las técnicas calculadas y se muestran las calles, nodos y salidas afectadas, con sus números y umbrales. **Restablecer simulación** permite retirar esas capas conservando las rutas. El modelo y la API están descritos en la sección C.5.1 del README del ruteo.
+
+### 7. Comparar resiliencia
+
+La sección **Resiliencia del servicio** y la leyenda del mapa muestran por técnica el tiempo de cómputo y la proporción de servicio original conservada. Al planificar se calcula **R esperada** bajo el modelo de amenazas. Al simular fallas se añade **R del escenario** usando ese mismo sorteo para T1–T4. Se indican las técnicas con mayor R o los empates, y los detalles muestran la cobertura previa y el cambio Post−Pre. Las fórmulas y unidades están en la sección C.5.2 del README del ruteo.

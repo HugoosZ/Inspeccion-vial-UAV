@@ -20,6 +20,7 @@ El módulo tiene dos modos:
 | `metrica.py` | Resiliencia de k rutas |
 | `simulacion.py` | Eventos del modelo del punto 5 y sorteo reproducible por semilla (punto 7) |
 | `simulacion_servicio.py` | Conserva planes en memoria, aplica el escenario común y genera capas y cruces por técnica |
+| `resiliencia.py` | Cobertura esperada y realizada del servicio original, con comparación de técnicas (punto 8) |
 | `__init__.py` | `planificar()`: orquesta el modo de k rutas |
 
 ---
@@ -254,9 +255,33 @@ POST /api/flota                 -> respuesta habitual + plan_id
 POST /api/flota/simulacion      {"plan_id": "...", "semilla": 7}
 ```
 
-El servidor conserva hasta cuatro planes durante 30 minutos. El primer sorteo congela el modelo de eventos para ese plan; los siguientes reutilizan las mismas entradas para comparar semillas. Si el plan expira, se reinicia el servidor o cambia la geometría de su red antes de cargar el escenario, hay que volver a planificar.
+El servidor conserva hasta cuatro planes durante 30 minutos. El modelo de eventos se congela al evaluar el plan y se comparte con sus sorteos; se reutilizan las mismas entradas para comparar semillas. Si el plan expira, se reinicia el servidor o cambia la geometría de su red antes de cargar el modelo, hay que volver a planificar.
 
 La respuesta incluye `semilla`, `t0`, `t1`, `eventos`, `resumen`, capas GeoJSON de nodos/aristas y el detalle de cruces por técnica. Al actualizar el servicio web, `docker compose up -d --build web` incorpora el montaje de solo lectura del modelo de probabilidades.
+
+#### C.5.2 Resiliencia del servicio (punto 8)
+
+La unidad de servicio son los metros de calles requeridas originalmente. Se conserva ese conjunto, incluidas las tareas postergadas y fuera de alcance, para evaluar todas las técnicas con el mismo denominador. Cada tarea aporta servicio cuando puede completarse su salida de inspección, incluido el acceso y el regreso a la base, dentro de la autonomía útil y de la jornada. Las inspecciones también dependen de los traslados necesarios para alcanzar sus bases.
+
+Para cada salida $s$, se reúne el conjunto $A_s$ de eventos que alcanzan sus aristas o nodos durante el horario de paso, junto a los eventos de sus traslados dependientes. Se utiliza el mismo proyector temporal y catálogo del punto 7. Un evento compartido se cuenta una sola vez; los eventos probabilísticos distintos se modelan independientes. Con $L_s$ metros de tareas de esa salida:
+
+$$S_s=\prod_{a\in A_s}(1-p_a),\qquad R_{esperada}=\frac{\sum_s L_sS_s}{L_{original}}.$$
+
+Un bloqueo confirmado o una salida no factible hacen $S_s=0$. La métrica suma trabajo complementario de los drones: no calcula la probabilidad de que sobreviva al menos uno. R esperada representa la fracción esperada de servicio conservado bajo este modelo, no la probabilidad de terminar toda la campaña.
+
+Al simular las fallas del punto 7 se obtiene también:
+
+$$R_{escenario}=\frac{\text{metros de tareas cuyas salidas y dependencias se completan en ese escenario}}{L_{original}}.$$
+
+El escenario utiliza exactamente los eventos sorteados para sus mapas y cruces; no se vuelve a sortear para evaluar R. Una salida afectada no aporta sus tareas bajo la política conservadora de salida completa. Los recorridos originales se conservan.
+
+La cobertura previa $Q_{pre}$ es la proporción de servicio programado en salidas factibles antes de aplicar los eventos. Se informa el cambio Post−Pre como $R-Q_{pre}$, en puntos porcentuales. Los detalles muestran metros requeridos, planificados, esperados y realizados en el escenario.
+
+La sección **Resiliencia del servicio** presenta las R esperada y del escenario para T1–T4, con su tiempo de cálculo. La leyenda del mapa también incluye nombre de técnica, cómputo y R. Se indica qué técnica tiene mayor R y los empates se conservan, comparando valores sin redondear con tolerancia $10^{-9}$. Si se ejecutan menos técnicas o falta alguna evaluación, se informa que la comparación es parcial. Las notas de T2 identifican los planes que conservaron sectores de T3 o utilizaron el solver de respaldo.
+
+**Restablecer simulación** retira la R del escenario y mantiene la evaluación esperada del plan. Si los datos no permiten calcular una evaluación, se muestra **No disponible** con el motivo, manteniendo las rutas calculadas. El costo de ruteo y sus tiempos se conservan; la preparación del modelo y la evaluación del servicio se realizan aparte.
+
+API: `/api/flota` añade `tecnicas[codigo].resiliencia` y `comparacion_resiliencia`; `/api/flota/simulacion` devuelve los mismos campos para la realización sorteada. Las métricas usan fracciones entre 0 y 1 y las longitudes se devuelven en metros.
 
 ### C.6 Verificación y calibración
 

@@ -108,6 +108,17 @@
   .leyenda-tec div { display: flex; align-items: center; gap: 6px; }
   .leyenda-tec .linea { width: 22px; height: 0; border-top-width: 4px; border-top-style: solid; flex-shrink: 0; }
   #resultado .tabla-drones td { white-space: nowrap; }
+  #resiliencia { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--borde); font-size: 12px; }
+  #resiliencia table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+  #resiliencia th, #resiliencia td { padding: 4px 3px; border-bottom: 1px solid var(--borde); text-align: right; }
+  #resiliencia th:first-child, #resiliencia td:first-child { text-align: left; }
+  #resiliencia .tabla-scroll { overflow-x: auto; }
+  #resiliencia .aviso { color: #b45309; margin: 4px 0; }
+  #resiliencia details { margin-top: 8px; }
+  #resiliencia summary { cursor: pointer; }
+  #resiliencia .detalle-metrica { margin: 5px 0 8px; color: var(--suave); }
+  #resiliencia .detalle-metrica p { margin: 4px 0; }
+  #resiliencia .ganadora { color: var(--acento); font-weight: 600; }
   #simulacion { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--borde); font-size: 12px; }
   #simulacion h2 { margin-bottom: 6px; }
   #simulacion label { display: inline-flex; align-items: center; gap: 5px; }
@@ -166,6 +177,10 @@
         <button type="button" class="btn" id="btnLimpiar">Limpiar</button>
       </div>
       <div id="resultado"></div>
+      <section id="resiliencia" aria-labelledby="tituloResiliencia" hidden>
+        <h2 id="tituloResiliencia">Resiliencia del servicio</h2>
+        <div id="resultadoResiliencia" aria-live="polite"></div>
+      </section>
       <section id="simulacion" aria-labelledby="tituloSimulacion">
         <h2 id="tituloSimulacion">Simulación de fallas</h2>
         <p class="ayuda">Planifica la inspección y luego sortea un escenario común para las técnicas ejecutadas.
@@ -691,6 +706,7 @@ function limpiarRutas(cancelar = true) {
   Object.values(ruteo.capas).forEach(c => mapa.removeLayer(c));
   ruteo.capas = {};
   ruteo.resultado = null;
+  actualizarResiliencia();
   actualizarLeyenda();
   document.getElementById("resultado").innerHTML = "";
   actualizarControlesSimulacion();
@@ -722,6 +738,88 @@ const nombreBase = b => (b.lugar && b.lugar.nombre) || `calle (nodo ${b.id})`;
 const seg = v => v == null ? "—" : (v < 10 ? `${v.toFixed(1)} s` : `${Math.round(v)} s`);
 const pct2 = v => v == null ? "—" : `${(v * 100).toFixed(2)} %`;
 
+function metricaResiliencia(codigo, escenario = false) {
+  const resultado = escenario ? simulacion.resultado : ruteo.resultado;
+  return resultado && resultado.tecnicas && resultado.tecnicas[codigo] && resultado.tecnicas[codigo].resiliencia;
+}
+
+function valorResiliencia(metrica, campo = "R") {
+  return metrica && metrica.estado === "ok" && Number.isFinite(metrica[campo]) ? metrica[campo] : null;
+}
+
+function porcentajeResiliencia(valor) {
+  if (!Number.isFinite(valor)) return "—";
+  return valor > 0 && valor < 0.0001 ? `${(valor * 100).toExponential(2).replace(".", ",")} %` : pct2(valor);
+}
+
+function celdaResiliencia(metrica, ganadora = false) {
+  const valor = valorResiliencia(metrica);
+  if (valor == null) return `<span title="${escapar(metrica && metrica.motivo || "La métrica no está disponible para esta técnica.")}">No disponible</span>`;
+  return `<span${ganadora ? ' class="ganadora"' : ""}>${porcentajeResiliencia(valor)}</span>`;
+}
+
+function comparacionResiliencia(comparacion, etiqueta) {
+  if (!comparacion || comparacion.estado === "no_disponible")
+    return `<p class="ayuda">${etiqueta}: ${escapar(comparacion && comparacion.motivo || "comparación no disponible.")}</p>`;
+  const ganadoras = comparacion.ganadoras || [];
+  const alcance = comparacion.estado === "parcial" ? " entre las técnicas evaluadas" : "";
+  const texto = ganadoras.length ? `Mayor R ${etiqueta.toLowerCase()}${alcance}: ${ganadoras.join(", ")}${ganadoras.length > 1 ? " (empate)" : ""}.` :
+    `${etiqueta}: sin resultado comparable.`;
+  const observaciones = [comparacion.motivo, ...(comparacion.observaciones || [])].filter(Boolean);
+  return `<p class="ayuda"><b>${escapar(texto)}</b></p>${observaciones.map(o => `<p class="ayuda">${escapar(o)}</p>`).join("")}`;
+}
+
+function actualizarResiliencia() {
+  const seccion = document.getElementById("resiliencia"), r = ruteo.resultado;
+  seccion.hidden = !r;
+  const contenedor = document.getElementById("resultadoResiliencia");
+  if (!r) { contenedor.innerHTML = ""; return; }
+  const escenario = simulacion.resultado;
+  const comparacionEsperada = r.comparacion_resiliencia;
+  const comparacionEscenario = escenario && escenario.comparacion_resiliencia;
+  const ganadorasEsperadas = comparacionEsperada && comparacionEsperada.ganadoras || [];
+  const ganadorasEscenario = comparacionEscenario && comparacionEscenario.ganadoras || [];
+  const codigos = Object.keys(NOMBRE_TECNICA);
+  const metricas = codigos.flatMap(c => [metricaResiliencia(c), metricaResiliencia(c, true)]).filter(Boolean);
+  const supuestos = [...new Set(metricas.flatMap(m => m.supuestos || []))];
+  const km = v => Number.isFinite(v) ? `${(v / 1000).toLocaleString("es-CL", { maximumFractionDigits: 3 })} km` : "—";
+  const cobertura = (m, campo) => m && Number.isFinite(m[campo]) ? pct2(m[campo]) : "—";
+  const delta = (m, campo) => m && Number.isFinite(m[campo]) ?
+    `${(100 * m[campo]).toLocaleString("es-CL", { maximumFractionDigits: 2 })} puntos porcentuales` : "—";
+  contenedor.innerHTML = `
+    <p class="ayuda">R mide la fracción de los km de calles requeridos originalmente que se completa.
+      La <b>esperanza</b> considera las probabilidades de los eventos; el <b>escenario</b> muestra una sola realización del sorteo de fallas.</p>
+    <div class="tabla-scroll"><table>
+      <tr><th>Técnica</th><th title="Tiempo de cálculo de la técnica de ruteo">Cómputo</th>
+        <th>R esperada</th><th>R escenario</th></tr>
+      ${codigos.map(c => {
+        const t = r.tecnicas[c], esperada = metricaResiliencia(c), realizada = metricaResiliencia(c, true);
+        if (!t) return `<tr><td title="${escapar(NOMBRE_TECNICA[c])}">${c}</td><td colspan="3">No ejecutada</td></tr>`;
+        return `<tr><td title="${escapar(t.nombre)}">${c}</td><td>${seg(t.tiempo_calculo_s)}</td>
+          <td>${celdaResiliencia(esperada, ganadorasEsperadas.includes(c))}</td>
+          <td>${escenario ? celdaResiliencia(realizada, ganadorasEscenario.includes(c)) : "—"}</td></tr>`;
+      }).join("")}
+    </table></div>
+    ${comparacionResiliencia(comparacionEsperada, "Esperada")}
+    ${escenario ? `<p class="ayuda">Escenario de la semilla ${fmt(escenario.semilla)}.</p>${comparacionResiliencia(comparacionEscenario, "Del escenario")}` :
+      '<p class="ayuda">Simula las fallas para comparar también el servicio realizado en un mismo escenario.</p>'}
+    <details><summary>Cobertura previa y pérdida de servicio</summary>
+      <p class="ayuda">La cobertura previa es la parte que el plan podía atender antes de las fallas.
+        Las calles postergadas, bloqueadas o fuera de alcance siguen incluidas en los km requeridos.</p>
+      ${codigos.filter(c => r.tecnicas[c]).map(c => {
+        const m = metricaResiliencia(c), s = metricaResiliencia(c, true);
+        if (!m || m.estado !== "ok") return `<div class="detalle-metrica"><b>${c}</b><p>${escapar(m && m.motivo || "Métrica no disponible.")}</p></div>`;
+        return `<div class="detalle-metrica"><b>${c} · ${escapar(r.tecnicas[c].nombre)}</b>
+          <p>Requeridos: ${km(m.metros_requeridos)} · planificados: ${km(m.metros_planificados)}
+            · cobertura previa: ${cobertura(m, "cobertura_pre")}.</p>
+          <p>Esperados: ${km(m.metros_esperados)} · cambio frente a la cobertura previa: ${delta(m, "delta_esperada")}.</p>
+          ${s && s.estado === "ok" ? `<p>Realizados en el escenario: ${km(s.metros_escenario)}
+            · cambio frente a la cobertura previa: ${delta(s, "delta_escenario")}.</p>` : ""}</div>`;
+      }).join("")}
+      ${supuestos.map(s => `<p class="ayuda">${escapar(s)}</p>`).join("")}
+    </details>`;
+}
+
 function actualizarLeyenda() {
   if (ruteo.leyenda) { mapa.removeControl(ruteo.leyenda); ruteo.leyenda = null; }
   const r = ruteo.resultado;
@@ -733,8 +831,12 @@ function actualizarLeyenda() {
     const div = L.DomUtil.create("div", "leyenda-tec");
     div.innerHTML = `<b>Técnicas de ruteo</b>` + visibles.map(c => {
       const t = r.tecnicas[c], e = ESTILO_TECNICA[c];
+      const esperada = valorResiliencia(metricaResiliencia(c));
+      const realizada = valorResiliencia(metricaResiliencia(c, true));
       return `<div><span class="linea" style="border-top-color:${e.color}"></span>
-        ${c} · ${escapar(t.nombre)} · cómputo ${seg(t.tiempo_calculo_s)}</div>`;
+        <span>${c} · ${escapar(t.nombre)} · cómputo ${seg(t.tiempo_calculo_s)}
+          · R esperada ${esperada == null ? "no disponible" : porcentajeResiliencia(esperada)}${simulacion.resultado ?
+            ` · R escenario ${realizada == null ? "no disponible" : porcentajeResiliencia(realizada)}` : ""}</span></div>`;
     }).join("");
     return div;
   };
@@ -800,6 +902,7 @@ function dibujarResultado(r) {
   const todo = L.featureGroup(Object.values(ruteo.capas));
   if (todo.getLayers().length) mapa.fitBounds(todo.getBounds(), { padding: [30, 30] });
   actualizarLeyenda();
+  actualizarResiliencia();
 
   const s = r.resumen;
   const filasTec = codigos.map(c => {
@@ -925,6 +1028,8 @@ function restablecerSimulacion(restaurarSemilla = false) {
   ["mostrarEscenario", "mostrarAristasSimulacion", "mostrarNodosSimulacion"]
     .forEach(id => { document.getElementById(id).checked = true; });
   document.getElementById("resultadoSimulacion").innerHTML = "";
+  actualizarResiliencia();
+  actualizarLeyenda();
   actualizarControlesSimulacion();
 }
 
@@ -1027,6 +1132,8 @@ function dibujarSimulacion(r) {
     <details><summary>Números sorteados y eventos (${fmt((r.eventos || []).length)})</summary>
       <div id="eventosSimulacion"></div></details>`;
   mostrarEventosSimulacion();
+  actualizarResiliencia();
+  actualizarLeyenda();
 }
 
 async function simularFallas() {

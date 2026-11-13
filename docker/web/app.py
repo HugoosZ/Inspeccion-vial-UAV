@@ -343,11 +343,17 @@ def post_flota(cuerpo: dict = Body(..., examples=[{
     Devuelve la instancia común (áreas, bases y calles de cada dron) y, por
     técnica, sus rutas, indicadores y tiempo de cómputo. plan_id permite
     simular fallas sobre ese mismo plan durante los próximos 30 minutos.
+    Incluye resiliencia esperada por técnica y comparación sobre el mismo
+    servicio original y modelo de eventos del punto 7.
     """
     conn = get_db_connection()
     try:
         resultado = flota.planificar_area(conn, cuerpo.get("area"), cuerpo.get("preferencias") or {})
         resultado["plan_id"] = simulacion_servicio.registrar_plan(resultado)
+        metricas, comparacion = simulacion_servicio.evaluar_plan(conn, resultado["plan_id"])
+        for codigo, tecnica in resultado["tecnicas"].items():
+            tecnica["resiliencia"] = metricas[codigo]
+        resultado["comparacion_resiliencia"] = comparacion
         return resultado
     except (flota.ErrorFlota, ValueError) as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -364,6 +370,7 @@ def post_simulacion(cuerpo: dict = Body(..., examples=[{"plan_id": "id devuelto 
     Usa el mismo escenario para todas las técnicas del plan. Un evento
     confirmado permanece bloqueado; los demás ocurren si U < 100*p.
     La semilla es un entero entre 0 y 2147483647. No modifica el plan ni la BD.
+    Adjunta resiliencia realizada y su comparación para ese escenario común.
     """
     semilla = cuerpo.get("semilla", 7)
     if isinstance(semilla, bool) or not isinstance(semilla, int) or not 0 <= semilla <= 2147483647:
