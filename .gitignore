@@ -68,3 +68,5 @@ Metadata/M3/manzanas_maipu_completo.geojson
 
 # Caché de OSMnx (Infraestructura)
 .cache_osmnx/
+
+output/
