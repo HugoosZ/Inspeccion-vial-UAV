@@ -1,4 +1,6 @@
-# Indisponibilidad de enlaces y nodos (punto 5)
+# Alteración del plan por enlaces y nodos (punto 5)
+
+Contrato vigente de A1–A4 y recuperación: [ESCENARIOS.md](ESCENARIOS.md).
 
 Punto 5 del enunciado: el efecto de cada amenaza sobre los enlaces (calles, `network_edges`) y los nodos (intersecciones, `network_nodes`) durante la jornada de inspección $[t_0,\ t_0+H]$, para el dron del proyecto, el **DJI Mavic 3E**.
 
@@ -7,7 +9,7 @@ El modelo distingue tres cosas que antes se mezclaban en una sola probabilidad:
 | Concepto | Columna | Qué significa |
 |---|---|---|
 | **Prohibición** | `bloqueado`, `motivos_bloqueo` | Un evento confirmado que alcanza el elemento. No es un sorteo con $p<1$: el dron no puede pasar |
-| **Incertidumbre** | `p_total`, `p_a1`, `p_a2` | Probabilidad de que el elemento quede no disponible por un evento que aún no ocurre (incendio cercano, mal tiempo) |
+| **Incertidumbre** | `p_total`, `p_a1` a `p_a4` | Índice de alteración del plan por eventos inciertos; A4 añade demanda y no implica indisponibilidad |
 | **Nueva demanda** | `p_accidente` | Probabilidad de un siniestro de tránsito, que puede derribar señales. No es una falla del vuelo, sino una calle que habría que volver a inspeccionar |
 
 No se convierten escalas subjetivas (BAJO, MEDIO, ALTO, CRÍTICO) en probabilidades.
@@ -20,6 +22,12 @@ No se convierten escalas subjetivas (BAJO, MEDIO, ALTO, CRÍTICO) en probabilida
 | `data/probabilidades_maipu.json` | Respaldo de la última ejecución: parámetros, resumen y una fila por elemento con registro (listas en el orden de `metadata.columnas`) |
 
 `main.py` lo ejecuta como etapa **3/3** del pipeline, después de cargar las amenazas. También se puede correr solo: `python Probabilidades/generar.py`.
+
+La planificación web ejecuta además este mismo cálculo en memoria para la
+hora y duración de cada consulta. Conserva sus marginales, eventos,
+configuración y firma con el plan; P7/P8 reutilizan exactamente ese modelo.
+La API de probabilidades acepta `plan_id` y la interfaz lo utiliza al mostrar
+P5 de un plan. Sin `plan_id` se muestran las tablas del último pipeline.
 
 `calcular(..., eventos=lista)` exporta opcionalmente los eventos que originan el modelo para la simulación del punto 7, conservando las fórmulas, filas y retorno habituales. La web utiliza esa salida en memoria para compartir cada sorteo entre sus nodos y enlaces afectados; no escribe las tablas ni el JSON de probabilidades durante la simulación.
 
@@ -55,18 +63,18 @@ Un evento **alcanza** a un enlace si algún punto del enlace (muestreado cada 20
 |---|---|---|
 | **A1** incendio activo | Bloqueo (`incendio_activo`): zona de exclusión | `bloqueado` |
 | **A1** historial de incendios | $p=1-e^{-\lambda H/24}$, con $\lambda=n/D$ incendios a menos de 2 km en los $D\ge 365$ días del historial de CONAF (proceso de Poisson). No se multiplica por la probabilidad de ignición (PI) porque eso requeriría una regresión calibrada; PI se muestra en el mapa | `p_a1` |
-| **A2** clima, con ensamble | Fracción de escenarios del pronóstico por conjuntos que incumplen la política, en la **peor hora** de la jornada | `p_a2` |
-| **A2** clima, sin ensamble | El pronóstico determinista solo dice apto o no apto (0/1): es el estado de un escenario, no una probabilidad. Si no es apto se trata como bloqueo (`meteorologia_no_apta`) | `bloqueado` |
+| **A2** clima, con ensamble | Máxima fracción de escenarios no aptos entre las celdas de la región para cada intervalo; la tabla conserva la **peor hora** de la jornada | `p_a2` |
+| **A2** clima, sin ensamble | El pronóstico determinista dice apto o no apto: si alguna celda es no apta, el intervalo regional se trata como bloqueo (`meteorologia_no_apta`) | `bloqueado` |
 | **A3** SOSAFE | Bloqueo (`seguridad_activa`) si la alerta es ALTA o CRÍTICA o trae `bloqueo_vuelo`; si no, nota informativa | `bloqueado` / `observaciones` |
-| **A4** accidente activo (TomTom) | Bloqueo (`accidente_activo`) a 100 m: concentra personas y equipos de emergencia bajo la ruta (Primatesta et al., 2020). Queda además la nota de reinspección | `bloqueado` |
+| **A4** accidente activo (TomTom) | Demanda de inspección en calles asociadas a 100 m, sin bloqueo | `observaciones` / evento A4 |
 | **A4** cierre, obra u otro incidente | Nota: una calle cerrada a los automóviles no es espacio aéreo prohibido | `observaciones` |
 | Siniestros CONASET 2020-2025 | $p=1-e^{-nH/(24\cdot 2192)}$, con $n$ siniestros asociados al enlace o nodo más cercano a menos de 30 m | `p_accidente` |
 
-Se combinan solo las dos probabilidades de indisponibilidad, como independientes (aproximación):
+A3/A4 futuros añaden probabilidades de escenarios supuestos (ver `escenario.json`). Se combinan como independientes en un índice de alteración del plan:
 
-$$p_{\text{total}}=1-(1-p_{a1})(1-p_{a2})$$
+$$p_{\text{total}}=1-(1-p_{a1})(1-p_{a2})(1-p_{a3})(1-p_{a4})$$
 
-Es un **proxy no calibrado** de indisponibilidad futura, no una probabilidad observada de accidente del dron (`calidad = proxy_no_calibrado`; `proxy_historico` si solo hay A1).
+Es un **índice no calibrado** de alteración del plan, no una probabilidad observada de accidente del dron. A2 usa el máximo horario, por lo que no representa una probabilidad conjunta temporal exacta. A3/A4 supuestos se identifican con `calidad = escenario_no_calibrado`.
 
 Además se guardan dos índices que no son probabilidades:
 - `riesgo_viento` $=\min\!\big(1,(\text{ráfaga}/28{,}8)^2\big)$, un índice de costo.
@@ -81,7 +89,7 @@ Además se guardan dos índices que no son probabilidades:
 | ECMWF IFS 0,25° | 51 (control + 50) | Ráfaga a 10 m y precipitación |
 | NOAA GEFS | 31 (control + 30) | Visibilidad (ECMWF no la entrega en esta API) |
 
-Para cada celda y hora:
+Primero se calcula, para cada celda y hora:
 
 $$p_{a2}=1-\big(1-f_{\text{ECMWF}}\big)\big(1-f_{\text{GEFS}}\big)$$
 
@@ -89,12 +97,14 @@ donde $f$ es la fracción de escenarios de cada modelo que incumplen la polític
 
 La fracción de escenarios de un ensamble es la forma estándar de expresar un pronóstico como probabilidad. No está calibrada contra observaciones de Maipú; es un supuesto declarado.
 
-**Peor hora.** La tabla cubre toda la jornada y la calle se cruza una sola vez, a una hora que todavía no se conoce, así que se toma $\max_h p_{a2}(h)$. El planificador (punto 6) usa en cambio la probabilidad **de la hora de cada salida**.
+**Una realización regional por intervalo.** La suspensión A2 alcanza toda la operación en el horario afectado. Para evitar multiplicar esa probabilidad por la cantidad de celdas, se agrupan las observaciones temporales coincidentes y se toma $p_{regional}(h)=\max_c p_{a2}(c,h)$. Un único evento comparte su sorteo entre todos los elementos de la región y todas las técnicas. Nueve celdas con 20 % generan un evento regional de 20 %, no una unión independiente de 86,6 %. El máximo espacial es una política conservadora del piloto; no reconstruye la distribución meteorológica conjunta real. Si hay observaciones con fronteras horarias diferentes, se dividen en intervalos no superpuestos. Un estado determinista no apto prevalece en su intervalo.
+
+**Peor hora.** La tabla cubre toda la jornada y conserva $\max_h p_{regional}(h)$. El planificador usa la probabilidad **del intervalo de cada salida**. Los intervalos regionales distintos siguen siendo eventos independientes; no se afirma que el máximo de la tabla sea la probabilidad conjunta de suspensión de toda la jornada.
 
 ## Uso en el ruteo (punto 6)
 
-- **Bloqueos.** Las calles con incendio activo, alerta SOSAFE peligrosa o accidente activo salen del grafo.
-- **Costo resiliente.** $c_e=\ell_e/(1-p_e)$ usa $p_{a1}$ (y las demás amenazas con probabilidad, si se agregan).
+- **Bloqueos.** Las calles con incendio activo, alerta SOSAFE peligrosa salen del grafo.
+- **Costo resiliente.** $c_e=\ell_e/(1-p_e)$ usa la combinación de $p_{a1}$ y $p_{a3}$; A4 no penaliza el costo porque añade demanda.
 - **Clima.** No entra en el costo de las calles: con celdas de 7 × 6 km y modelos de 25 km es prácticamente uniforme en un área. Multiplicaría todas las calles por el mismo factor, lo que no cambia ninguna ruta pero sí agotaría la batería de forma ficticia. Se evalúa por la hora de cada salida, y el planificador sugiere reprogramar las salidas con la mitad o más de los escenarios no aptos.
 - **`p_accidente`.** Es la base para priorizar reinspecciones; no se usa como falla.
 
@@ -102,19 +112,19 @@ La fracción de escenarios de un ensamble es la forma estándar de expresar un p
 
 ### Tablas en PostGIS
 
-`prob_falla_aristas` (clave `edge_id`) y `prob_falla_nodos` (clave `node_id`), con una fila por elemento con algún registro:
+`prob_falla_aristas` (clave `edge_id`) y `prob_falla_nodos` (clave `node_id`), con una fila por elemento válido de la red, incluidos los ceros. El JSON compacto omite filas sin información ni probabilidad positiva:
 
 | Columna | Descripción |
 |---|---|
 | `bloqueado`, `motivos_bloqueo` | Prohibición y sus causas |
-| `p_total`, `p_a1`, `p_a2` | Indisponibilidad (proxy); `p_a2` es NULL sin ensamble |
-| `p_a3`, `p_a4` | NULL: SOSAFE y TomTom se tratan como bloqueo o nota |
+| `p_total`, `p_a1`, `p_a2` | Índice de alteración del plan; `p_a2` es NULL sin ensamble |
+| `p_a3`, `p_a4` | Escenarios futuros supuestos: alerta crítica y nueva inspección |
 | `p_accidente` | Nueva demanda de inspección (CONASET) |
 | `riesgo_viento`, `contraste_visual` | Índices de costo y de calidad de imagen |
 | `calidad`, `observaciones` | Tipo de estimación y notas |
 | `t0`, `t1` | Jornada evaluada |
 
-La API las entrega en `GET /api/probabilidades?elemento=aristas|nodos&minimo=0.001&amenaza=A1|A2|accidente` (los bloqueados siempre se incluyen). El sitio las muestra en el grupo **Indisponibilidad (punto 5)**: los bloqueados en negro y el resto con colores por `p_total`.
+La API las entrega en `GET /api/probabilidades?elemento=aristas|nodos&minimo=0.001&amenaza=A1|A2|A3|A4|accidente` (los bloqueados siempre se incluyen). El sitio las muestra en el grupo **Alteración del plan (punto 5)**: los bloqueados en negro y el resto con colores por `p_total`.
 
 ### Variables de entorno
 
@@ -143,7 +153,7 @@ Con el modelo anterior (solo el pronóstico determinista), las mismas ráfagas h
 - La política (8 m/s, lluvia nula, 80 % de contraste, 32 px) es conservadora y de diseño; debe validarse con vuelos y detecciones reales.
 - $p_{a1}$ y $p_{a2}$ se combinan como independientes. El ensamble no está calibrado para Maipú, y las ráfagas a 10 m no representan exactamente el viento a 20 m entre edificios.
 - Los radios de afectación (2 km para el historial de incendios, 100 m para accidentes, 30 m para siniestros) son supuestos de diseño.
-- Sin ensamble, el clima queda como bloqueo determinista de toda la jornada, y el extractor lo advierte.
+- Sin ensamble, el clima no apto queda como bloqueo regional determinista durante el intervalo del pronóstico, y el extractor lo advierte.
 
 ## Referencias
 

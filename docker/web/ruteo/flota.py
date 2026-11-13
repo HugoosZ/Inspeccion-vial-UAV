@@ -46,7 +46,7 @@ Técnicas (punto 6, ruteo/tecnicas.py): los pasos 1 a 3 forman una instancia
 común (calles, partición, bases y sectores) y el paso 4 se resuelve con cada
 técnica elegida: T1 pgr_dijkstra por distancia, T2 MILP con Gurobi, T3
 pgr_dijkstra resiliente (el procedimiento descrito arriba) y T4 DA-DPSO. El
-riesgo de cada plan se evalúa con todas las amenazas.
+riesgo de cada plan se evalúa con las fuentes seleccionadas para la consulta.
 """
 
 import json
@@ -58,7 +58,7 @@ from datetime import timedelta
 import numpy as np
 from psycopg2.extras import execute_values
 
-from . import datos, dpso, milp, preferencias
+from . import datos, dpso, milp, preferencias, simulacion
 from .tecnicas import (COSTO, NOMBRES, constructiva, costo_salida, factible,  # noqa: F401
                        factor_resiliente, minutos_sector)
 
@@ -244,11 +244,12 @@ def envolvente(puntos):
 class Red:
     """Grafo con pesos de la consulta: aristas bloqueadas (-1) y factores.
 
-    solo_distancia=True es la red de T1: costo = largo, sin bloqueos."""
+    solo_distancia=True es T1: costo = largo; en recuperación también respeta
+    cierres_obligatorios del escenario realizado."""
 
-    def __init__(self, bloqueadas=(), factores=None, solo_distancia=False):
+    def __init__(self, bloqueadas=(), factores=None, solo_distancia=False, cierres_obligatorios=()):
         self.solo_distancia = solo_distancia
-        self.bloqueadas = set() if solo_distancia else set(bloqueadas)
+        self.bloqueadas = (set() if solo_distancia else set(bloqueadas)) | set(cierres_obligatorios)
         self.factores = {} if solo_distancia else {
             e: f for e, f in (factores or {}).items() if e not in self.bloqueadas and f != 1.0}
 
@@ -257,7 +258,10 @@ class Red:
 
     def sql(self, bbox):
         plantilla = SQL_ARISTAS_DISTANCIA if self.solo_distancia else SQL_ARISTAS
-        return plantilla.format(xmin=bbox[0], ymin=bbox[1], xmax=bbox[2], ymax=bbox[3])
+        sql = plantilla.format(xmin=bbox[0], ymin=bbox[1], xmax=bbox[2], ymax=bbox[3])
+        if self.solo_distancia and self.bloqueadas:
+            sql = "SELECT * FROM (" + sql + ") red WHERE id NOT IN (" + ",".join(str(int(e)) for e in sorted(self.bloqueadas)) + ")"
+        return sql
 
 
 def preparar_pesos(conn, red):
@@ -646,9 +650,8 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
                      bloqueadas_eval, clima, prefs, capacidad, t0):
     """Indicadores, tiempos y rutas (GeoJSON) del plan de una técnica.
 
-    El riesgo se evalúa siempre con TODAS las amenazas (prob_eval,
-    bloqueadas_eval), aunque la técnica haya ruteado con menos o con ninguna:
-    así T1 muestra el riesgo que corre al ignorarlas."""
+    Todas las técnicas se evalúan con las mismas fuentes seleccionadas
+    (prob_eval, bloqueadas_eval), incluida T1 que no las usa en sus costos."""
     v, recarga = prefs["velocidad_crucero_ms"], prefs["tiempo_recarga_min"]
     largo = {e: g["length_m"] for e, g in geoms.items()}
     drones, rutas_fc, avisos = [], [], []
@@ -777,6 +780,15 @@ def planificar_area(conn, area, entrada_prefs):
     t0 = preferencias.hora_salida(prefs)
     avisos = []
 
+    # Todos los optimizadores permiten orientar una tarea en ambos sentidos.
+    # La red debe aplicar esa misma regla también a los traslados.
+    with conn.cursor() as cur:
+        cur.execute("SELECT count(*) FROM network_edges WHERE reverse_cost < 0 OR cost < 0")
+        if cur.fetchone()[0]:
+            raise ErrorFlota("La red de vuelo contiene sentidos restringidos, pero las cuatro técnicas "
+                             "inspeccionan tramos en ambos sentidos. Recarga la infraestructura "
+                             "con INFRA_RESPETAR_SENTIDO=0 para usar la misma regla en todas.")
+
     poligono, bbox_area = validar_area(area)
     if bbox_area is None:
         bbox_area = datos.extension_red(conn)
@@ -784,27 +796,27 @@ def planificar_area(conn, area, entrada_prefs):
             raise ErrorFlota("La red vial está vacía: ejecuta Infraestructura/cargar.py")
     bbox_red = expandir_bbox(bbox_area, MARGEN_RED_M + 2000)
 
-    # Amenazas vigentes durante la jornada: las elegidas por el usuario guían el
-    # ruteo; todas se usan para evaluar el riesgo de cada técnica.
-    # Bloqueos (A1 incendio activo, A3 alerta peligrosa, A4 accidente) desde
-    # temp_amenazas; probabilidad de las calles desde la tabla del punto 5, sin
-    # A2: el clima es casi uniforme a la escala de la grilla, no cambia las rutas
-    # y se evalúa por hora de cada salida (ver _clima_salida).
-    todas = list(preferencias.AMENAZAS_VALIDAS)
-    amen = datos.amenazas_region(conn, bbox_red, t0, prefs["jornada_h"], prefs["considerar_clima"],
-                                 prefs["amenazas"])
-    amen_eval = datos.amenazas_region(conn, bbox_red, t0, prefs["jornada_h"], True, todas)
-    prob, ventana = datos.probabilidades_aristas(conn, bbox_red, [a for a in prefs["amenazas"] if a != "A2"])
-    prob_eval, _ = datos.probabilidades_aristas(conn, bbox_red, [a for a in todas if a != "A2"])
-    if ventana is None:
-        avisos.append("No está la tabla de indisponibilidad del punto 5: el costo de las calles queda igual a su "
-                      "largo (solo se aplican los bloqueos). Ejecuta Probabilidades/generar.py.")
-    elif not (ventana[0] <= t0 <= ventana[1]):
-        avisos.append("Las probabilidades de falla se calcularon para otra jornada "
-                      f"({ventana[0]:%d-%m %H:%M} a {ventana[1]:%d-%m %H:%M} UTC): vuelve a ejecutar main.py.")
-    red = Red(amen.bloqueadas, {e: factor_resiliente(p) for e, p in prob.items()})
+    # El cálculo de P5 se ejecuta para ESTA consulta y se congela con el plan.
+    # P7/P8 reutilizan filas, eventos y configuración, sin volver a leer un
+    # escenario.json ni una tabla calculada para otro horizonte.
+    fuentes = set(prefs["amenazas"])
+    if not prefs["considerar_clima"]:
+        fuentes.discard("A2")
+    modelo = simulacion.seleccionar_fuentes(simulacion.cargar(conn, t0, prefs["jornada_h"]), fuentes)
+    eventos_seleccionados = [e for e in modelo["eventos"] if e["fuente"] in fuentes]
+    peligros = [e for e in eventos_seleccionados if e["determinista"] and e["fuente"] in ("A1", "A3")]
+    bloqueadas = {a for e in peligros for a in e["aristas"]}
+    nodos_bloqueados = {n for e in peligros for n in e["nodos"]}
+    bloqueadas.update(i for i, e in modelo["aristas"].items()
+                      if e["source"] in nodos_bloqueados or e["target"] in nodos_bloqueados)
+    columnas = ["p_" + a.lower() for a in fuentes if a in ("A1", "A3")]
+    prob = {i: 1 - math.prod(1 - (r[col] or 0) for col in columnas)
+            for i, r in modelo["probabilidades"]["aristas"].items()}
+    prob = {i: p for i, p in prob.items() if p > 0}
+    prob_eval = prob
+    red = Red(bloqueadas, {e: factor_resiliente(p) for e, p in prob.items()})
     red_dist = Red(solo_distancia=True)
-    clima = (datos.clima_celdas(conn, bbox_red, t0, t0 + timedelta(hours=24))
+    clima = (simulacion.clima_para_plan(modelo)
              if prefs["considerar_clima"] and "A2" in prefs["amenazas"] else ({}, {}))
 
     # 1. Tareas: calles con señal dentro del área
@@ -821,7 +833,7 @@ def planificar_area(conn, area, entrada_prefs):
              "length_m": max(float(ps[0]["length_m"]), 0.1), "name": ps[0]["name"],
              "lon": float(np.mean([p["lon"] for p in ps])), "lat": float(np.mean([p["lat"] for p in ps])),
              "n_puntos": len(ps), "tipos": dict(Counter(p["tipo"] for p in ps))}
-        if e in amen.bloqueadas:
+        if e in bloqueadas:
             postergadas.append({**t, "motivo": "amenaza activa en la jornada"})
         else:
             tareas.append(t)
@@ -911,7 +923,7 @@ def planificar_area(conn, area, entrada_prefs):
     for cod in tecs:
         drones_t, rutas_t, resumen_t, avisos_t = _evaluar_tecnica(
             cod, planes[cod], etiquetas, tareas, tarea_por_id, fuera_set, geoms, prob_eval,
-            amen_eval.bloqueadas, clima, prefs, capacidad, t0)
+            bloqueadas, clima, prefs, capacidad, t0)
         info = resultados[cod]["info"]
         tiempo = info["segundos_solver"] + info["segundos_trazado"]
         if cod != "T1":
@@ -992,6 +1004,17 @@ def planificar_area(conn, area, entrada_prefs):
         for d, (_, _, bases_d, _) in enumerate(plan)]
     fc = lambda feats: {"type": "FeatureCollection", "features": feats}  # noqa: E731
     return {
+        "_modelo_probabilidades": modelo,
+        "modelo_probabilidades": {"id": modelo["id_modelo"], "t0": modelo["t0"], "t1": modelo["t1"],
+                                  "fuentes_seleccionadas": modelo["fuentes_seleccionadas"],
+                                  "configuracion_escenarios": modelo["configuracion_escenarios"]},
+        # Guardar únicamente grupos y bases: las matrices numpy se recalculan
+        # para el escenario y no deben ocupar memoria por cada plan en caché.
+        "_instancia_recuperacion": {"plan": [([], [], bs, [
+            (tipo, {k: obj[k] for k in ("base", "grupo", "reintento") if k in obj}
+             if tipo == "sector" else obj) for tipo, obj in pasos]) for _, _, bs, pasos in plan],
+                                    "tareas": tareas + postergadas,
+                                    "prob": prob, "bbox": bbox_area, "area": poligono},
         "area": poligono, "hora_salida": t0.isoformat(),
         "preferencias": prefs, "preferencias_por_defecto": por_defecto,
         "resumen": {
@@ -1002,7 +1025,7 @@ def planificar_area(conn, area, entrada_prefs):
                             if tipo == "sector" and not c.get("reintento")),
             "capacidad_salida_km": round(capacidad / 1000, 2),
             "postergadas": len(postergadas), "fuera_de_alcance": len(inalcanzables),
-            "amenazas_en_jornada": amen.n_amenazas, "amenazas_consideradas": prefs["amenazas"],
+            "amenazas_en_jornada": len(eventos_seleccionados), "amenazas_consideradas": prefs["amenazas"],
             "segundos_instancia": round(t_instancia, 2),
         },
         "tecnicas": salida_tecnicas,

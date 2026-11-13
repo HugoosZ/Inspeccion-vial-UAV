@@ -1,0 +1,9 @@
+{
+  "descripcion": "Supuestos de simulacion NO calibrados; tasas sobre toda la red cargada, no por calle.",
+  "celda_m": 1000,
+  "a3_reportes_h": 0.5,
+  "a3_fraccion_critica": 0.25,
+  "a3_radio_m": 100,
+  "a4_reportes_h": 0.5,
+  "a4_fraccion_accidentes": 0.25
+}

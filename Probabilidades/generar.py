@@ -6,15 +6,14 @@ Modelo revisado (separa prohibición, incertidumbre y nueva demanda):
 
   - bloqueado: prohibición operacional durante la jornada [t0, t0 + H]. Un
     evento confirmado que alcanza el enlace o nodo NO es un sorteo con p < 1:
-    incendio activo (A1), alerta de seguridad peligrosa (A3), accidente
-    activo (A4) o clima no apto sin ensamble (A2, ver abajo).
-  - p_total: proxy de indisponibilidad futura, combinando como independientes
+    incendio activo (A1), alerta de seguridad peligrosa (A3) o clima no apto (A2).
+  - p_total: índice de alteración futura del plan, combinando como independientes
         p_a1 = probabilidad de al menos un incendio cercano en la jornada
                (tasa histórica de CONAF, proceso de Poisson), y
-        p_a2 = fracción de escenarios del pronóstico por conjuntos (ensamble
-               ECMWF IFS / NOAA GEFS) que incumplen la política de vuelo,
-               en la peor hora de la jornada.
-    No es una probabilidad observada de accidente del dron.
+        p_a2 = máximo regional de las fracciones de escenarios meteorológicos
+               que incumplen la política, en la peor hora de la jornada.
+    más A3/A4 sintéticos de escenario.json. A4 añade demanda y NO bloquea.
+    No es una probabilidad observada de accidente del dron ni de cierre aéreo.
   - p_accidente: probabilidad de al menos un siniestro de tránsito asociado al
     enlace o nodo en la jornada (CONASET 2020-2025). Es NUEVA DEMANDA de
     inspección (un choque puede derribar señales), no falla del vuelo.
@@ -297,7 +296,15 @@ def p_clima(props):
 # ------------------------------------------------------------------------------
 # Cálculo: separar prohibición, incertidumbre y nueva demanda
 # ------------------------------------------------------------------------------
-def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None):
+def cargar_configuracion():
+    """Lee una instantánea de los supuestos A3/A4 compartidos por P5 y P7."""
+    config = json.loads((DIR / "escenario.json").read_text(encoding="utf-8"))
+    if not isinstance(config, dict):
+        raise ValueError("escenario.json debe contener un objeto de configuración")
+    return config
+
+
+def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None, configuracion=None):
     """Calcula las marginales; opcionalmente exporta sus eventos para el punto 7.
 
     El mismo evento conserva una única realización sobre todos los enlaces y
@@ -316,12 +323,14 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None):
     advertencias = set()
     riesgo_viento = defaultdict(list)
     contraste_visual = defaultdict(list)
+    clima_registros = []
 
     def registrar_evento(identificador, fuente, keys, motivo, p=None, desde=None, hasta=None):
         if eventos is None or not keys:
             return
         eventos.append({
             "id": str(identificador), "fuente": fuente,
+            "efecto": {"A1": "desvio", "A2": "suspension", "A3": "desvio", "A4": "inspeccion"}[fuente],
             "probabilidad": p, "determinista": p is None,
             "desde": (desde or t0).timestamp(), "hasta": (hasta or t1).timestamp(),
             "aristas": sorted(k[1] for k in keys if k[0] == "e"),
@@ -393,52 +402,91 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None):
                 for k in keys:
                     riesgo_viento[k].append(riesgo)
             p = p_clima(props)
-            if eventos is not None:
-                hora_desde = instante(props.get("valido_desde")) or t0
-                hora_hasta = instante(props.get("valido_hasta")) or t1
-                desde, hasta = max(t0, hora_desde), min(t1, hora_hasta)
-                celda = props.get("id_celda") or identidad(a)
-                evento_clima = (f"A2:{celda}:{hora_desde.astimezone(timezone.utc).isoformat()}:"
-                                f"{hora_hasta.astimezone(timezone.utc).isoformat()}")
-            if p is not None:
-                for k in keys:
-                    probs[k]["clima"].append(p)
-                if eventos is not None:
-                    registrar_evento(evento_clima, "A2", keys, "meteorologia_ensamble", p, desde, hasta)
-            else:
-                # Sin ensamble, el valor determinista es estado del escenario, no
-                # una probabilidad: se trata como prohibición (no simular con él).
-                if clima_no_apto(props):
-                    for k in keys:
-                        bloqueos[k].add("meteorologia_no_apta")
-                    if eventos is not None:
-                        registrar_evento(evento_clima, "A2", keys, "meteorologia_no_apta", desde=desde, hasta=hasta)
-                else:
+            desde = max(t0, instante(props.get("valido_desde")) or t0)
+            hasta = min(t1, instante(props.get("valido_hasta")) or t1)
+            no_apto = p is None and clima_no_apto(props)
+            if keys and desde < hasta:
+                clima_registros.append({"desde": desde, "hasta": hasta, "keys": set(keys),
+                                        "p": p, "no_apto": no_apto})
+            if p is None:
+                if not no_apto:
                     for k in keys:
                         notas[k].append("meteo_apta_en_pronostico")
                 advertencias.add("Clima sin ensamble: solo estado determinista del pronóstico")
 
         elif fuente == "A4_tomtom":
-            # Una calle cerrada a los automóviles NO es espacio aéreo prohibido.
-            # Un accidente activo sí bloquea: concentra personas y equipos de
-            # emergencia bajo la ruta (riesgo en tierra, Primatesta et al., 2020),
-            # y además deja la calle marcada para reinspección.
-            accion = props.get("accion_grafo")
-            estado = props.get("probabilidad")
+            # A4 es demanda de inspección: nunca un cierre aéreo en este modelo.
             for k in keys:
-                if props.get("bloqueo_vuelo_confirmado") is True:
-                    bloqueos[k].add("restriccion_vuelo_confirmada")
-                elif "acciden" in (tipo or "").lower():
-                    bloqueos[k].add("accidente_activo")
-                    notas[k].append("accidente: revisar si requiere reinspeccion")
-                elif accion == "BLOQUEAR_ARISTAS" and estado == "certain":
-                    notas[k].append("cierre_vial_terrestre_sin_bloqueo_aereo_confirmado")
-                else:
-                    notas[k].append("incidente_tomtom")
-            if props.get("bloqueo_vuelo_confirmado") is True:
-                registrar_evento(f"A4:activo:{identidad(a)}", "A4", keys, "restriccion_vuelo_confirmada")
-            elif "acciden" in (tipo or "").lower():
+                notas[k].append("demanda_inspeccion" if "acciden" in (tipo or "").lower() else "incidente_tomtom")
+            if "acciden" in (tipo or "").lower():
                 registrar_evento(f"A4:activo:{identidad(a)}", "A4", keys, "accidente_activo")
+
+    # La política A2 suspende toda la operación en ese intervalo: las celdas
+    # son observaciones del mismo fenómeno regional, no ensayos independientes.
+    # Se toma el máximo espacial y se comparte UN evento entre sus elementos.
+    # Particionar por todas las fronteras también evita sorteos superpuestos
+    # si una fuente usa intervalos más amplios que otra.
+    fronteras = sorted({r[c] for r in clima_registros for c in ("desde", "hasta")})
+    for desde, hasta in zip(fronteras, fronteras[1:]):
+        vigentes = [r for r in clima_registros if r["desde"] < hasta and r["hasta"] > desde]
+        if not vigentes:
+            continue
+        keys = set().union(*(r["keys"] for r in vigentes))
+        identificador = (f"A2:regional:{desde.astimezone(timezone.utc).isoformat()}:"
+                         f"{hasta.astimezone(timezone.utc).isoformat()}")
+        if any(r["no_apto"] for r in vigentes):
+            for k in keys:
+                bloqueos[k].add("meteorologia_no_apta")
+            registrar_evento(identificador, "A2", keys, "meteorologia_no_apta_regional",
+                             desde=desde, hasta=hasta)
+        else:
+            probabilidades = [r["p"] for r in vigentes if r["p"] is not None]
+            if probabilidades:
+                p_regional = max(probabilidades)
+                for k in keys:
+                    probs[k]["clima"].append(p_regional)
+                registrar_evento(identificador, "A2", keys, "meteorologia_ensamble_regional",
+                                 p_regional, desde, hasta)
+
+    # Sin archivo histórico A3/A4: escenarios sintéticos explícitos, no tasas
+    # inferidas del porcentaje de alertas de una captura instantánea.
+    config = cargar_configuracion() if configuracion is None else configuracion
+    celdas = defaultdict(list)
+    tam = float(config["celda_m"])
+    if not math.isfinite(tam) or tam <= 0:
+        raise ValueError("celda_m debe ser positiva y finita")
+    for e in sorted(aristas):
+        pts = muestras.get(("e", e), [])
+        if pts:
+            x, y = pts[len(pts) // 2]
+            celdas[(math.floor(x / tam), math.floor(y / tam))].append((e, x, y))
+    for fuente, tasa_key, fraccion_key in (("A3", "a3_reportes_h", "a3_fraccion_critica"),
+                                           ("A4", "a4_reportes_h", "a4_fraccion_accidentes")):
+        tasa, fraccion = float(config[tasa_key]), float(config[fraccion_key])
+        if not math.isfinite(tasa) or tasa < 0 or not 0 <= fraccion <= 1:
+            raise ValueError("Tasa no negativa y fracción entre 0 y 1 requeridas para A3/A4")
+        p = -math.expm1(-tasa * fraccion * horas / max(1, len(celdas)))
+        for (cx, cy), opciones in sorted(celdas.items()):
+            e, x, y = min(opciones, key=lambda v: ((v[1]-(cx+0.5)*tam)**2 + (v[2]-(cy+0.5)*tam)**2, v[0]))
+            if fuente == "A3":
+                radio = float(config["a3_radio_m"])
+                if not math.isfinite(radio) or radio <= 0:
+                    raise ValueError("a3_radio_m debe ser positivo y finito")
+                keys = [k for k in indice.candidatos((x, y, x, y), radio)
+                        if any(math.hypot(px-x, py-y) <= radio for px, py in muestras[k])]
+            else:
+                keys = [("e", e)]
+                # Nodos asociados al extremo geométrico, sin inventar IDs OSM.
+                extremos = [xy(*c) for c in (aristas[e]["coordinates"][0], aristas[e]["coordinates"][-1])]
+                for px, py in extremos:
+                    keys += [k for k in indice.candidatos((px, py, px, py), 1)
+                             if k[0] == "v" and math.hypot(muestras[k][0][0]-px, muestras[k][0][1]-py) <= 1]
+            for k in set(keys):
+                probs[k][fuente].append(p)
+                notas[k].append("supuesto_sintetico_no_calibrado_" + fuente)
+            registrar_evento(f"{fuente}:supuesto:{cx}:{cy}", fuente, set(keys),
+                             "alerta_critica_sintetica" if fuente == "A3" else "nueva_inspeccion_sintetica", p)
+    advertencias.add("A3/A4 futuros: tasas y distribución espacial supuestas en escenario.json; no predicciones observadas.")
 
     # Poisson: probabilidad de AL MENOS un incendio cercano en la jornada.
     # No es directamente probabilidad de falla del dron ni de cierre aéreo.
@@ -485,11 +533,9 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None):
             p_acc[k] = 1 - math.exp(-n / DIAS_CONASET * horas / 24)
 
     filas = {"e": [], "v": []}
-    # Solo se combinan dos probabilidades, bajo independencia APROXIMADA. Es un
-    # proxy conservador de indisponibilidad (incendio cercano futuro + clima),
-    # NO una probabilidad observada de accidente del dron.
-    claves = set(bloqueos) | set(probs) | set(notas) | set(p_acc) | set(riesgo_viento) | set(contraste_visual)
-    for k in claves:
+    # Una fila para cada elemento válido de la red, incluidos los ceros.
+    # p_total mezcla efectos distintos: es alteración del plan, no cierre aéreo.
+    for k in sorted(muestras):
         p_hist = 1 - math.prod(1 - p for p in probs[k].get("incendio_historico", []))
         # Peor hora de la jornada: la calle se cruza una vez, a una hora que aún
         # no se conoce al calcular la tabla.
@@ -503,14 +549,15 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None):
         filas[k[0]].append({
             "id": k[1], "bloqueado": bool(bloqueos[k]),
             "motivos_bloqueo": sorted(bloqueos[k]),
-            "p_total": round(p_pred, 6),
+            "p_total": round(1 - (1-p_pred) * math.prod(1-p for a in ("A3", "A4") for p in probs[k].get(a, [])), 6),
             "p_a1": round(p_hist, 6),
             "p_a2": None if p_meteo is None else round(p_meteo, 6),
-            "p_a3": None, "p_a4": None,
+            "p_a3": round(1-math.prod(1-p for p in probs[k].get("A3", [])), 6),
+            "p_a4": round(1-math.prod(1-p for p in probs[k].get("A4", [])), 6),
             "p_accidente": round(p_acc.get(k, 0.0), 6),
             "riesgo_viento": round(max(riesgo_viento[k], default=0.0), 6),
             "contraste_visual": round(min(contraste_visual[k]), 6) if contraste_visual[k] else None,
-            "calidad": calidad,
+            "calidad": "escenario_no_calibrado" if probs[k].get("A3") or probs[k].get("A4") else calidad,
             "observaciones": sorted(set(notas[k])),
         })
     return filas, t1, sorted(advertencias)
@@ -567,14 +614,15 @@ def _compactas(filas):
             if r["bloqueado"] or r["p_total"] > 0 or r["p_accidente"] > 0 or r["observaciones"]]
 
 
-def escribir_json(filas, t0, t1, horas, res, advertencias):
+def escribir_json(filas, t0, t1, horas, res, advertencias, configuracion=None):
     SALIDA.parent.mkdir(parents=True, exist_ok=True)
     distancia, px = geometria_inspeccion()
     salida = {"metadata": {
         "generado_utc": datetime.now(timezone.utc).isoformat(),
         "t0": t0.isoformat(), "t1": t1.isoformat(), "horizonte_h": horas,
-        "interpretacion": ("bloqueado: prohibición operacional; p_total: proxy NO calibrado de indisponibilidad "
-                           "futura (incendio cercano y clima); p_accidente: nueva tarea potencial, NO falla de vuelo"),
+        "interpretacion": ("bloqueado: prohibición operacional; p_total: índice NO calibrado de alteración del plan "
+                           "A1-A4 (A2 usa peor hora, no probabilidad conjunta temporal). A4 añade inspección, no cierre aéreo."),
+        "supuestos_A3_A4": cargar_configuracion() if configuracion is None else configuracion,
         "dron": "DJI Mavic 3E",
         "parametros": {
             "RAFAGA_PREVENTIVA_KMH": RAFAGA_PREVENTIVA_KMH,
@@ -600,18 +648,20 @@ def main():
     comun_bd.cargar_env()
     horas = float(os.getenv("PROB_HORIZONTE_H", "8"))
     t0 = instante(os.getenv("PROB_T0")) or datetime.now(timezone.utc).replace(microsecond=0)
+    configuracion = cargar_configuracion()
     conn = comun_bd.conectar_bd()
     try:
         aristas, nodos, amenazas = cargar_desde_bd(conn)
         siniestros = cargar_siniestros()
         print(f"[*] Indisponibilidad de {len(aristas)} enlaces y {len(nodos)} nodos, jornada {t0:%d-%m %H:%M} UTC "
               f"+ {horas:g} h, {len(amenazas)} amenazas")
-        filas, t1, advertencias = calcular(aristas, nodos, amenazas, siniestros, t0, horas)
+        filas, t1, advertencias = calcular(aristas, nodos, amenazas, siniestros, t0, horas,
+                                         configuracion=configuracion)
         res = resumen(filas, {"e": len(aristas), "v": len(nodos)})
         escribir_bd(conn, filas, t0, t1)
     finally:
         conn.close()
-    escribir_json(filas, t0, t1, horas, res, advertencias)
+    escribir_json(filas, t0, t1, horas, res, advertencias, configuracion=configuracion)
     for a in advertencias:
         print(f"    [!] {a}")
     print(f"    [+] {json.dumps(res, ensure_ascii=False)}")

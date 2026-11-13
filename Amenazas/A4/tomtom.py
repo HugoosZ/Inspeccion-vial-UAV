@@ -14,11 +14,9 @@ Transform:
     descartan: la congestión no afecta al dron y el clima lo cubre A2.
   - Cada incidente conserva su geometría original y un radio de afectación
     (radio_afectacion_m).
-  - Solo un ACCIDENTE activo bloquea el vuelo (accion_grafo = BLOQUEAR_ARISTAS,
-    100 m): concentra personas y equipos de emergencia bajo la ruta (riesgo en
-    tierra, Primatesta et al., 2020). Un cierre, una obra o un carril cerrado
-    restringen a los automóviles, no el espacio aéreo, así que quedan como
-    información (accion_grafo = NINGUNA), igual que en Probabilidades/generar.py.
+  - Un ACCIDENTE activo genera demanda de inspección (INSPECCIONAR, radio de
+    asociación 100 m). No bloquea el vuelo en este modelo. Cierres y obras
+    quedan como información (NINGUNA). Ver Probabilidades/ESCENARIOS.md.
   - Los accidentes se marcan con revisar_senaletica = true: un choque puede
     derribar señales y semáforos (FHWA, Maintenance of Signs and Sign Supports).
 Load (archivo):
@@ -46,7 +44,7 @@ CAMPOS = ("{incidents{type,geometry{type,coordinates},properties{id,iconCategory
 
 # iconCategory -> (tipo_amenaza, nombre, nivel_riesgo, accion_grafo, radio_afectacion_m)
 CATEGORIAS = {
-    1: ("accidente", "Accidente", "ALTO", "BLOQUEAR_ARISTAS", 100),
+    1: ("accidente", "Accidente", "ALTO", "INSPECCIONAR", 100),
     8: ("calle_cerrada", "Calle cerrada", "MEDIO", "NINGUNA", 60),
     9: ("construccion_vial", "Obras viales", "MEDIO", "NINGUNA", 50),
     7: ("carril_cerrado", "Carril cerrado", "BAJO", "NINGUNA", 50),

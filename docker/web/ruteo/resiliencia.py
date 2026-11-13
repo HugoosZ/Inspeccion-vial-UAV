@@ -11,7 +11,9 @@ retorno.
 Este módulo no consulta datos ni sortea fallas: recibe las exposiciones que
 el punto 7 ya proyectó sobre los recorridos y horarios del mismo plan. Se mide
 la absorción de la perturbación sobre la misión completa, sin recuperación ni
-respaldos implícitos entre drones y sin modificar el plan.
+respaldos implícitos entre drones y sin modificar el plan. Esta es la referencia
+SIN recuperación; recuperacion.py evalúa las rutas recalculadas y
+simulacion_servicio.py publica ambas métricas para el mismo escenario.
 """
 
 from collections.abc import Mapping
@@ -35,9 +37,8 @@ SUPUESTOS = (
     "eventos probabilísticos distintos se consideran independientes.",
     "Un bloqueo confirmado impide completar la salida; una salida afectada "
     "pierde todas sus tareas bajo el supuesto conservador de salida completa.",
-    "Cada tarea tiene una única salida factible asignada. Los drones no son "
-    "rutas alternativas de respaldo y no se replanifica después de una falla. "
-    "Se mide absorción de la perturbación, sin recuperación.",
+    "En la referencia esperada y sin recuperación, cada tarea tiene una única "
+    "salida factible asignada. La R recuperada se calcula aparte sobre las rutas nuevas.",
 )
 
 

@@ -196,12 +196,13 @@
         <p class="ayuda" id="estadoSimulacion" role="status" aria-live="polite">Primero planifica una inspección.</p>
         <div id="visibilidadSimulacion" hidden>
           <label><input type="checkbox" id="mostrarEscenario" checked> Mostrar escenario</label>
+          <label><input type="checkbox" id="mostrarRecuperadas" checked> Mostrar rutas recalculadas (desmarcar para ver originales)</label>
           <div class="controles-capas">
             <label><input type="checkbox" id="mostrarAristasSimulacion" checked> Aristas afectadas</label>
             <label><input type="checkbox" id="mostrarNodosSimulacion" checked> Nodos afectados</label>
           </div>
           <div class="leyenda-fallas"><i style="background:#e11d48"></i>Falla sorteada ·
-            <i style="background:#111827"></i>Bloqueo confirmado</div>
+            <i style="background:#111827"></i>Evento confirmado · <i style="background:#16a34a"></i>Inspección A4</div>
         </div>
         <div id="resultadoSimulacion"></div>
       </section>
@@ -304,9 +305,11 @@ function popupProb(f, tipo) {
   const p = f.properties;
   const filas = {
     "bloqueado": p.bloqueado ? `sí: ${(p.motivos_bloqueo || []).map(m => MOTIVO[m] || m).join(", ")}` : "no",
-    "indisponibilidad (proxy)": pctP(p.p_total),
+    "alteración del plan (índice no calibrado)": pctP(p.p_total),
     "A1 incendio cercano (historial)": pctP(p.p_a1),
     "A2 escenarios de clima no aptos": p.p_a2 == null ? "sin ensamble" : pctP(p.p_a2),
+    "A3 alerta crítica (supuesto)": pctP(p.p_a3),
+    "A4 nueva inspección (supuesto)": pctP(p.p_a4),
     "siniestro de tránsito (nueva demanda)": pctP(p.p_accidente),
     "contraste de la señal": p.contraste_visual == null ? "—" : pctP(p.contraste_visual),
     "calidad del dato": p.calidad || "—",
@@ -316,7 +319,7 @@ function popupProb(f, tipo) {
 }
 const COLOR_INCIDENTE = { accidente: "#d90429", calle_cerrada: "#7f1d1d", construccion_vial: "#ea580c",
                           carril_cerrado: "#f59e0b", condicion_peligrosa: "#a855f7", vehiculo_detenido: "#64748b" };
-const NOMBRE_INCIDENTE = { accidente: "Accidente (bloquea el vuelo 100 m)", calle_cerrada: "Calle cerrada (informativo)",
+const NOMBRE_INCIDENTE = { accidente: "Accidente (inspección prioritaria)", calle_cerrada: "Calle cerrada (informativo)",
                            construccion_vial: "Obras (informativo)", carril_cerrado: "Carril cerrado (informativo)",
                            condicion_peligrosa: "Condición peligrosa (informativo)", vehiculo_detenido: "Vehículo detenido (informativo)" };
 
@@ -402,14 +405,14 @@ const CAPAS = [
     leyenda: Object.entries(NOMBRE_INCIDENTE).map(([k, v]) => [COLOR_INCIDENTE[k], v]) },
 
   // ----- Probabilidad de falla (punto 5) -----
-  { id: "PF_aristas", grupo: "Indisponibilidad (punto 5)", nombre: "Enlaces (calles)", muestra: "#dc2626",
+  { id: "PF_aristas", grupo: "Alteración del plan (punto 5)", nombre: "Enlaces (calles)", muestra: "#dc2626",
     url: "/api/probabilidades?elemento=aristas&minimo=0.001",
     conteo: c => c.probabilidades ? `${fmt(c.probabilidades.aristas)} con p > 0 · ${fmt(c.probabilidades.aristas_bloqueadas)} bloqueados` : "sin calcular",
     crear: d => L.geoJSON(d, { pane: "meta",
       style: f => ({ color: colorIndisp(f), weight: f.properties.bloqueado ? 4 : 3, opacity: 0.85 }),
       onEachFeature: (f, l) => l.bindPopup(popupProb(f, "Enlace")) }),
     leyenda: [[COLOR_BLOQUEADO, "Bloqueado (prohibición en la jornada)"], ...RANGOS_PROB.map(r => [r.color, r.etiqueta])] },
-  { id: "PF_nodos", grupo: "Indisponibilidad (punto 5)", nombre: "Nodos (intersecciones)", muestra: "#7f1d1d",
+  { id: "PF_nodos", grupo: "Alteración del plan (punto 5)", nombre: "Nodos (intersecciones)", muestra: "#7f1d1d",
     url: "/api/probabilidades?elemento=nodos&minimo=0.001",
     conteo: c => c.probabilidades ? `${fmt(c.probabilidades.nodos)} con p > 0 · ${fmt(c.probabilidades.nodos_bloqueados)} bloqueados` : "sin calcular",
     crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, colorIndisp(f), 3),
@@ -464,17 +467,29 @@ async function obtener(url) {
 
 async function alternarCapa(capa, encender) {
   if (!encender) { if (capa.capa) mapa.removeLayer(capa.capa); return; }
+  const url = capa.id.startsWith("PF_") && ruteo.resultado ?
+    `${capa.url}&plan_id=${encodeURIComponent(ruteo.resultado.plan_id)}` : capa.url;
+  if (capa.urlDatos !== url) capa.datos = null;
   if (!capa.datos) {
+    const version = capa.version = (capa.version || 0) + 1;
     capa.div.classList.add("cargando");
     try {
-      capa.datos = await obtener(capa.url);
+      const datos = await obtener(url);
+      if (version !== capa.version) return;
+      capa.datos = datos;
+      capa.urlDatos = url;
+      if (capa.id.startsWith("PF_") && datos.metadata)
+        capa.div.querySelector(".conteo").textContent = `${fmt(datos.features.length)} · P5 de este plan`;
+      else if (capa.id.startsWith("PF_"))
+        capa.div.querySelector(".conteo").textContent = `${fmt(datos.features.length)} · último pipeline`;
       if (capa.opciones === "horas") prepararHoras(capa);
     } catch (e) {
+      if (version !== capa.version) return;
       capa.div.querySelector(".conteo").textContent = "error al cargar";
       console.error(capa.id, e);
       return;
     } finally {
-      capa.div.classList.remove("cargando");
+      if (version === capa.version) capa.div.classList.remove("cargando");
     }
   }
   redibujar(capa);
@@ -482,6 +497,16 @@ async function alternarCapa(capa, encender) {
     mapa.fitBounds(capa.capa.getBounds(), { padding: [10, 10] });
     capa.encuadrada = true;
   }
+}
+
+function actualizarProbabilidadesPlan() {
+  CAPAS.filter(c => c.id.startsWith("PF_")).forEach(capa => {
+    capa.version = (capa.version || 0) + 1;
+    capa.datos = null;
+    if (capa.capa) mapa.removeLayer(capa.capa);
+    capa.capa = null;
+    if (capa.div && capa.div.querySelector("input").checked) alternarCapa(capa, true);
+  });
 }
 
 function redibujar(capa) {
@@ -706,6 +731,7 @@ function limpiarRutas(cancelar = true) {
   Object.values(ruteo.capas).forEach(c => mapa.removeLayer(c));
   ruteo.capas = {};
   ruteo.resultado = null;
+  if (cancelar) actualizarProbabilidadesPlan();
   actualizarResiliencia();
   actualizarLeyenda();
   document.getElementById("resultado").innerHTML = "";
@@ -788,10 +814,10 @@ function actualizarResiliencia() {
     `${(100 * m[campo]).toLocaleString("es-CL", { maximumFractionDigits: 2 })} puntos porcentuales` : "—";
   contenedor.innerHTML = `
     <p class="ayuda">R mide la fracción de señales registradas requeridas originalmente cuya inspección se completa.
-      La <b>esperanza</b> considera las probabilidades de los eventos; el <b>escenario</b> muestra una sola realización del sorteo de fallas.</p>
+      La <b>esperanza sin recuperación</b> evalúa el plan inicial. El <b>escenario recuperado</b> mide lo atendido tras recalcular y suspender vuelos por clima; A4 se informa aparte.</p>
     <div class="tabla-scroll"><table>
       <tr><th>Técnica</th><th title="Tiempo de cálculo de la técnica de ruteo">Cómputo</th>
-        <th>R esperada</th><th>R escenario</th></tr>
+        <th>R esperada sin recuperar</th><th>R recuperada</th></tr>
       ${codigos.map(c => {
         const t = r.tecnicas[c], esperada = metricaResiliencia(c), realizada = metricaResiliencia(c, true);
         if (!t) return `<tr><td title="${escapar(NOMBRE_TECNICA[c])}">${c}</td><td colspan="3">No ejecutada</td></tr>`;
@@ -814,7 +840,9 @@ function actualizarResiliencia() {
             · cobertura previa: ${cobertura(m, "cobertura_pre")}.</p>
           <p>Esperadas: ${senales(m.senales_esperadas)} · cambio frente a la cobertura previa: ${delta(m, "delta_esperada")}.</p>
           ${s && s.estado === "ok" ? `<p>Realizadas en el escenario: ${senales(s.senales_escenario)}
-            · cambio frente a la cobertura previa: ${delta(s, "delta_escenario")}.</p>` : ""}</div>`;
+            · cambio frente a la cobertura previa: ${delta(s, "delta_escenario")}.</p>
+            <p>R sin recuperación: ${cobertura(s, "R_sin_recuperacion")} · ganancia por recuperar: ${delta(s, "ganancia_recuperacion")}.
+            Cumplimiento de nuevas inspecciones A4: ${s.cumplimiento_A4 == null ? "sin demanda" : pct2(s.cumplimiento_A4)}.</p>` : ""}</div>`;
       }).join("")}
       ${supuestos.map(s => `<p class="ayuda">${escapar(s)}</p>`).join("")}
     </details>`;
@@ -829,14 +857,15 @@ function actualizarLeyenda() {
   ruteo.leyenda = L.control({ position: "bottomright" });
   ruteo.leyenda.onAdd = () => {
     const div = L.DomUtil.create("div", "leyenda-tec");
-    div.innerHTML = `<b>Técnicas de ruteo</b>` + visibles.map(c => {
+    const vista = simulacion.resultado && document.getElementById("mostrarRecuperadas").checked ? "recuperadas" : "originales";
+    div.innerHTML = `<b>Técnicas de ruteo · ${vista}</b>` + visibles.map(c => {
       const t = r.tecnicas[c], e = ESTILO_TECNICA[c];
       const esperada = valorResiliencia(metricaResiliencia(c));
       const realizada = valorResiliencia(metricaResiliencia(c, true));
       return `<div><span class="linea" style="border-top-color:${e.color}"></span>
         <span>${c} · ${escapar(t.nombre)} · cómputo ${seg(t.tiempo_calculo_s)}
           · R esperada ${esperada == null ? "no disponible" : porcentajeResiliencia(esperada)}${simulacion.resultado ?
-            ` · R escenario ${realizada == null ? "no disponible" : porcentajeResiliencia(realizada)}` : ""}</span></div>`;
+            ` · R recuperada ${realizada == null ? "no disponible" : porcentajeResiliencia(realizada)} · recálculo ${seg(simulacion.resultado.tecnicas[c].tiempo_recalculo_s)}` : ""}</span></div>`;
     }).join("");
     return div;
   };
@@ -846,6 +875,7 @@ function actualizarLeyenda() {
 function dibujarResultado(r) {
   limpiarRutas(false);
   ruteo.resultado = r;
+  actualizarProbabilidadesPlan();
   const capas = r.capas;
   const centralizada = r.preferencias.bases === "centralizada";
 
@@ -971,7 +1001,7 @@ function dibujarResultado(r) {
     <label class="ayuda"><input type="checkbox" checked data-capa="instancia"> Áreas, calles a inspeccionar y bases</label>
     <div style="overflow-x:auto"><table class="tabla-tec">
       <tr><th>Técnica</th><th title="Tiempo de inspección global (el dron que más tarda)">T</th><th>Km</th>
-        <th title="Km esperados: suma de largo / (1 − p) con todas las amenazas">Km esp.</th>
+        <th title="Km esperados: suma de largo / (1 − p) con A1/A3 seleccionadas">Km esp.</th>
         <th title="Calles bloqueadas por amenazas activas que la ruta cruza">Bloq.</th>
         <th title="Tiempo de cálculo de la técnica">Cálculo</th></tr>
       ${filasTec}
@@ -980,8 +1010,8 @@ function dibujarResultado(r) {
     ${listaBases}
     ${capas.postergadas.features.length ? `<label class="ayuda"><input type="checkbox" checked data-capa="postergadas">
       Calles postergadas por amenazas (gris punteado)</label>` : ""}
-    <p class="ayuda">${escapar(r.metodo)} El riesgo (km esperados, p media y calles bloqueadas) se evalúa siempre con
-      todas las amenazas, aunque la técnica no las haya considerado.</p>
+    <p class="ayuda">${escapar(r.metodo)} Las técnicas se evalúan con las mismas fuentes seleccionadas,
+      incluida T1 aunque no las use para calcular su recorrido.</p>
     <p class="ayuda">Inicio ${new Date(r.hora_salida).toLocaleString("es-CL")} · preferencias por defecto usadas:
       ${r.preferencias_por_defecto.length} de ${Object.keys(r.preferencias).length}.</p>`;
   document.querySelectorAll("#resultado input[data-capa]").forEach(chk => chk.addEventListener("change", e => {
@@ -1004,7 +1034,7 @@ function actualizarControlesSimulacion() {
   const estado = document.getElementById("estadoSimulacion");
   estado.classList.toggle("aviso", !!simulacion.error);
   estado.textContent = ruteo.calculando ? "Espera a que termine la planificación." :
-    simulacion.cargando ? "Sorteando el escenario para el plan actual…" :
+    simulacion.cargando ? "Sorteando el escenario y recalculando las técnicas…" :
     simulacion.error || (simulacion.resultado ? `Último sorteo: semilla ${fmt(simulacion.resultado.semilla)}.` :
       disponible ? "Plan listo. Elige una semilla y simula las fallas." : "Primero planifica una inspección.");
 }
@@ -1023,14 +1053,30 @@ function restablecerSimulacion(restaurarSemilla = false) {
   simulacion.error = null;
   simulacion.pagina = 0;
   quitarCapasSimulacion();
+  actualizarRutasRecuperadas();
   if (restaurarSemilla) document.getElementById("semillaSimulacion").value = 7;
   document.getElementById("visibilidadSimulacion").hidden = true;
-  ["mostrarEscenario", "mostrarAristasSimulacion", "mostrarNodosSimulacion"]
+  ["mostrarEscenario", "mostrarAristasSimulacion", "mostrarNodosSimulacion", "mostrarRecuperadas"]
     .forEach(id => { document.getElementById(id).checked = true; });
   document.getElementById("resultadoSimulacion").innerHTML = "";
   actualizarResiliencia();
   actualizarLeyenda();
   actualizarControlesSimulacion();
+}
+
+function actualizarRutasRecuperadas() {
+  if (!ruteo.resultado) return;
+  const usar = simulacion.resultado && document.getElementById("mostrarRecuperadas").checked;
+  Object.keys(ruteo.resultado.tecnicas).forEach(c => {
+    const capa = ruteo.capas[`tec_${c}`];
+    if (!capa) return;
+    const t = usar ? simulacion.resultado.tecnicas[c] : ruteo.resultado.tecnicas[c];
+    capa.clearLayers();
+    // Las salidas suspendidas se listan como pendientes y no se dibujan como vuelos.
+    capa.addData({type: "FeatureCollection", features: t.rutas.features.filter(f =>
+      !usar || f.properties.estado_recuperacion === "ejecutable")});
+  });
+  actualizarLeyenda();
 }
 
 function actualizarCapasSimulacion() {
@@ -1052,11 +1098,12 @@ function popupSimulacion(f, tipo) {
   const detalle = indices.slice(0, 20).map(i => {
     const e = eventos[i];
     return `<div><b>${escapar(e.fuente)}</b> · ${escapar(e.motivo)}<br>${
-    e.determinista ? "Bloqueo confirmado, sin sorteo" :
+    e.determinista ? "Evento confirmado, sin sorteo" :
       `U = ${escapar(numeroSimulacion(e.numero_0_100))}; p = ${escapar(probabilidadSimulacion(e.probabilidad))}`}</div>`;
   }).join("");
   return popup({ nombre: `${tipo} ${p.id}` }, {
-    estado: p.estado === "confirmada" ? "bloqueo confirmado" : "falla sorteada",
+    estado: p.estado === "confirmada" ? "evento confirmado" : "evento sorteado",
+    efecto: (p.efectos || []).join(", "),
     motivo: (p.motivos || []).join(", "),
   }) + detalle + (indices.length > 20 ? `<div>Y ${fmt(indices.length - 20)} evento(s) más.</div>` : "");
 }
@@ -1097,7 +1144,7 @@ function dibujarSimulacion(r) {
   quitarCapasSimulacion();
   simulacion.resultado = r;
   simulacion.pagina = 0;
-  const color = f => f.properties.estado === "confirmada" ? "#111827" : "#e11d48";
+  const color = f => (f.properties.efectos || []).includes("inspeccion") ? "#16a34a" : f.properties.estado === "confirmada" ? "#111827" : "#e11d48";
   simulacion.capas.aristas = L.geoJSON(r.capas.aristas, { pane: "simulacion",
     style: f => ({ color: color(f), weight: 5, opacity: 0.85,
       dashArray: f.properties.estado === "confirmada" ? null : "5 4" }),
@@ -1130,12 +1177,23 @@ function dibujarSimulacion(r) {
           '<td colspan="3">No evaluada</td>'}</tr>`;
       }).join("")}
     </table></div>
-    <p class="ayuda">Se señalan salidas que cruzan elementos indisponibles durante su horario;
-      las rutas originales se conservan. Las salidas completamente fuera de la ventana no se evalúan;
-      en las parcialmente incluidas se revisa solo el periodo simulado.</p>
+    <p class="ayuda">Afectadas: salidas del plan original. Las rutas recalculadas evitan A1/A3 y agregan A4.
+      A2 suspende por horario; esas salidas no se dibujan como vuelos ejecutables.</p>
+    <div class="tabla-scroll"><table><tr><th>Técnica</th><th>Recálculo</th><th>A4 atendidas / requeridas</th><th>Pendientes originales</th><th>Suspendidas A2</th><th>Δ km plan</th></tr>
+      ${Object.entries(r.tecnicas).map(([c,t]) => `<tr><td>${escapar(c)}</td><td>${seg(t.tiempo_recalculo_s)}</td>
+        <td>${t.recuperacion.tareas_A4_atendidas.length} / ${t.recuperacion.tareas_A4.length}</td>
+        <td>${t.recuperacion.tareas_originales_pendientes.length}</td><td>${t.recuperacion.salidas_suspendidas_A2}</td>
+        <td>${t.recuperacion.km_adicionales}</td></tr>`).join("")}</table></div>
+    ${Object.entries(r.tecnicas).map(([c,t]) => `<details><summary>${escapar(c)} · tareas pendientes y salidas suspendidas</summary>
+      <p>Aristas originales pendientes: ${escapar(t.recuperacion.tareas_originales_pendientes.join(", ") || "ninguna")}.</p>
+      <p>A4 pendientes: ${escapar(t.recuperacion.tareas_A4_pendientes.join(", ") || "ninguna")}.</p>
+      ${t.recuperacion.salidas_no_ejecutables.map(s => `<p>Dron ${s.dron}, salida ${s.salida}: ${escapar(s.motivo)}</p>`).join("")}
+      ${t.detalle.nota ? `<p>${escapar(t.detalle.nota)}</p>` : ""}
+      ${t.detalle.sectores_sin_milp ? `<p>T2 utiliza T3 en ${t.detalle.sectores_sin_milp} sectores.</p>` : ""}</details>`).join("")}
     <details><summary>Números sorteados y eventos (${fmt((r.eventos || []).length)})</summary>
       <div id="eventosSimulacion"></div></details>`;
   mostrarEventosSimulacion();
+  actualizarRutasRecuperadas();
   actualizarResiliencia();
   actualizarLeyenda();
 }
@@ -1233,6 +1291,7 @@ async function iniciarRuteo() {
   document.getElementById("btnLimpiar").addEventListener("click", limpiarTodo);
   document.getElementById("btnDefecto").addEventListener("click", aplicarDefecto);
   document.getElementById("btnSimular").addEventListener("click", simularFallas);
+  document.getElementById("mostrarRecuperadas").addEventListener("change", actualizarRutasRecuperadas);
   document.getElementById("btnRestablecerSimulacion").addEventListener("click", () => restablecerSimulacion(true));
   ["mostrarEscenario", "mostrarAristasSimulacion", "mostrarNodosSimulacion"]
     .forEach(id => document.getElementById(id).addEventListener("change", actualizarCapasSimulacion));

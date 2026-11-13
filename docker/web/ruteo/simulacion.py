@@ -3,7 +3,7 @@
 El punto 5 calcula marginales para una jornada. Aquí se conservan los eventos
 que las originan: un incendio alcanza conjuntamente enlaces y nodos, y una
 celda meteorológica comparte su realización durante la hora correspondiente.
-A2 se sortea por celda-hora, con su fracción de ensamble; no se interpreta el
+A2 comparte una realización regional por intervalo; no se interpreta el
 máximo horario del punto 5 como probabilidad de toda la campaña.
 """
 
@@ -69,6 +69,7 @@ def _eventos_unicos(eventos):
     unicos = {}
     for original in eventos:
         evento = dict(original)
+        evento.setdefault("efecto", {"A1": "desvio", "A2": "suspension", "A3": "desvio", "A4": "inspeccion"}[evento["fuente"]])
         identificador = str(evento["id"])
         evento["id"] = identificador
         if not isinstance(evento["determinista"], bool):
@@ -87,7 +88,7 @@ def _eventos_unicos(eventos):
         if anterior is None:
             unicos[identificador] = evento
             continue
-        if any(anterior[k] != evento[k] for k in ("fuente", "desde", "hasta", "determinista", "motivo")):
+        if any(anterior[k] != evento[k] for k in ("fuente", "efecto", "desde", "hasta", "determinista", "motivo")):
             raise ValueError(f"El identificador {identificador} representa eventos incompatibles.")
         if not evento["determinista"]:
             anterior["probabilidad"] = max(anterior["probabilidad"], evento["probabilidad"])
@@ -98,6 +99,15 @@ def _eventos_unicos(eventos):
         evento = unicos[identificador]
         resultado.append({**evento, "aristas": sorted(evento["aristas"]), "nodos": sorted(evento["nodos"])})
     return resultado
+
+
+def firma_red(conn):
+    """Detecta recargas del grafo antes de materializar rutas recuperadas."""
+    with conn.cursor() as cur:
+        cur.execute("""SELECT md5(COALESCE(string_agg(concat_ws(':', id, source, target,
+                       cost, reverse_cost, length_m, encode(ST_AsEWKB(geom), 'hex')),
+                       '|' ORDER BY id), '')) FROM network_edges""")
+        return cur.fetchone()[0]
 
 
 def cargar(conn, t0, horas):
@@ -117,7 +127,10 @@ def cargar(conn, t0, horas):
     modelo = _probabilidades()
     aristas_geom, nodos_coords, amenazas = modelo.cargar_desde_bd(conn)
     eventos = []
-    _, t1, advertencias = modelo.calcular(aristas_geom, nodos_coords, amenazas, [], t0, horas, eventos=eventos)
+    configuracion = modelo.cargar_configuracion()
+    marginales, t1, advertencias = modelo.calcular(
+        aristas_geom, nodos_coords, amenazas, modelo.cargar_siniestros(), t0, horas,
+        eventos=eventos, configuracion=configuracion)
     with conn.cursor() as cur:
         cur.execute("SELECT id, source, target, name, length_m, ST_AsGeoJSON(geom, 6) "
                     "FROM network_edges ORDER BY id")
@@ -136,11 +149,59 @@ def cargar(conn, t0, horas):
         }
     nodos = {int(i): {"geom": _geometria({"type": "Point", "coordinates": coords})}
              for i, coords in nodos_coords.items()}
+    eventos = _eventos_unicos(eventos)
+    huella_red = firma_red(conn)
+    firma = hashlib.sha256(json.dumps({
+        "t0": t0.isoformat(), "t1": t1.isoformat(), "configuracion": configuracion,
+        "marginales": marginales, "eventos": eventos, "red": huella_red,
+    }, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     return {
         "t0": t0.isoformat(), "t1": t1.isoformat(),
-        "eventos": _eventos_unicos(eventos), "aristas": aristas, "nodos": nodos,
+        "eventos": eventos, "aristas": aristas, "nodos": nodos,
+        "probabilidades": {"aristas": {r["id"]: r for r in marginales["e"]},
+                           "nodos": {r["id"]: r for r in marginales["v"]}},
+        "configuracion_escenarios": configuracion, "id_modelo": firma, "firma_red": huella_red,
         "advertencias": advertencias,
     }
+
+
+def clima_para_plan(modelo):
+    """Avisos iniciales con los mismos intervalos regionales que sorteará P7."""
+    por_arista, horas = {}, []
+    for evento in modelo["eventos"]:
+        if evento["fuente"] != "A2":
+            continue
+        p = evento["probabilidad"]
+        horas.append((evento["desde"], evento["hasta"], p,
+                      "ALTO" if evento["determinista"] else None))
+        por_arista.update((e, "regional") for e in evento["aristas"])
+    return por_arista, {"regional": horas}
+
+
+def seleccionar_fuentes(modelo, fuentes):
+    """Proyecta P5 y su catálogo sobre la misma selección de la consulta."""
+    fuentes = sorted(set(fuentes))
+    modelo["eventos"] = [e for e in modelo["eventos"] if e["fuente"] in fuentes]
+    bloqueos = {"aristas": {}, "nodos": {}}
+    for evento in modelo["eventos"]:
+        if not evento["determinista"] or evento["fuente"] == "A4":
+            continue
+        for tipo in bloqueos:
+            for identificador in evento[tipo]:
+                bloqueos[tipo].setdefault(identificador, set()).add(evento["motivo"])
+    for tipo, filas in modelo["probabilidades"].items():
+        for identificador, fila in filas.items():
+            for fuente in ("A1", "A2", "A3", "A4"):
+                if fuente not in fuentes:
+                    fila["p_" + fuente.lower()] = 0.0
+            fila["p_total"] = round(1 - math.prod(1 - (fila["p_" + f.lower()] or 0)
+                                                  for f in fuentes), 6)
+            fila["motivos_bloqueo"] = sorted(bloqueos[tipo].get(identificador, ()))
+            fila["bloqueado"] = bool(fila["motivos_bloqueo"])
+    modelo["fuentes_seleccionadas"] = fuentes
+    modelo["id_modelo"] = hashlib.sha256(json.dumps(
+        [modelo["id_modelo"], fuentes], separators=(",", ":")).encode()).hexdigest()
+    return modelo
 
 
 def sortear(modelo, semilla):

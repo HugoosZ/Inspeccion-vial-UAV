@@ -76,8 +76,8 @@ WHERE (a.hasta IS NULL OR a.hasta > %(t0)s)
 class Amenazas:
     """Amenazas que afectan a cada arista dentro de la ventana [t0, t1].
 
-    - bloqueadas: aristas con una amenaza dura (A1 incendio, A3 SOSAFE,
-      A4 TomTom) -> se eliminan del grafo de pgr_dijkstra.
+    - bloqueadas: aristas con una amenaza dura (A1 incendio, A3 SOSAFE)
+      -> se eliminan del grafo de pgr_dijkstra. A4 añade demanda en P7.
     - factor_estatico: penalización permanente en la ventana (PENALIZAR, POSTERGAR).
     - temporales: intervalos (desde, hasta, factor) del clima (A2), que dependen
       de la hora a la que el dron cruza la arista.
@@ -91,6 +91,8 @@ class Amenazas:
             filas = [f for f in filas if (f["fuente"] or "")[:2] in amenazas]
         self.n_amenazas = len({f["amenaza_id"] for f in filas})
         for f in filas:
+            if f["fuente"] == "A4_tomtom":
+                continue  # Demanda de inspección, incluso con datos de un ETL anterior.
             e, nivel, accion = f["edge_id"], f["nivel_riesgo"] or "MEDIO", f["accion"]
             clave = ("A2", f["id_celda"]) if f["fuente"] == "A2_clima" else ("A", f["amenaza_id"])
             p = PROB_NIVEL.get(nivel, 0.2)
@@ -163,8 +165,9 @@ def probabilidades_aristas(conn, bbox, amenazas):
     """Probabilidad de indisponibilidad de cada arista del rectángulo (punto 5,
     tabla prob_falla_aristas), combinando solo las amenazas elegidas:
         p(e) = 1 - prod_{k elegidas} (1 - p_k(e))
-    En el modelo revisado solo A1 (tasa histórica de incendios) y A2 (ensamble)
-    tienen probabilidad; A3 y A4 son bloqueos. Devuelve (dict edge_id -> p,
+    A1 usa tasa histórica de incendios y A2 ensamble; A3/A4 añaden
+    probabilidades de escenarios futuros supuestos. El planificador de
+    flota excluye A2/A4 de este costo de evitación. Devuelve (dict edge_id -> p,
     ventana (t0, t1) en que se calculó) o ({}, None) si la tabla no existe."""
     if not amenazas:
         return {}, None

@@ -23,7 +23,7 @@ TomTom Traffic API, **Incident Details v5**:
 
 | `iconCategory` | `tipo_amenaza` | `nivel_riesgo` | `accion_grafo` | `radio_afectacion_m` |
 |---|---|---|---|---|
-| 1 Accidente | `accidente` | ALTO | `BLOQUEAR_ARISTAS` | 100 |
+| 1 Accidente | `accidente` | ALTO | `INSPECCIONAR` | 100 |
 | 8 Calle cerrada | `calle_cerrada` | MEDIO | `NINGUNA` (informativo) | 60 |
 | 9 Obras | `construccion_vial` | MEDIO | `NINGUNA` (informativo) | 50 |
 | 7 Carril cerrado | `carril_cerrado` | BAJO | `NINGUNA` (informativo) | 50 |
@@ -32,7 +32,11 @@ TomTom Traffic API, **Incident Details v5**:
 
 Se descartan las retenciones (6), porque la congestión no afecta al dron, y las categorías de clima (2, 4, 5, 10, 11), que cubre A2. Cada incidente conserva su geometría original (punto o tramo). Los radios son **supuestos de diseño configurables**.
 
-**Qué bloquea el vuelo.** Solo un **accidente activo** bloquea las calles a menos de 100 m (`ST_DWithin`). Un accidente concentra personas, vehículos detenidos y equipos de emergencia bajo la ruta, y el riesgo en tierra de un vuelo crece con la población expuesta (Primatesta et al., 2020). La calle además queda marcada para reinspección, porque un choque puede derribar señales (FHWA).
+**Efecto actual.** Un accidente solicita revisar las calles asociadas a menos de 100 m;
+no bloquea el vuelo en el modelo del grupo. El punto 7 incorpora esa tarea y recalcula
+para visitarla. El radio es de asociación de demanda, no una exclusión aérea.
+Los escenarios A4 futuros y su evaluación se detallan en
+[ESCENARIOS.md](../../Probabilidades/ESCENARIOS.md).
 
 Un **cierre, una obra o un carril cerrado** restringen el tránsito de automóviles, **no el espacio aéreo**, así que quedan solo como información en el mapa y en la tabla de indisponibilidad del punto 5 (`observaciones`). Es el mismo criterio de `Probabilidades/generar.py`.
 

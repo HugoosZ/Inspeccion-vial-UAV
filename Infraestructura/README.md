@@ -25,6 +25,7 @@ Si Nominatim no devuelve el polígono de la comuna, se usa el rectángulo de res
 
 - **Red `drive`:** se descargan las calles vehiculares, que es donde están las señales, semáforos y demarcaciones que el dron inspecciona.
 - **Grafo no dirigido:** el dron vuela sobre la calle y no respeta el sentido del tránsito, así que cada tramo es una sola arista con `reverse_cost = cost`. El dato `oneway` se conserva. Con `INFRA_RESPETAR_SENTIDO=1` las calles de sentido único reciben `reverse_cost = -1`.
+- **Consistencia de T1–T4:** la planificación por área requiere el modo no dirigido y valida la carga. Las tareas son reversibles en las cuatro técnicas; una infraestructura con `reverse_cost < 0` se rechaza con un mensaje de recarga. La orientación de las señales es un atributo distinto del sentido vehicular y no se certifica mediante esta simplificación.
 - **Costo base:** `cost = length_m` (ruta de peor caso con `pgr_dijkstra`). La elevación queda lista para un costo energético:
 $$E(e)=k_1\,d(e)+k_2\,\Delta h^{+}(e),\qquad \Delta h^{+}(e)=\max\{0,\;h(\text{target})-h(\text{source})\}$$
 

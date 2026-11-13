@@ -10,8 +10,8 @@ predeterminados. Algunas opciones convierten metadata en criterios del grafo:
   priorizar_siniestros      M4         aristas en zonas de siniestros CRITICA o ALTA suben de
                                        prioridad al elegir las aristas a inspeccionar
   considerar_clima          A2         si se aplica la penalización horaria del clima
-  amenazas (flota)          A1-A4      qué amenazas bloquean calles y entran en p(e) del costo
-                                       resiliente (T2, T3 y T4); vacía = ruteo sin amenazas
+  amenazas (flota)          A1-A4      A1/A3: costo y desvío; A2: suspensión horaria;
+                                       A4: nueva inspección en P7; vacía = sin eventos
   tecnicas (flota)          -          técnicas de ruteo a ejecutar (T1 a T4, punto 6)
 
 Otras opciones configuran la misión y el dron (velocidad, autonomía, batería,
@@ -68,7 +68,7 @@ PREFERENCIAS_FLOTA = {
     "categorias_base": list(CATEGORIAS_BASE_VALIDAS),  # recintos públicos (M2) donde instalar las bases
     "bases": "distribuidas",                  # distribuidas: una base por área; centralizada: una para todos
     "tecnicas": list(TECNICAS_VALIDAS),       # técnicas de ruteo a ejecutar y comparar
-    "amenazas": list(AMENAZAS_VALIDAS),       # amenazas que bloquean calles o encarecen su costo
+    "amenazas": list(AMENAZAS_VALIDAS),       # fuentes activas: A1/A3 desvío, A2 suspensión, A4 inspección
     "limite_milp_s": 60.0,                    # tiempo máximo de Gurobi (T2) para toda el área
     "limite_dpso_s": 20.0,                    # tiempo máximo de la metaheurística (T4) para toda el área
     "hora_salida": None,                      # None = ahora

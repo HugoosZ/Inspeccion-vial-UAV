@@ -35,7 +35,7 @@ Responde al planteamiento de que el dron sale de una base, revisa una zona compl
 
 ### A.1 Pasos
 
-1. **Tareas.** Cada señalética M1 de los tipos elegidos (PARE, Ceda el paso, semáforos) dentro del área se asocia a la calle más cercana, a menos de 30 m. Cada calle con al menos una señal es una tarea. Las tareas sobre calles bloqueadas por las amenazas elegidas que estén vigentes en la jornada (incendio activo, alerta SOSAFE alta o crítica, accidente de TomTom) se **postergan** y se informan aparte. Los cierres y obras de TomTom no bloquean el vuelo (ver `Amenazas/A4/README.md`).
+1. **Tareas.** Cada señalética M1 de los tipos elegidos (PARE, Ceda el paso, semáforos) dentro del área se asocia a la calle más cercana, a menos de 30 m. Cada calle con al menos una señal es una tarea. Las tareas sobre calles bloqueadas por las amenazas elegidas que estén vigentes en la jornada (incendio activo o alerta SOSAFE alta o crítica) se **postergan** y se informan aparte. Los cierres y obras de TomTom no bloquean el vuelo (ver `Amenazas/A4/README.md`).
 2. **Partición entre drones.** k-medias con capacidad: la carga de cada tarea es su largo más 1,3 veces la distancia a la tarea vecina (estimación del traslado). Así cada dron recibe un área compacta con una carga parecida.
 3. **Bases en recintos públicos.** El sistema lo operaría la municipalidad, así que las bases se eligen entre los lugares públicos de M2 (salud, educación, Carabineros y Bomberos, filtrables con `categorias_base`). Para cada área se elige el recinto $j$ que minimiza la suma de distancias a sus calles, ponderadas por su largo $\ell_i$ (1-mediana discreta sobre sitios candidatos, como la selección de droneports de Zhong et al.):
 $$j^{*}=\arg\min_{j\in C}\sum_{i\in \text{área}} \ell_i\,\lVert p_i-c_j\rVert$$
@@ -139,6 +139,12 @@ El sitio permite elegir una o más de cuatro técnicas; cada una queda como una 
 
 Las cuatro técnicas resuelven **el mismo subproblema**: las mismas calles a inspeccionar, la misma partición del área entre drones, las mismas bases en recintos públicos (M2) y los mismos sectores (pasos 1 a 3 de la sección A.1). Solo cambia el paso 4, cómo se rutea cada sector. Así, cualquier diferencia en los indicadores se debe a la técnica de ruteo y no a otra decisión (control de variables). La partición se calcula una vez, con T3, y se reutiliza.
 
+También comparten la misma regla de sentido: la red de vuelo y las tareas
+son bidireccionales. `oneway` es información vehicular. El MILP elige una
+orientación mediante `z_a`; no contiene un `alpha` que restrinja la inversa.
+Se valida que la infraestructura no conserve sentidos restringidos de una
+carga antigua. Esto no verifica aún la orientación de observación de cada señal.
+
 En cada sector, el subproblema es: desde la base, recorrer todas las calles requeridas en salidas que empiezan y terminan en la base, sin que ninguna salida consuma más que la batería $B$, y con un cambio de batería de $\tau$ minutos entre salidas consecutivas. Es un problema de ruteo de arcos capacitado con múltiples viajes. Las cuatro técnicas se comparan con la misma función objetivo, el tiempo del dron en el sector:
 
 $$Z=\frac{1}{60\,v}\sum_{\text{salidas}}\text{costo}+\tau\,(K-1)$$
@@ -147,15 +153,17 @@ donde $K$ es el número de salidas. T2 y T4 la minimizan directamente; T1 y T3 l
 
 ### C.2 Costo resiliente $c_e=\ell_e/(1-p_e)$
 
-$p_e$ es la probabilidad de falla de la calle durante la jornada (punto 5, tabla `prob_falla_aristas`), combinando solo las amenazas elegidas: $p_e=1-\prod_{k}(1-p_{k}(e))$.
+$p_e$ combina A1/A3 elegidas del cálculo P5 de la propia consulta: $p_e=1-\prod_{k}(1-p_{k}(e))$.
+El cálculo usa la hora y duración solicitadas, y su configuración y catálogo
+se congelan para P7/P8. No se reutilizan costos de una tabla de otra jornada.
 
 **Justificación.** Si cada intento de cruzar la calle falla con probabilidad $p_e$ y el dron debe repetirlo, el número de intentos sigue una distribución geométrica de media $1/(1-p_e)$. El costo esperado de la calle es entonces $\ell_e/(1-p_e)$: con $p_e=0$ vale $\ell_e$, crece de forma monótona con el riesgo y tiende a infinito cuando la calle es intransitable. Tiene unidades de metros (metros esperados), por lo que se suma directamente con la distancia sin un peso arbitrario $\lambda$, a diferencia del costo $\ell_e(1+\lambda r_e)$ de la propuesta original.
 
-- Las calles con una amenaza que **bloquea** (incendio activo, alerta SOSAFE alta o crítica, accidente de TomTom) se eliminan del grafo (costo $-1$ en `pgr_dijkstra`). Los cierres y obras de TomTom no bloquean: restringen a los automóviles, no el espacio aéreo.
+- Las calles con una amenaza que **bloquea** (incendio activo o alerta SOSAFE alta o crítica) se eliminan del grafo (costo $-1$ en `pgr_dijkstra`). Los cierres y obras de TomTom no bloquean: restringen a los automóviles, no el espacio aéreo.
 - En el modelo revisado del punto 5, $p_e$ viene de A1 (tasa histórica de incendios). A2 (clima) **no entra en el costo**. Con celdas de 7 × 6 km y escenarios de 25 km, el clima es prácticamente igual en todas las calles de un área: multiplicarlas todas por el mismo factor no cambia ninguna ruta (Dijkstra es invariante a escalar los costos). En cambio, sí agotaría la batería de forma ficticia, porque la batería se controla con el costo resiliente: con $p=0{,}99$ cada calle costaría 100 veces su largo. El clima se evalúa por la **hora de cada salida** (C.5).
 - $p_e$ se acota en $0{,}99$ (la calle cuesta como máximo 100 veces su largo) para que el costo sea finito.
 - La batería también se controla con el costo resiliente, lo que es conservador: el costo resiliente nunca es menor que la distancia real. Sin A2, la diferencia es pequeña ($p_{a1}\le$ 1 % en Maipú).
-- Sin la tabla del punto 5, el costo es el largo y solo se aplican los bloqueos. No se inventan probabilidades a partir de los niveles BAJO a CRÍTICO.
+- Las probabilidades de A1/A3 se recalculan mediante el generador P5 para cada consulta. No se inventan probabilidades a partir de los niveles BAJO a CRÍTICO.
 
 ### C.3 T2 · Modelo MILP (`milp.py`)
 
@@ -218,70 +226,49 @@ Además de los de la sección A.2:
 | Indicador | Definición |
 |---|---|
 | Tiempo de cálculo | Lo que tarda la técnica, incluidas su matriz de costos y el trazado con `pgr_dijkstra`. T2 y T4 incluyen la matriz resiliente y la solución inicial de T3 |
-| Km esperados | $\sum_{e\in\text{ruta}} \ell_e/(1-p_e)$, con todas las amenazas |
-| $p$ media | Probabilidad de falla media por metro recorrido, con todas las amenazas |
+| Km esperados | $\sum_{e\in\text{ruta}} \ell_e/(1-p_e)$, con A1/A3 seleccionadas |
+| $p$ media | Probabilidad media por metro recorrido, con A1/A3 seleccionadas |
 | Calles bloqueadas cruzadas | Calles con una amenaza activa que bloquea y que la ruta recorre |
 | Clima por salida (A2) | Mayor fracción de escenarios del ensamble no aptos entre las celdas que recorre la salida, en las horas que dura. Con 50 % o más (mayoría de escenarios) se sugiere reprogramar; desde 20 % solo se avisa |
 | Brecha (T2) | $(\text{valor}-\text{cota inferior})/\text{valor}$ |
 
-El riesgo se evalúa **siempre con todas las amenazas**, aunque la técnica haya ruteado con menos o con ninguna. Así T1 muestra el riesgo que corre al ignorarlas.
+El riesgo se evalúa con **las mismas fuentes seleccionadas** en todas las técnicas. T1 también recibe esa evaluación, aunque no use el riesgo en su costo inicial.
 
 Un evento puede afectar muchas calles y nodos a la vez. La simulación del punto 7 conserva esa relación: sortea una vez por evento y comparte el resultado entre todos sus elementos y las técnicas del plan.
 
-#### C.5.1 Simulación de fallas (punto 7)
+#### C.5.1 Simulación, recuperación y resiliencia (puntos 5, 7 y 8)
 
-Después de **Planificar inspección**, el panel **Simulación de fallas** permite elegir una semilla entera y presionar **Simular fallas**. El servidor genera un número uniforme $U\in[0,100)$ por evento incierto y aplica la regla:
+El contrato completo y los supuestos están en [ESCENARIOS.md](../../../Probabilidades/ESCENARIOS.md).
+El mismo sorteo se aplica a todas las técnicas: A1/A3 excluyen zonas y hacen recalcular;
+A2 suspende las salidas que solapan el mal tiempo; A4 añade inspecciones y no bloquea.
+Se conservan bases y sectores. Esta es una replanificación previa al despegue, no una
+simulación de maniobras de emergencia a mitad de vuelo.
 
-$$\text{ocurre la falla si } U < 100p.$$
+`POST /api/flota` devuelve `plan_id`; `POST /api/flota/simulacion` recibe
+`{"plan_id": "...", "semilla": 7}`. Ocurre un evento incierto si `U < 100*p`, con
+`U` uniforme en `[0,100)`. Los activos confirmados no vuelven a sortearse.
+El generador del punto 5 y el punto 7 comparten `Probabilidades/generar.py` y
+`Probabilidades/escenario.json`. El resultado devuelve `modelo_probabilidades`
+con firma, horizonte y configuración; el sorteo devuelve la misma firma como
+`id_modelo`. La capa P5 usa `/api/probabilidades?plan_id=...` para mostrar esa
+instantánea, en lugar de la tabla del último pipeline. A3/A4 futuros son escenarios supuestos, no
+predicciones calibradas. El plan y su modelo se conservan hasta 30 minutos.
 
-Con $p=0$ nunca ocurre; con $p=1$ siempre ocurre. La misma semilla y los mismos datos del plan reproducen los números, aunque cambie el orden de los eventos. Los bloqueos operacionales confirmados permanecen activos sin sorteo.
+La métrica del punto 8 es `R = señales originales atendidas / señales originales
+requeridas`, después de recalcular. Las tareas pendientes no desaparecen del
+denominador. Se informa también R sin recuperación, ganancia de recuperación,
+inspecciones A4 cumplidas/solicitadas, pendientes y tiempo de recálculo. Una señal
+se considera atendida según la cobertura del grafo, no por una detección real de cámara.
+R esperada del plan fijo se conserva como referencia sin recuperación; no es la
+esperanza del plan adaptativo. A4 tiene indicador separado porque una inspección
+nueva no equivale a una señal ya inventariada.
 
-El escenario reutiliza las funciones del modelo de `Probabilidades/generar.py` y las fuentes cargadas en PostGIS:
-
-- **A1:** los incendios activos son bloqueos confirmados. El riesgo futuro se representa con procesos por localización histórica de CONAF; su unión conserva la tasa Poisson $1-e^{-nH/(24D)}$ del punto 5. Un incendio sorteado afecta conjuntamente a sus calles y nodos durante la ventana simulada.
-- **A2:** un sorteo por celda y hora, usando la fracción de escenarios meteorológicos no aptos calculada con la misma política del punto 5. Sin ensamble se conserva el estado determinista del pronóstico y se muestra un aviso.
-- **A3 y A4:** las alertas peligrosas y accidentes activos mantienen sus bloqueos confirmados. Los cierres terrestres, las obras informativas, `p_accidente` y los índices de viento/contraste no se convierten en fallas aleatorias de vuelo.
-
-Una falla de nodo también impide utilizar las calles incidentes. El mapa superpone aristas y nodos afectados, distingue bloqueos confirmados de fallas sorteadas y permite ocultar cada capa. Los popups y la tabla de eventos muestran la causa, probabilidad, número y umbral.
-
-Las cuatro técnicas conservan sus recorridos originales y reciben **el mismo escenario**. La tabla adicional identifica salidas que cruzan elementos indisponibles. Para A2 se contrasta el intervalo del evento con el horario estimado de paso por cada arista, manteniendo la velocidad constante del planificador. El mapa resume los elementos afectados en algún momento de la jornada; por eso una calle coloreada no implica que todas las salidas la crucen durante la falla. Las salidas que exceden la ventana se identifican aparte.
-
-**Restablecer simulación** retira el escenario del mapa y conserva el plan. Cambiar el área, limpiar o calcular otro plan descarta el escenario anterior. La simulación no modifica la red ni las probabilidades persistidas en la base de datos.
-
-API:
-
-```text
-POST /api/flota                 -> respuesta habitual + plan_id
-POST /api/flota/simulacion      {"plan_id": "...", "semilla": 7}
-```
-
-El servidor conserva hasta cuatro planes durante 30 minutos. El modelo de eventos se congela al evaluar el plan y se comparte con sus sorteos; se reutilizan las mismas entradas para comparar semillas. Si el plan expira, se reinicia el servidor o cambia la geometría de su red antes de cargar el modelo, hay que volver a planificar.
-
-La respuesta incluye `semilla`, `t0`, `t1`, `eventos`, `resumen`, capas GeoJSON de nodos/aristas y el detalle de cruces por técnica. El catálogo global `eventos` contiene los datos completos de cada evento una sola vez; las propiedades `eventos_idx` de cada arista o nodo contienen índices desde cero en ese catálogo. Los popups consultan esas referencias al abrirse, sin repetir los datos de los eventos en cada elemento del mapa. Al actualizar el servicio web, `docker compose up -d --build web` incorpora el montaje de solo lectura del modelo de probabilidades.
-
-#### C.5.2 Resiliencia del servicio (punto 8)
-
-La unidad de servicio es la señal registrada requerida originalmente. Las señales se agrupan en tareas por calle, y el peso de cada tarea es su número de señales, no su longitud. Se conserva el conjunto original, incluidas las señales de tareas postergadas y fuera de alcance, para evaluar todas las técnicas con el mismo denominador. Cada tarea aporta sus señales cuando puede completarse su salida de inspección, incluido el acceso y el regreso a la base, dentro de la autonomía útil y de la jornada. Las inspecciones también dependen de los traslados necesarios para alcanzar sus bases.
-
-Para cada salida $s$, se reúne el conjunto $A_s$ de eventos que alcanzan sus aristas o nodos durante el horario de paso, junto a los eventos de sus traslados dependientes. Se utiliza el mismo proyector temporal y catálogo del punto 7, incluido el clima (A2). Un evento compartido se cuenta una sola vez; los eventos probabilísticos distintos se modelan independientes. Esta es una hipótesis del modelo, no una garantía de cota inferior frente a otras dependencias. Con $N_s$ señales requeridas de esa salida y $N_{original}$ señales requeridas originalmente:
-
-$$S_s=\prod_{a\in A_s}(1-p_a),\qquad R_{esperada}=\frac{\sum_s N_sS_s}{N_{original}}.$$
-
-Un bloqueo confirmado o una salida no factible hacen $S_s=0$. La métrica suma trabajo complementario de los drones: no calcula la probabilidad de que sobreviva al menos uno. R esperada representa la fracción esperada de señales cuya inspección se conserva bajo este modelo, no la probabilidad de terminar toda la campaña ni la precisión de un detector de imágenes. Caracteriza la absorción de amenazas por el plan fijo; no integra un proceso temporal de recuperación o replanificación.
-
-Al simular las fallas del punto 7 se obtiene también:
-
-$$R_{escenario}=\frac{\text{señales de tareas cuyas salidas y dependencias se completan en ese escenario}}{N_{original}}.$$
-
-El escenario utiliza exactamente los eventos sorteados para sus mapas y cruces; no se vuelve a sortear para evaluar R. Bajo el supuesto explícito de misión completa, una salida afectada no aporta ninguna de sus señales, aunque hubiera recorrido parte de sus tareas antes del evento. Este criterio evalúa la finalización de la salida, sin representar la pérdida física de las imágenes ya capturadas. Los recorridos originales se conservan.
-
-La cobertura previa $Q_{pre}$ es la proporción de señales requeridas programadas en salidas factibles antes de aplicar los eventos. Se informa el cambio Post−Pre como $R-Q_{pre}$, en puntos porcentuales. Los detalles muestran señales requeridas, planificadas, esperadas y realizadas en el escenario. El número esperado puede ser fraccionario porque es una esperanza probabilística.
-
-La sección **Resiliencia del servicio** presenta las R esperada y del escenario para T1–T4, con su tiempo de cálculo. La leyenda del mapa también incluye nombre de técnica, cómputo y R. Se indica qué técnica tiene mayor R y los empates se conservan, comparando valores sin redondear con tolerancia $10^{-9}$. Si se ejecutan menos técnicas o falta alguna evaluación, se informa que la comparación es parcial. Las notas de T2 identifican los planes que conservaron sectores de T3 o utilizaron el solver de respaldo.
-
-**Restablecer simulación** retira la R del escenario y mantiene la evaluación esperada del plan. Si los datos no permiten calcular una evaluación, se muestra **No disponible** con el motivo, manteniendo las rutas calculadas. El costo de ruteo y sus tiempos se conservan; la preparación del modelo y la evaluación del servicio se realizan aparte.
-
-API: `/api/flota` añade `servicio_requerido` con `unidad: "senales"` y tareas `{id, senales}`, `tecnicas[codigo].resiliencia` y `comparacion_resiliencia`; `/api/flota/simulacion` devuelve las métricas y la comparación para la realización sorteada. R y las coberturas usan fracciones entre 0 y 1; `senales_requeridas`, `senales_planificadas`, `senales_esperadas` y `senales_escenario` expresan cantidades de señales. Las distancias operacionales de las rutas siguen expresándose en metros.
+La tabla y la leyenda comparan T1–T4, sus tiempos y R, conservando empates.
+Se informa cuando T2 utiliza HiGHS o conserva sectores de T3. El mapa permite
+alternar rutas originales y recuperadas con los mismos checkboxes de técnicas.
+Las salidas suspendidas se listan y no se dibujan como vuelos ejecutables.
+La simulación no cambia datos persistidos de la red. Otra configuración de
+probabilidades se aplica al crear un plan nuevo; los planes existentes conservan su modelo.
 
 ### C.6 Verificación y calibración
 
@@ -379,7 +366,7 @@ Cada amenaza cargada en `temp_amenazas` es un **evento de falla** con zona de af
 | A1 Incendios (CONAF) | Círculo de exclusión del incendio activo | Desde el inicio hasta la extinción | Dura: bloquea (controlado: penaliza) |
 | A2 Clima (Open-Meteo) | Celda de la grilla 3 × 3 | Una hora (`valido_desde`, `valido_hasta`) | Dependiente del tiempo |
 | A3 SOSAFE | Geocerca circular | Mientras el reporte esté vigente | Dura: bloquea (ALTO o CRÍTICO) |
-| A4 TomTom | Punto o tramo + radio | Mientras el incidente esté vigente | Accidente: bloquea 100 m; cierres y obras: informativos |
+| A4 TomTom | Punto o tramo + radio | Mientras el incidente esté vigente | Accidente: inspección prioritaria en P7; cierres y obras: informativos |
 
 Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la zona de $a$ (o está a menos de `radio_afectacion_m`, si la amenaza lo define) y $a$ está vigente en la ventana $[t_0,\,t_0+H]$, con $H$ = `horizonte_h` (2 h por defecto).
 
@@ -388,7 +375,7 @@ Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la
 $$
 w(e,t)=
 \begin{cases}
-\infty & \text{si } e \text{ toca una amenaza dura (A1, A3, A4)}\\
+\infty & \text{si } e \text{ toca una amenaza dura (A1, A3)}\\
 d(e)\cdot\rho(e)\cdot\varphi(e,t_0) & \text{en otro caso}
 \end{cases}
 $$

@@ -227,13 +227,23 @@ def get_amenazas(
 def get_probabilidades(
     elemento: str = Query("aristas", description="aristas o nodos"),
     minimo: float = Query(0.0, description="Probabilidad mínima a devolver (0 a 1); los bloqueados siempre se devuelven"),
-    amenaza: str = Query(None, description="A1, A2 o accidente: filtra por esa probabilidad en vez de p_total"),
+    amenaza: str = Query(None, description="A1, A2, A3, A4 o accidente: filtra por esa probabilidad"),
+    plan_id: str = Query(None, description="P5 congelado para una consulta; usa el mismo modelo que P7"),
 ):
     """Indisponibilidad por enlace o nodo (punto 5, tablas prob_falla_*) en GeoJSON."""
-    columna = {None: "p_total", "": "p_total", "A1": "p_a1", "A2": "p_a2", "accidente": "p_accidente"}.get(amenaza)
+    columna = {None: "p_total", "": "p_total", "A1": "p_a1", "A2": "p_a2", "A3": "p_a3", "A4": "p_a4", "accidente": "p_accidente"}.get(amenaza)
     if columna is None:
-        raise HTTPException(status_code=422, detail="amenaza debe ser A1, A2 o accidente")
-    campos = ("p.p_total, p.p_a1, p.p_a2, p.p_accidente, p.riesgo_viento, p.contraste_visual, p.bloqueado, "
+        raise HTTPException(status_code=422, detail="amenaza debe ser A1, A2, A3, A4 o accidente")
+    if elemento not in ("aristas", "nodos"):
+        raise HTTPException(status_code=422, detail="elemento debe ser aristas o nodos")
+    if not 0 <= minimo <= 1:
+        raise HTTPException(status_code=422, detail="minimo debe estar entre 0 y 1")
+    if plan_id:
+        try:
+            return simulacion_servicio.probabilidades_plan(plan_id, elemento, minimo, columna)
+        except simulacion_servicio.PlanNoDisponible as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+    campos = ("p.p_total, p.p_a1, p.p_a2, p.p_a3, p.p_a4, p.p_accidente, p.riesgo_viento, p.contraste_visual, p.bloqueado, "
               "p.motivos_bloqueo, p.calidad, p.observaciones, p.t0, p.t1")
     if elemento == "nodos":
         sub = f"""SELECT p.node_id AS id, {campos}, n.geom
@@ -365,12 +375,13 @@ def post_flota(cuerpo: dict = Body(..., examples=[{
 
 @app.post("/api/flota/simulacion")
 def post_simulacion(cuerpo: dict = Body(..., examples=[{"plan_id": "id devuelto por /api/flota", "semilla": 7}])):
-    """Sortea eventos del punto 5 y señala cruces de las rutas con sus fallas.
+    """Sortea eventos del punto 5 y recalcula con bases y sectores fijos.
 
     Usa el mismo escenario para todas las técnicas del plan. Un evento
     confirmado permanece bloqueado; los demás ocurren si U < 100*p.
     La semilla es un entero entre 0 y 2147483647. No modifica el plan ni la BD.
-    Adjunta resiliencia realizada y su comparación para ese escenario común.
+    A1/A3 desvían, A2 suspende salidas, A4 añade inspecciones. Adjunta rutas
+    recuperadas, pendientes y resiliencia realizada para el escenario común.
     """
     semilla = cuerpo.get("semilla", 7)
     if isinstance(semilla, bool) or not isinstance(semilla, int) or not 0 <= semilla <= 2147483647:

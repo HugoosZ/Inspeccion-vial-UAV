@@ -1,8 +1,8 @@
 """Escenarios reproducibles de indisponibilidad aplicados a planes de flota.
 
 El plan calculado se conserva en memoria y el sorteo utiliza un único modelo
-para todas sus técnicas. Los resultados identifican cruces con fallas durante
-el horario de cada salida, sin cambiar los recorridos originales.
+para todas sus técnicas. Se conserva el original y se calcula otro plan:
+desvíos A1/A3, suspensión A2 y demanda A4. Ver Probabilidades/ESCENARIOS.md.
 """
 
 from collections import OrderedDict, defaultdict
@@ -13,7 +13,7 @@ import threading
 import time
 from uuid import uuid4
 
-from . import resiliencia, simulacion
+from . import resiliencia, simulacion, recuperacion
 
 
 MAX_PLANES = 4
@@ -61,6 +61,10 @@ def registrar_plan(resultado):
             })
     token = uuid4().hex
     registro = {"creado": time.monotonic(), "rutas": rutas, "huellas": huellas,
+                "instancia": resultado.pop("_instancia_recuperacion"),
+                "preferencias": dict(resultado["preferencias"]),
+                "tecnicas_originales": {c: {k: t[k] for k in ("rutas", "resumen", "detalle", "avisos")}
+                                         for c, t in resultado["tecnicas"].items()},
                 "t0": _instante(resultado["hora_salida"]),
                 "horas": float(resultado["preferencias"]["jornada_h"]),
                 "requeridas": {int(t["id"]): t["senales"] for t in
@@ -69,7 +73,8 @@ def registrar_plan(resultado):
                                 * float(resultado["preferencias"]["autonomia_min"]) * 60
                                 * (1 - float(resultado["preferencias"]["reserva_bateria_pct"]) / 100)),
                 "detalle_tecnicas": {c: t.get("detalle", {}) for c, t in resultado["tecnicas"].items()},
-                "modelo": None, "cerrojo": threading.Lock()}
+                "modelo": resultado.pop("_modelo_probabilidades", None),
+                "modelo_preparado": False, "cerrojo": threading.Lock()}
     with _cerrojo:
         ahora = time.monotonic()
         for clave in list(_planes):
@@ -96,6 +101,8 @@ def _recuperar_plan(plan_id):
 def _evaluar_rutas(rutas, eventos, aristas, t0, t1, solo_ocurridos=True):
     por_arista, por_nodo = defaultdict(list), defaultdict(list)
     for evento in eventos:
+        if evento["fuente"] == "A4":
+            continue  # Cambia demanda; no invalida las salidas originales.
         if solo_ocurridos and not evento["ocurre"]:
             continue
         for e in evento["aristas"]:
@@ -133,6 +140,10 @@ def _evaluar_rutas(rutas, eventos, aristas, t0, t1, solo_ocurridos=True):
             fallas_n = {n: evs for n, evs in fallas_n.items() if evs}
             ids_eventos = {ev["id"] for conjunto in (fallas_e, fallas_n)
                            for evs in conjunto.values() for ev in evs}
+            # A2 no se evita buscando una calle sin clima.
+            ids_eventos.update(ev["id"] for ev in eventos if ev["fuente"] == "A2"
+                               and (not solo_ocurridos or ev["ocurre"])
+                               and ev["desde"] < fin and ev["hasta"] > ini)
             detalle.append({"dron": ruta["dron"], "salida": ruta["salida"], "tipo": ruta["tipo"],
                             "afectada": bool(ids_eventos), "aristas_falladas": len(fallas_e),
                             "nodos_fallados": len(fallas_n), "eventos": sorted(ids_eventos),
@@ -146,9 +157,35 @@ def _evaluar_rutas(rutas, eventos, aristas, t0, t1, solo_ocurridos=True):
 def _modelo_del_plan(conn, registro):
     """Una única red y un catálogo de eventos para P7 y P8."""
     with registro["cerrojo"]:
-        if registro["modelo"] is None:
-            registro["modelo"] = simulacion.cargar(conn, registro["t0"], registro["horas"])
+        if not registro["modelo_preparado"]:
+            if registro["modelo"] is None:
+                registro["modelo"] = simulacion.cargar(conn, registro["t0"], registro["horas"])
+            modelo = registro["modelo"]
+            bbox = registro["instancia"]["bbox"]
+            with conn.cursor() as cur:
+                area = registro["instancia"]["area"]
+                if area:
+                    cur.execute("SELECT id FROM network_edges WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromGeoJSON(%s),4326))", (json.dumps(area),))
+                else:
+                    cur.execute("SELECT id FROM network_edges WHERE ST_Intersects(geom, ST_MakeEnvelope(%s,%s,%s,%s,4326))", bbox)
+                area_ids = {int(f[0]) for f in cur.fetchall()}
+            usadas = {e for rutas in registro["rutas"].values() for r in rutas for e in r["aristas"]}
+            seleccion = set(registro["preferencias"]["amenazas"])
+            if not registro["preferencias"]["considerar_clima"]:
+                seleccion.discard("A2")
+            # No perder peligros fuera del recorrido original: un desvío
+            # puede necesitar esas calles. A4 sí se limita al área solicitada.
+            modelo["eventos"] = [e for e in modelo["eventos"] if e["fuente"] in seleccion
+                                  and (e["fuente"] in ("A1", "A3") or
+                                       set(e["aristas"]) & (area_ids | usadas))]
+            for e in modelo["eventos"]:
+                if e["fuente"] == "A4":
+                    e["aristas"] = sorted(set(e["aristas"]) & area_ids)
+            modelo["eventos"] = [e for e in modelo["eventos"] if e["aristas"]]
+            registro["modelo_preparado"] = True
         modelo = registro["modelo"]
+    if modelo.get("firma_red") and simulacion.firma_red(conn) != modelo["firma_red"]:
+        raise ValueError("La red cambió desde el cálculo del plan. Vuelve a planificar antes de simular.")
     usadas = {e for lista in registro["rutas"].values() for ruta in lista for e in ruta["aristas"]}
     if usadas - set(modelo["aristas"]):
         raise ValueError("La red cambió desde el cálculo del plan. Vuelve a planificar antes de simular.")
@@ -156,6 +193,26 @@ def _modelo_del_plan(conn, registro):
             modelo["aristas"][e]["geom"]["coordinates"]) for e in usadas):
         raise ValueError("La geometría de la red cambió desde el cálculo del plan. Vuelve a planificar.")
     return modelo
+
+
+def probabilidades_plan(plan_id, elemento, minimo, columna):
+    """P5 de la misma instantánea y horizonte utilizados por el plan y P7."""
+    registro = _recuperar_plan(plan_id)
+    modelo = registro["modelo"]
+    if modelo is None or "probabilidades" not in modelo:
+        raise PlanNoDisponible("El plan no conserva probabilidades. Vuelve a planificar.")
+    features = []
+    for identificador, fila in modelo["probabilidades"][elemento].items():
+        if not fila["bloqueado"] and (fila.get(columna) or 0) <= minimo:
+            continue
+        datos = modelo[elemento][identificador]
+        features.append({"type": "Feature", "geometry": datos["geom"],
+                         "properties": {**fila, "nombre": datos.get("name"),
+                                        "t0": modelo["t0"], "t1": modelo["t1"]}})
+    return {"type": "FeatureCollection", "features": features,
+            "metadata": {"id_modelo": modelo["id_modelo"], "t0": modelo["t0"], "t1": modelo["t1"],
+                         "fuentes_seleccionadas": modelo.get("fuentes_seleccionadas"),
+                         "configuracion_escenarios": modelo["configuracion_escenarios"]}}
 
 
 def _metricas_servicio(registro, modelo, eventos_ocurridos=None):
@@ -240,14 +297,15 @@ def simular_plan(conn, plan_id, semilla):
         ids_e = set(evento["aristas"])
         for n in evento["nodos"]:
             afectados_n[n].append(indice)
-            ids_e.update(incidentes[n])
+            if evento["fuente"] in ("A1", "A3"):
+                ids_e.update(incidentes[n])
         # Una intersección indisponible también impide usar sus calles incidentes.
         for e in ids_e:
             afectados_e[e].append(indice)
         evento["aristas"] = sorted(ids_e)
 
     def publico(ev):
-        return {k: ev[k] for k in ("id", "fuente", "motivo", "probabilidad", "numero_0_100",
+        return {k: ev[k] for k in ("id", "fuente", "efecto", "motivo", "probabilidad", "numero_0_100",
                                     "umbral_pct", "ocurre", "determinista", "desde", "hasta")}
 
     def feature(i, datos, indices):
@@ -255,6 +313,7 @@ def simular_plan(conn, plan_id, semilla):
                 "properties": {"id": i, "nombre": datos.get("name"),
                                "estado": "confirmada" if any(eventos[j]["determinista"] for j in indices) else "sorteada",
                                "motivos": sorted({eventos[j]["motivo"] for j in indices}),
+                               "efectos": sorted({eventos[j]["efecto"] for j in indices}),
                                "eventos_idx": indices}}
 
     t0, t1 = _instante(escenario["t0"]).timestamp(), _instante(escenario["t1"]).timestamp()
@@ -262,20 +321,46 @@ def simular_plan(conn, plan_id, semilla):
     inicio_resiliencia = time.perf_counter()
     metricas, comparacion = _metricas_servicio(
         registro, modelo, {e["id"] for e in eventos if e["ocurre"]})
+    recuperadas = recuperacion.replanificar(conn, registro, modelo, eventos)
+    for codigo, nueva in recuperadas.items():
+        m, rec = metricas[codigo], nueva["recuperacion"]
+        antes = m.get("R_escenario")
+        m.update({"R": rec["R"], "R_escenario": rec["R"], "tipo": "escenario_recuperado",
+                  "estado": "ok" if rec["R"] is not None else "no_disponible",
+                  "motivo": None if rec["R"] is not None else "No hay señales originales requeridas.",
+                  "R_sin_recuperacion": antes,
+                  "ganancia_recuperacion": rec["R"]-antes if rec["R"] is not None and antes is not None else None,
+                  "cobertura_escenario": rec["R"], "senales_escenario": rec["senales_atendidas"],
+                  "delta_escenario": rec["R"]-m["cobertura_pre"] if rec["R"] is not None and m.get("cobertura_pre") is not None else None,
+                  "cumplimiento_A4": rec["cumplimiento_A4"],
+                  "supuestos": ["Recuperación antes del despegue con bases y sectores fijos; no reacción en pleno vuelo.",
+                                 "A1/A3 excluyen zonas durante la jornada; A2 suspende salidas sin desvío espacial.",
+                                 "R conserva como denominador las señales originales, incluidas las pendientes.",
+                                 "A4 añade inspecciones prioritarias en su sector; su cumplimiento se informa por separado."]})
+        tecnicas[codigo].update(nueva)
+    comparacion = resiliencia.comparar(metricas)
+    comparacion["observaciones"] = ["Comparación del servicio original recuperado en este escenario; consultar también cumplimiento A4."]
+    for codigo, nueva in recuperadas.items():
+        detalle = nueva.get("detalle", {})
+        if detalle.get("sectores_sin_milp") or detalle.get("nota"):
+            comparacion["observaciones"].append(f"{codigo}: " + (detalle.get("nota") or
+                f"conserva T3 en {detalle['sectores_sin_milp']} sectores; se compara el plan híbrido."))
     comparacion["semilla"] = escenario["semilla"]
     comparacion["tiempo_evaluacion_ms"] = round((time.perf_counter() - inicio_resiliencia) * 1000, 3)
     for codigo, tecnica in tecnicas.items():
         tecnica["resiliencia"] = metricas[codigo]
     advertencias = list(modelo["advertencias"])
+    advertencias.append("Escenario conocido antes de despegar: A1/A3 cierran zonas toda la jornada; A2 suspende por horario. No se simula emergencia en vuelo ni reprogramación al día siguiente.")
     if any(t["fuera_ventana"] for t in tecnicas.values()):
         advertencias.append("Hay salidas total o parcialmente fuera de la jornada simulada; "
                             "los cruces informados corresponden a los eventos de esa ventana.")
     return {"plan_id": plan_id, "semilla": escenario["semilla"],
+            "id_modelo": modelo["id_modelo"],
             "t0": escenario["t0"], "t1": escenario["t1"], "regla": "U < 100 × p",
             "advertencias": advertencias,
             "resumen": {"eventos_sorteados": sum(not e["determinista"] for e in eventos),
                         "eventos_ocurridos": sum(e["ocurre"] and not e["determinista"] for e in eventos),
-                        "bloqueos_confirmados": sum(e["determinista"] for e in eventos),
+                        "bloqueos_confirmados": sum(e["determinista"] and e["fuente"] != "A4" for e in eventos),
                         "aristas_afectadas": len(afectados_e), "nodos_afectados": len(afectados_n),
                         "rutas_afectadas": sum(t["rutas_afectadas"] for t in tecnicas.values())},
             "eventos": [{**publico(e), "aristas_afectadas": len(e["aristas"]) if e["ocurre"] else 0,
