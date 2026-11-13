@@ -231,7 +231,8 @@ const COLOR_SINIESTRO = { CRITICA: "#b91c1c", ALTA: "#f97316", MEDIA: "#fcd34d" 
 const NOMBRE_SINIESTRO = { CRITICA: "Crítica (5 % con más siniestros)", ALTA: "Alta (siguiente 15 %)",
                            MEDIA: "Media" };
 const nivelZona = f => (f.properties.propiedades || {}).nivel || "MEDIA";
-// Probabilidad de falla (Probabilidades/generar.py): rampa de colores por p_total
+// Indisponibilidad (Probabilidades/generar.py): bloqueados en negro, el resto por p_total
+const COLOR_BLOQUEADO = "#111827";
 const RANGOS_PROB = [
   { hasta: 0.01, color: "#cbd5e1", etiqueta: "< 1 %" },
   { hasta: 0.05, color: "#fde68a", etiqueta: "1 – 5 %" },
@@ -239,24 +240,32 @@ const RANGOS_PROB = [
   { hasta: 0.30, color: "#dc2626", etiqueta: "15 – 30 %" },
   { hasta: Infinity, color: "#7f1d1d", etiqueta: "≥ 30 %" },
 ];
-const colorProb = p => RANGOS_PROB.find(r => p < r.hasta).color;
+const colorProb = p => RANGOS_PROB.find(r => (p || 0) < r.hasta).color;
+const colorIndisp = f => f.properties.bloqueado ? COLOR_BLOQUEADO : colorProb(f.properties.p_total);
+const MOTIVO = { incendio_activo: "incendio activo", seguridad_activa: "alerta de seguridad (SOSAFE)",
+                 accidente_activo: "accidente (TomTom)", meteorologia_no_apta: "clima no apto (sin ensamble)",
+                 restriccion_vuelo_confirmada: "restricción de vuelo" };
 const pctP = v => v == null ? "—" : `${(100 * v).toFixed(v < 0.01 ? 2 : 1)} %`;
 const horaIso = t => new Date(t).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 function popupProb(f, tipo) {
   const p = f.properties;
-  const filas = { "probabilidad total": pctP(p.p_total), "A1 incendios": pctP(p.p_a1), "A2 clima": pctP(p.p_a2),
-                  "A3 SOSAFE": pctP(p.p_a3), "A4 accidentes y cierres": pctP(p.p_a4),
-                  "jornada": p.t0 ? `${horaIso(p.t0)} – ${horaIso(p.t1)}` : "—" };
-  (p.detalle || []).slice(0, 4).forEach((d, i) => {
-    filas[`aporte ${i + 1}`] = `${d.fuente} · ${d.tipo.replaceAll("_", " ")} · ${pctP(d.p)}`;
-  });
+  const filas = {
+    "bloqueado": p.bloqueado ? `sí: ${(p.motivos_bloqueo || []).map(m => MOTIVO[m] || m).join(", ")}` : "no",
+    "indisponibilidad (proxy)": pctP(p.p_total),
+    "A1 incendio cercano (historial)": pctP(p.p_a1),
+    "A2 escenarios de clima no aptos": p.p_a2 == null ? "sin ensamble" : pctP(p.p_a2),
+    "siniestro de tránsito (nueva demanda)": pctP(p.p_accidente),
+    "contraste de la señal": p.contraste_visual == null ? "—" : pctP(p.contraste_visual),
+    "calidad del dato": p.calidad || "—",
+    "notas": (p.observaciones || []).map(o => o.replaceAll("_", " ")).join("; ") || "—",
+    "jornada": p.t0 ? `${horaIso(p.t0)} – ${horaIso(p.t1)}` : "—" };
   return popup({ nombre: `${tipo} ${p.id}${p.name ? ` · ${p.name}` : ""}` }, filas);
 }
 const COLOR_INCIDENTE = { accidente: "#d90429", calle_cerrada: "#7f1d1d", construccion_vial: "#ea580c",
                           carril_cerrado: "#f59e0b", condicion_peligrosa: "#a855f7", vehiculo_detenido: "#64748b" };
-const NOMBRE_INCIDENTE = { accidente: "Accidente (bloquea 100 m)", calle_cerrada: "Calle cerrada (bloquea 60 m)",
-                           construccion_vial: "Obras (penaliza 50 m)", carril_cerrado: "Carril cerrado (penaliza 50 m)",
-                           condicion_peligrosa: "Condición peligrosa (penaliza 50 m)", vehiculo_detenido: "Vehículo detenido (penaliza 30 m)" };
+const NOMBRE_INCIDENTE = { accidente: "Accidente (bloquea el vuelo 100 m)", calle_cerrada: "Calle cerrada (informativo)",
+                           construccion_vial: "Obras (informativo)", carril_cerrado: "Carril cerrado (informativo)",
+                           condicion_peligrosa: "Condición peligrosa (informativo)", vehiculo_detenido: "Vehículo detenido (informativo)" };
 
 const punto = (latlng, color, r = 4, pane = "meta") =>
   L.circleMarker(latlng, { pane, radius: r, color: "#fff", weight: 1, fillColor: color, fillOpacity: 0.9 });
@@ -322,7 +331,8 @@ const CAPAS = [
       style: f => ({ color: COLOR_NIVEL[f.properties.nivel_riesgo], weight: 1,
                      fillColor: COLOR_NIVEL[f.properties.nivel_riesgo], fillOpacity: 0.3 }),
       onEachFeature: (f, l) => l.bindPopup(popup(f.properties)) }),
-    leyenda: [["MEDIO", "Medio · penalizar"], ["ALTO", "Alto · bloquear"], ["CRITICO", "Crítico · bloquear"]]
+    leyenda: [["BAJO", "Solo escenarios del ensamble no aptos"], ["MEDIO", "Sobre la política del Mavic 3E (8 m/s, lluvia, < 470 m)"],
+              ["ALTO", "Alto (lluvia ≥ 0,5 mm/h o visibilidad < 100 m)"], ["CRITICO", "Crítico (ráfaga ≥ 12 m/s o tormenta)"]]
       .map(([n, t]) => [COLOR_NIVEL[n], t, true]) },
   { id: "A3", grupo: "Amenazas", nombre: "A3 · Zona conflictiva (SOSAFE)", activa: true, muestra: "#f77f00", fuente: "A3_sosafe",
     url: "/api/amenazas?fuente=A3_sosafe",
@@ -339,19 +349,19 @@ const CAPAS = [
     leyenda: Object.entries(NOMBRE_INCIDENTE).map(([k, v]) => [COLOR_INCIDENTE[k], v]) },
 
   // ----- Probabilidad de falla (punto 5) -----
-  { id: "PF_aristas", grupo: "Probabilidad de falla", nombre: "Enlaces (calles)", muestra: "#dc2626",
+  { id: "PF_aristas", grupo: "Indisponibilidad (punto 5)", nombre: "Enlaces (calles)", muestra: "#dc2626",
     url: "/api/probabilidades?elemento=aristas&minimo=0.001",
-    conteo: c => c.probabilidades ? `${fmt(c.probabilidades.aristas)} enlaces con p > 0` : "sin calcular",
+    conteo: c => c.probabilidades ? `${fmt(c.probabilidades.aristas)} con p > 0 · ${fmt(c.probabilidades.aristas_bloqueadas)} bloqueados` : "sin calcular",
     crear: d => L.geoJSON(d, { pane: "meta",
-      style: f => ({ color: colorProb(f.properties.p_total), weight: 3, opacity: 0.85 }),
+      style: f => ({ color: colorIndisp(f), weight: f.properties.bloqueado ? 4 : 3, opacity: 0.85 }),
       onEachFeature: (f, l) => l.bindPopup(popupProb(f, "Enlace")) }),
-    leyenda: RANGOS_PROB.map(r => [r.color, r.etiqueta]) },
-  { id: "PF_nodos", grupo: "Probabilidad de falla", nombre: "Nodos (intersecciones)", muestra: "#7f1d1d",
+    leyenda: [[COLOR_BLOQUEADO, "Bloqueado (prohibición en la jornada)"], ...RANGOS_PROB.map(r => [r.color, r.etiqueta])] },
+  { id: "PF_nodos", grupo: "Indisponibilidad (punto 5)", nombre: "Nodos (intersecciones)", muestra: "#7f1d1d",
     url: "/api/probabilidades?elemento=nodos&minimo=0.001",
-    conteo: c => c.probabilidades ? `${fmt(c.probabilidades.nodos)} nodos con p > 0` : "sin calcular",
-    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, colorProb(f.properties.p_total), 3),
+    conteo: c => c.probabilidades ? `${fmt(c.probabilidades.nodos)} con p > 0 · ${fmt(c.probabilidades.nodos_bloqueados)} bloqueados` : "sin calcular",
+    crear: d => L.geoJSON(d, { pointToLayer: (f, ll) => punto(ll, colorIndisp(f), 3),
       onEachFeature: (f, l) => l.bindPopup(popupProb(f, "Nodo")) }),
-    leyenda: RANGOS_PROB.map(r => [r.color, r.etiqueta]) },
+    leyenda: [[COLOR_BLOQUEADO, "Bloqueado (prohibición en la jornada)"], ...RANGOS_PROB.map(r => [r.color, r.etiqueta])] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -726,6 +736,7 @@ function dibujarResultado(r) {
           f.properties.tipo === "traslado" ? "traslado entre bases" : `salida ${f.properties.salida}`}` }, {
         técnica: t.nombre, km: f.properties.km, vuelo_min: f.properties.vuelo_min, calles: f.properties.tareas,
         inicio: hora(f.properties.inicio), "prob. de falla media": pctP(f.properties.p_media),
+        "escenarios de clima no aptos": f.properties.p_clima == null ? "sin dato" : pctP(f.properties.p_clima),
         "calles bloqueadas cruzadas": f.properties.aristas_bloqueadas, clima: f.properties.clima || "sin aviso" })) })
       .addTo(mapa);
   });
@@ -755,6 +766,8 @@ function dibujarResultado(r) {
       "costo de las calles": t.costo === "distancia" ? "largo (sin amenazas)" : "largo / (1 − p)",
       "objetivo del modelo": `${dt.minutos_modelo} min (vuelo + cambios de batería, suma de sectores)`,
       "prob. de falla media por metro": pct2(t.resumen.p_media_km),
+      "clima (A2)": t.resumen.p_clima_max == null ? "sin ensamble" :
+        `hasta ${pct2(t.resumen.p_clima_max)} de escenarios no aptos · ${t.resumen.salidas_reprogramar} salida(s) a reprogramar`,
       "salidas · η · β": `${t.resumen.salidas} · ${pct(t.resumen.eficiencia_eta)} · ${pct(t.resumen.utilizacion_beta)}`,
     };
     if (c === "T2") Object.assign(extra, {

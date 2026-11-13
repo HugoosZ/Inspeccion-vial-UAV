@@ -32,7 +32,7 @@ Responde al planteamiento de que el dron sale de una base, revisa una zona compl
 
 ### A.1 Pasos
 
-1. **Tareas.** Cada señalética M1 de los tipos elegidos (PARE, Ceda el paso, semáforos) dentro del área se asocia a la calle más cercana, a menos de 30 m. Cada calle con al menos una señal es una tarea. Las tareas sobre calles bloqueadas por las amenazas elegidas que estén vigentes en la jornada (incendio activo, SOSAFE, cierre o accidente de TomTom) se **postergan** y se informan aparte.
+1. **Tareas.** Cada señalética M1 de los tipos elegidos (PARE, Ceda el paso, semáforos) dentro del área se asocia a la calle más cercana, a menos de 30 m. Cada calle con al menos una señal es una tarea. Las tareas sobre calles bloqueadas por las amenazas elegidas que estén vigentes en la jornada (incendio activo, alerta SOSAFE alta o crítica, accidente de TomTom) se **postergan** y se informan aparte. Los cierres y obras de TomTom no bloquean el vuelo (ver `Amenazas/A4/README.md`).
 2. **Partición entre drones.** k-medias con capacidad: la carga de cada tarea es su largo más 1,3 veces la distancia a la tarea vecina (estimación del traslado). Así cada dron recibe un área compacta con una carga parecida.
 3. **Bases en recintos públicos.** El sistema lo operaría la municipalidad, así que las bases se eligen entre los lugares públicos de M2 (salud, educación, Carabineros y Bomberos, filtrables con `categorias_base`). Para cada área se elige el recinto $j$ que minimiza la suma de distancias a sus calles, ponderadas por su largo $\ell_i$ (1-mediana discreta sobre sitios candidatos, como la selección de droneports de Zhong et al.):
 $$j^{*}=\arg\min_{j\in C}\sum_{i\in \text{área}} \ell_i\,\lVert p_i-c_j\rVert$$
@@ -47,9 +47,16 @@ $$j^{*}=\arg\min_{j\in C}\sum_{i\in \text{área}} \ell_i\,\lVert p_i-c_j\rVert$$
 
 El alcance por salida es
 
-$$C = v \cdot t_{\text{autonomía}} \cdot \left(1-\frac{\text{reserva}}{100}\right) = 10\ \tfrac{\text{m}}{\text{s}} \cdot 45\ \text{min} \cdot 0{,}7 \approx 18{,}9\ \text{km}$$
+$$C = v \cdot t_{\text{autonomía}} \cdot \left(1-\frac{\text{reserva}}{100}\right) = 10\ \tfrac{\text{m}}{\text{s}} \cdot 36\ \text{min} \cdot 0{,}8 \approx 17{,}3\ \text{km}$$
 
-con los valores de referencia configurados para el **DJI Mavic 3E**: 45 min de autonomía máxima nominal, 10 m/s de velocidad de crucero y 30 % de reserva. DJI especifica hasta 45 min bajo condiciones de ensayo; por eso el alcance calculado es una referencia teórica, no la autonomía operativa verificada de una misión. Los 10 m/s y la reserva son supuestos del proyecto, no velocidades ni márgenes garantizados por DJI. [Especificaciones oficiales del Mavic 3E](https://enterprise.dji.com/mavic-3-enterprise/specs).
+con los valores por defecto para el **DJI Mavic 3E**, el mismo dron del punto 5:
+- **Autonomía:** DJI declara 45 min de vuelo, medidos a 32,4 km/h sin viento hasta agotar la batería, y 38 min en vuelo estacionario. Se usan 36 min, el valor de la propuesta del grupo, más conservador que ambos.
+- **Reserva y velocidad:** 20 % de reserva para retorno seguro, y 10 m/s de velocidad de crucero.
+- **Entre salidas:** se cambia la batería, en 15 min.
+
+Ver las [especificaciones oficiales del Mavic 3E](https://enterprise.dji.com/mavic-3-enterprise/specs).
+
+El alcance es una referencia de planificación, no la autonomía verificada de una misión. Los 10 m/s, la reserva y el cambio de batería son supuestos del proyecto, no valores garantizados por DJI. [Especificaciones oficiales del Mavic 3E](https://enterprise.dji.com/mavic-3-enterprise/specs).
 
 ### A.2 Indicadores (Zhong et al., 2023)
 
@@ -73,11 +80,11 @@ con los valores de referencia configurados para el **DJI Mavic 3E**: 45 min de a
 | `categorias_base` | Salud, educación, Carabineros, Bomberos | Recintos públicos (M2) donde se pueden instalar las bases |
 | `considerar_clima` | Sí | Avisos de salidas con mal tiempo (A2) |
 | `velocidad_crucero_ms` | 10 | Supuesto de velocidad de crucero (m/s) |
-| `autonomia_min` | 45 | Autonomía máxima nominal de referencia del DJI Mavic 3E (min) |
+| `autonomia_min` | 36 | Autonomía del DJI Mavic 3E usada en la planificación (min; DJI declara 45 a 32,4 km/h sin viento) |
 | `reserva_bateria_pct` | 30 | Batería que no se usa |
 | `tiempo_recarga_min` | 15 | Cambio de batería entre salidas |
 | `tecnicas` | T1, T2, T3, T4 | Técnicas de ruteo a ejecutar y comparar (sección C) |
-| `amenazas` | A1, A2, A3, A4 | Amenazas que bloquean calles y entran en el costo resiliente de T2–T4; vacía = sin amenazas |
+| `amenazas` | A1, A2, A3, A4 | Amenazas que bloquean calles o entran en el costo resiliente de T2–T4, y A2 en la evaluación por hora; vacía = sin amenazas |
 | `limite_milp_s` | 60 | Tiempo máximo de Gurobi (T2) para toda el área, repartido entre sectores según su número de calles |
 | `limite_dpso_s` | 20 | Tiempo máximo de DA-DPSO (T4) para toda el área, repartido igual |
 
@@ -95,21 +102,22 @@ POST /api/flota
 
 ### A.5 Resultados de referencia (red de Maipú, 13/11/2026, técnica T3)
 
-Toda la comuna con los valores por defecto: señaléticas M1 PARE, Ceda el paso y semáforo; 1.807 calles y 171 km a inspeccionar; 21 calles postergadas por cierres vigentes de TomTom.
+Toda la comuna con los valores por defecto (Mavic 3E: 36 min, 20 % de reserva, 17,3 km por salida) y salida a las 08:00:
+- 1.824 calles y 173 km a inspeccionar (señaléticas M1 PARE, Ceda el paso y semáforo).
+- 4 calles postergadas, dentro de la alerta SOSAFE crítica de ese día. Los cierres de TomTom ya no bloquean.
 
 | Drones | Bases | $T$ | $Dis$ | $\beta$ | Salidas |
 |---|---|---|---|---|---|
-| 1 | distribuidas | 25,8 h | 568 km | — | 37 |
-| 3 | distribuidas | 8,6 h | 558 km | 0,91 | 37 |
-| 4 | distribuidas | 6,2 h | 532 km | 0,87 | 35 |
-| 6 | distribuidas | 4,4 h | 537 km | 0,70 | 37 |
-| 6 | centralizada | 8,9 h | 858 km | 0,49 | 56 |
+| 1 | distribuidas | 23,4 h | 520 km | — | 33 |
+| 3 | distribuidas | 8,3 h | 535 km | 0,88 | 34 |
+| 4 | distribuidas | 6,1 h | 492 km | 0,66 | 32 |
+| 6 | distribuidas | 3,9 h | 514 km | 0,82 | 34 |
+| 6 | centralizada | 6,2 h | 795 km | 0,76 | 49 |
 
 - Con 4 drones la inspección completa cabe en una jornada de 8 h.
-- Con una sola base para toda la flota, el kilometraje sube un 60 % y el tiempo se duplica respecto de bases distribuidas, porque cada salida gasta buena parte de la batería en ir y volver.
-- Con 4 drones las bases quedan en el Liceo Reino de Dinamarca, los CESFAM Clotario Blest y Dr. Carlos Godoy, la Escuela Las Américas y el CETP CODEDUC. Uno de los drones tiene dos sectores.
+- Con una sola base para toda la flota, el kilometraje sube un 55 % y el tiempo crece 1,6 veces respecto de bases distribuidas, porque cada salida gasta buena parte de la batería en ir y volver.
+- Con 4 drones las bases quedan en la Séptima Compañía de Bomberos de Maipú, la Escuela Básica Los Alerces, el Colegio San Sebastián de Rinconada, el Centro de Referencia de Salud de Maipú y el CETP CODEDUC. Uno de los drones tiene dos sectores.
 - Las cifras se obtuvieron con el mismo código, ejecutado sobre los GeoJSON del repositorio y reemplazando las consultas de PostGIS/pgRouting por equivalentes en Python.
-- Respecto de la versión anterior, los km suben levemente porque el costo resiliente ahora usa la probabilidad de falla del punto 5.
 
 ---
 
@@ -140,10 +148,11 @@ $p_e$ es la probabilidad de falla de la calle durante la jornada (punto 5, tabla
 
 **Justificación.** Si cada intento de cruzar la calle falla con probabilidad $p_e$ y el dron debe repetirlo, el número de intentos sigue una distribución geométrica de media $1/(1-p_e)$. El costo esperado de la calle es entonces $\ell_e/(1-p_e)$: con $p_e=0$ vale $\ell_e$, crece de forma monótona con el riesgo y tiende a infinito cuando la calle es intransitable. Tiene unidades de metros (metros esperados), por lo que se suma directamente con la distancia sin un peso arbitrario $\lambda$, a diferencia del costo $\ell_e(1+\lambda r_e)$ de la propuesta original.
 
-- Las calles con una amenaza que **bloquea** (incendio activo, SOSAFE, cierre o accidente de TomTom) se eliminan del grafo (costo $-1$ en `pgr_dijkstra`).
+- Las calles con una amenaza que **bloquea** (incendio activo, alerta SOSAFE alta o crítica, accidente de TomTom) se eliminan del grafo (costo $-1$ en `pgr_dijkstra`). Los cierres y obras de TomTom no bloquean: restringen a los automóviles, no el espacio aéreo.
+- En el modelo revisado del punto 5, $p_e$ viene de A1 (tasa histórica de incendios). A2 (clima) **no entra en el costo**. Con celdas de 7 × 6 km y escenarios de 25 km, el clima es prácticamente igual en todas las calles de un área: multiplicarlas todas por el mismo factor no cambia ninguna ruta (Dijkstra es invariante a escalar los costos). En cambio, sí agotaría la batería de forma ficticia, porque la batería se controla con el costo resiliente: con $p=0{,}99$ cada calle costaría 100 veces su largo. El clima se evalúa por la **hora de cada salida** (C.5).
 - $p_e$ se acota en $0{,}99$ (la calle cuesta como máximo 100 veces su largo) para que el costo sea finito.
-- La batería también se controla con el costo resiliente, lo que es conservador: el costo resiliente nunca es menor que la distancia real.
-- Sin la tabla del punto 5, $p_e$ se calcula con el nivel de cada amenaza vigente: BAJO 0,05 · MEDIO 0,2 · ALTO 0,5 · CRÍTICO 0,8.
+- La batería también se controla con el costo resiliente, lo que es conservador: el costo resiliente nunca es menor que la distancia real. Sin A2, la diferencia es pequeña ($p_{a1}\le$ 1 % en Maipú).
+- Sin la tabla del punto 5, el costo es el largo y solo se aplican los bloqueos. No se inventan probabilidades a partir de los niveles BAJO a CRÍTICO.
 
 ### C.3 T2 · Modelo MILP (`milp.py`)
 
@@ -209,6 +218,7 @@ Además de los de la sección A.2:
 | Km esperados | $\sum_{e\in\text{ruta}} \ell_e/(1-p_e)$, con todas las amenazas |
 | $p$ media | Probabilidad de falla media por metro recorrido, con todas las amenazas |
 | Calles bloqueadas cruzadas | Calles con una amenaza activa que bloquea y que la ruta recorre |
+| Clima por salida (A2) | Mayor fracción de escenarios del ensamble no aptos entre las celdas que recorre la salida, en las horas que dura. Con 50 % o más (mayoría de escenarios) se sugiere reprogramar; desde 20 % solo se avisa |
 | Brecha (T2) | $(\text{valor}-\text{cota inferior})/\text{valor}$ |
 
 El riesgo se evalúa **siempre con todas las amenazas**, aunque la técnica haya ruteado con menos o con ninguna. Así T1 muestra el riesgo que corre al ignorarlas.
@@ -265,20 +275,20 @@ Las cifras de esta sección y de C.7 se obtuvieron con el mismo código, ejecuta
 
 ### C.7 Ejemplo (banco con datos del repositorio)
 
-Área de 1,7 km² alrededor de los cierres de TomTom en Av. 5 de Abril y Los Estandartes, con 2 drones, valores por defecto, límite de 60 s para T2 y 20 s para T4. La instancia común tiene 54 calles a inspeccionar (5,9 km), 21 calles postergadas por estar bloqueadas y una base por dron: el CESFAM El Abrazo y el CETP CODEDUC.
+Área de 1,7 km² en el centro-oriente de Maipú (Av. 5 de Abril y Los Estandartes), con 2 drones, valores por defecto, salida a las 08:00, límite de 60 s para T2 y 20 s para T4. La instancia común tiene 75 calles a inspeccionar (8,5 km) y una base por dron: el CESFAM El Abrazo y el CETP CODEDUC.
 
-| Técnica | $T$ | Km | Km esperados | $p$ media | Calles bloqueadas cruzadas | $Z$ (resiliente) | Cálculo |
-|---|---|---|---|---|---|---|---|
-| T1 · distancia | 26,5 min | 15,2 | 83,8 | 16,7 % | **15** | — | 0,1 s |
-| T2 · MILP (HiGHS) | 42,3 min | 24,7 | 26,3 | 5,6 % | 0 | 43,8 min (cota 41,8; gap 4,5 %) | 46 s |
-| T3 · resiliente | 42,5 min | 24,8 | 26,4 | 5,6 % | 0 | 44,0 min | 0,1 s |
-| T4 · DA-DPSO | 42,3 min | 24,1 | 25,5 | 5,5 % | 0 | **42,5 min** | 3,3 s |
+| Técnica | $T$ | Km | $Z$ (resiliente) | Cálculo |
+|---|---|---|---|---|
+| T1 · distancia | 14,8 min | 17,6 | 29,4 min | 0,04 s |
+| T2 · MILP (HiGHS) | 14,6 min | 17,1 | 28,5 min (gap 7,9 %) | 60 s |
+| T3 · resiliente | 14,8 min | 17,6 | 29,4 min | 0,03 s |
+| T4 · DA-DPSO | 13,6 min | 16,3 | **27,1 min** | 4,4 s |
 
 Lectura:
-- **T1** es la más corta porque pasa por las calles cerradas. Sus km esperados (83,8) son 5,5 veces sus km reales: ignorar las amenazas no ahorra nada en esperanza.
-- **T2, T3 y T4** evitan los cierres a cambio de unos 9,5 km más.
-- Entre las técnicas resilientes, **T4** obtiene el menor $Z$. La cota inferior de T2 (41,8 min) garantiza que T4 está a lo más 1,6 % del óptimo.
-- En este banco T2 corrió con HiGHS, que en 60 s cerró el óptimo de un sector y no superó a T3 en el otro. Con Gurobi se espera cerrar la brecha.
+- Ese día no había incendios activos, accidentes ni alertas SOSAFE en el área, y los cierres de TomTom ya no bloquean. Por eso T1 y T3 coinciden: sin amenazas que cambien el costo de las calles, el costo resiliente es igual al largo ($p_{a1}=0$ en esta zona).
+- La diferencia entre técnicas se debe solo a la optimización. T4 mejora a T3 en 7,8 %, y T2 (HiGHS, 60 s) no alcanza a superar a T4.
+- Con salida a las 14:00, todas las salidas quedan con el 100 % de los escenarios no aptos por viento, y el planificador sugiere reprogramarlas.
+- El contraste entre T1 y las técnicas resilientes aparece cuando hay bloqueos en el área (incendio, alerta SOSAFE o accidente) o calles con mayor $p_{a1}$; depende de las amenazas activas el día de la ejecución.
 
 ### C.8 Referencias de las técnicas
 
@@ -310,8 +320,8 @@ Cada amenaza cargada en `temp_amenazas` es un **evento de falla** con zona de af
 |---|---|---|---|
 | A1 Incendios (CONAF) | Círculo de exclusión del incendio activo | Desde el inicio hasta la extinción | Dura: bloquea (controlado: penaliza) |
 | A2 Clima (Open-Meteo) | Celda de la grilla 3 × 3 | Una hora (`valido_desde`, `valido_hasta`) | Dependiente del tiempo |
-| A3 SOSAFE | Geocerca circular | Mientras el reporte esté vigente | Dura: bloquea |
-| A4 Waze (Cierres y obras) | Geocerca circular (50--60 m) | Mientras la alerta esté activa | Dura: bloquea |
+| A3 SOSAFE | Geocerca circular | Mientras el reporte esté vigente | Dura: bloquea (ALTO o CRÍTICO) |
+| A4 TomTom | Punto o tramo + radio | Mientras el incidente esté vigente | Accidente: bloquea 100 m; cierres y obras: informativos |
 
 Una arista $e$ queda afectada por una amenaza $a$ si su geometría intersecta la zona de $a$ (o está a menos de `radio_afectacion_m`, si la amenaza lo define) y $a$ está vigente en la ventana $[t_0,\,t_0+H]$, con $H$ = `horizonte_h` (2 h por defecto).
 
@@ -357,7 +367,7 @@ Si el usuario no ingresa un valor, se usa este (`GET /api/rutas/preferencias`):
 | Ancho del corredor | 300 m |
 | Máximo de aristas requeridas | 30 |
 | Velocidad de crucero | 10 m/s |
-| Autonomía útil por dron | 18,9 km (10 m/s, 45 min nominales, 30 % de reserva) |
+| Autonomía útil por dron | 17,3 km (10 m/s, 36 min, 20 % de reserva) |
 | Horizonte de amenazas | 2 h |
 
 La respuesta de `/api/rutas` incluye `preferencias_por_defecto`, con la lista de campos que quedaron por defecto.
