@@ -41,7 +41,7 @@ PREFERENCIAS_DEFECTO = {
     "radio_corredor_m": 300,                  # ancho del corredor donde se buscan aristas requeridas
     "max_requeridas": 30,                     # tope de |E_R| (aristas a inspeccionar)
     "velocidad_crucero_ms": 10.0,             # para estimar la duración de cada ruta
-    "autonomia_km": 18.9,                     # alcance útil: 10 m/s, 45 min, 30 % reserva
+    "autonomia_km": 17.3,                     # alcance útil del Mavic 3E: 10 m/s, 36 min, 20 % reserva
     "horizonte_h": 2.0,                       # ventana para evaluar amenazas en la métrica
 }
 
@@ -57,23 +57,26 @@ LIMITES = {
 # ------------------------------------------------------------------------------
 # Planificación por área con una flota de drones (ruteo/flota.py)
 # ------------------------------------------------------------------------------
-# Equipo de referencia del proyecto: DJI Mavic 3E. Los 45 min son la autonomía
-# máxima nominal del fabricante; la misión real dependerá de las condiciones.
-# La velocidad de 10 m/s y la reserva de batería son supuestos del modelo.
+# Equipo de referencia del proyecto: DJI Mavic 3E. DJI declara 45 min de vuelo
+# (a 32,4 km/h, sin viento, hasta agotar la batería) y 38 min en estacionario;
+# se usan 36 min, el valor de la propuesta del grupo, más conservador que ambos,
+# con 20 % de reserva: alcance de 10 m/s x 36 min x 0,8 = 17,3 km por salida.
+# La velocidad de 10 m/s y la reserva son supuestos del modelo; entre salidas
+# se cambia la batería (15 min).
 PREFERENCIAS_FLOTA = {
     "n_drones": 3,                            # drones de la flota; cada uno cubre un área
     "categorias_base": list(CATEGORIAS_BASE_VALIDAS),  # recintos públicos (M2) donde instalar las bases
     "bases": "distribuidas",                  # distribuidas: una base por área; centralizada: una para todos
     "tecnicas": list(TECNICAS_VALIDAS),       # técnicas de ruteo a ejecutar y comparar
-    "amenazas": list(AMENAZAS_VALIDAS),       # amenazas que bloquean o encarecen las calles
+    "amenazas": list(AMENAZAS_VALIDAS),       # amenazas que bloquean calles o encarecen su costo
     "limite_milp_s": 60.0,                    # tiempo máximo de Gurobi (T2) para toda el área
     "limite_dpso_s": 20.0,                    # tiempo máximo de la metaheurística (T4) para toda el área
     "hora_salida": None,                      # None = ahora
     "tipos_senal": ["senal_pare", "senal_ceda_el_paso", "semaforo"],
     "considerar_clima": True,                 # avisa qué salidas caen en horas de mal tiempo (A2)
     "velocidad_crucero_ms": 10.0,
-    "autonomia_min": 45.0,
-    "reserva_bateria_pct": 30.0,
+    "autonomia_min": 36.0,
+    "reserva_bateria_pct": 20.0,
     "tiempo_recarga_min": 15.0,               # cambio de batería entre salidas
     "jornada_h": 8.0,                         # horas de vuelo diurno disponibles
 }

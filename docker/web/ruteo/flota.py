@@ -60,7 +60,7 @@ from psycopg2.extras import execute_values
 
 from . import datos, dpso, milp, preferencias
 from .tecnicas import (COSTO, NOMBRES, constructiva, costo_salida, factible,  # noqa: F401
-                       factor_resiliente, minutos_sector, prob_desde_eventos)
+                       factor_resiliente, minutos_sector)
 
 
 class ErrorFlota(ValueError):
@@ -100,6 +100,11 @@ SQL_ARISTAS_DISTANCIA = """
 # modelo tiene ~160.000 arcos antes de la reducción; sobre eso el sector
 # conserva la solución de T3 y se informa.
 MAX_TAREAS_MILP = 200
+# Avisos de clima por salida (A2): probabilidad de que el escenario sea no apto
+# para el Mavic 3E en las horas de la salida. Con la mitad o más de los
+# escenarios del ensamble no aptos se sugiere reprogramar (mayoría de escenarios).
+UMBRAL_CLIMA_REPROGRAMAR = 0.5
+UMBRAL_CLIMA_AVISO = 0.2
 
 
 # ------------------------------------------------------------------------------
@@ -618,8 +623,23 @@ def _plan_tecnica(plan, ordenes):
     return nuevo
 
 
+def _clima_salida(aristas, ini, fin, clima):
+    """Clima de una salida (A2): la mayor probabilidad de clima no apto entre las
+    celdas que recorre, en las horas que dura. Sin ensamble, el nivel determinista."""
+    celda_por_arista, horas = clima
+    p, nivel, orden = None, None, {"BAJO": 0, "MEDIO": 1, "ALTO": 2, "CRITICO": 3}
+    for celda in {celda_por_arista.get(e) for e in aristas} - {None}:
+        for desde, hasta, ph, nh in horas.get(celda, ()):
+            if desde < fin and hasta > ini:
+                if ph is not None:
+                    p = max(p or 0.0, ph)
+                if nh and orden.get(nh, 0) > orden.get(nivel, -1):
+                    nivel = nh
+    return p, nivel
+
+
 def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, geoms, prob_eval,
-                     bloqueadas_eval, amen, prefs, capacidad, t0):
+                     bloqueadas_eval, clima, prefs, capacidad, t0):
     """Indicadores, tiempos y rutas (GeoJSON) del plan de una técnica.
 
     El riesgo se evalúa siempre con TODAS las amenazas (prob_eval,
@@ -628,7 +648,7 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
     v, recarga = prefs["velocidad_crucero_ms"], prefs["tiempo_recarga_min"]
     largo = {e: g["length_m"] for e, g in geoms.items()}
     drones, rutas_fc, avisos = [], [], []
-    cruzadas, riesgo_m, metros_tot = set(), 0.0, 0.0
+    cruzadas, riesgo_m, metros_tot, p_climas = set(), 0.0, 0.0, []
     for d, (salidas, _, bases_d) in enumerate(plan_t):
         conteo = Counter(e for s in salidas for e in s["aristas"])
         dis = sum(largo.get(e, 0) * c for e, c in conteo.items())
@@ -647,16 +667,19 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
             vuelo = km * 1000 / v / 60
             ini = (t0 + timedelta(minutes=minutos)).replace(microsecond=0)
             fin = (ini + timedelta(minutes=vuelo)).replace(microsecond=0)
-            clima = 0.0
-            for e in set(aristas):
-                for desde, hasta, f in amen.temporales.get(e, ()):
-                    if desde < fin.timestamp() and hasta > ini.timestamp():
-                        clima = max(clima, f)
+            p_clima, nivel_clima = _clima_salida(aristas, ini.timestamp(), fin.timestamp(), clima)
             aviso = None
-            if clima >= datos.FACTOR_CLIMA_BLOQUEO:
-                aviso = "mal tiempo (riesgo alto): reprogramar"
-            elif clima > 1:
-                aviso = "lluvia o viento moderado"
+            if p_clima is not None:
+                if p_clima >= UMBRAL_CLIMA_REPROGRAMAR:
+                    aviso = f"clima no apto en el {100 * p_clima:.0f} % de los escenarios: reprogramar"
+                elif p_clima >= UMBRAL_CLIMA_AVISO:
+                    aviso = f"clima no apto en el {100 * p_clima:.0f} % de los escenarios"
+            elif nivel_clima in ("ALTO", "CRITICO"):
+                aviso = "mal tiempo pronosticado (riesgo alto): reprogramar"
+            elif nivel_clima == "MEDIO":
+                aviso = "lluvia, viento o visibilidad sobre la política de vuelo"
+            if p_clima is not None:
+                p_climas.append(p_clima)
             # Riesgo medio de la salida: probabilidad de falla media por metro recorrido.
             # (La probabilidad de completar la salida no es el producto de las p(e):
             # el clima o un incidente afectan a muchas calles a la vez; eso se trata
@@ -670,7 +693,8 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
             n_insp += sal["tipo"] == "inspeccion"
             detalle.append({"salida": s, "tipo": sal["tipo"], "km": round(km, 2), "vuelo_min": round(vuelo, 1),
                             "tareas": len(sal["tareas"]), "inicio": ini.isoformat(), "fin": fin.isoformat(),
-                            "clima": aviso, "p_media": round(p_media, 4), "aristas_bloqueadas": len(bloq)})
+                            "clima": aviso, "p_clima": None if p_clima is None else round(p_clima, 3),
+                            "p_media": round(p_media, 4), "aristas_bloqueadas": len(bloq)})
             rutas_fc.append({"type": "Feature",
                              "geometry": {"type": "MultiLineString",
                                           "coordinates": [geoms[e]["coords"] for e in aristas if e in geoms]},
@@ -678,6 +702,7 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
                                             "km": round(km, 2), "vuelo_min": round(vuelo, 1),
                                             "tareas": len(sal["tareas"]), "inicio": ini.isoformat(),
                                             "clima": aviso, "p_media": round(p_media, 4),
+                                            "p_clima": None if p_clima is None else round(p_clima, 3),
                                             "aristas_bloqueadas": len(bloq)}})
             minutos += vuelo + (recarga if s < len(salidas) else 0)
         drones.append({
@@ -697,9 +722,10 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
     kms = [x["km_total"] for x in activos]
     if T / 60 > prefs["jornada_h"]:
         avisos.append(f"La inspección toma {T / 60:.1f} h y supera la jornada de {prefs['jornada_h']:g} h.")
-    n_clima = sum(1 for x in drones for s in x["detalle_salidas"] if s["clima"])
+    n_clima = sum(1 for x in drones for s in x["detalle_salidas"] if s["clima"] and "reprogramar" in s["clima"])
     if n_clima:
-        avisos.append(f"{n_clima} salida(s) coinciden con horas de mal tiempo pronosticado (A2).")
+        avisos.append(f"{n_clima} salida(s) caen en horas con clima no apto para el Mavic 3E (A2): conviene "
+                      "otra hora de inicio.")
     if cruzadas:
         avisos.append(f"Cruza {len(cruzadas)} calle(s) bloqueadas por amenazas activas.")
     resumen = {
@@ -711,6 +737,8 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
         "eficiencia_eta": round(L_insp / Dis, 3) if Dis else None,
         "repeticion_rho_media": round(float(np.mean([x["repeticion_rho"] for x in activos])), 3) if activos else None,
         "p_media_km": round(riesgo_m / metros_tot, 4) if metros_tot else None,
+        "p_clima_max": round(max(p_climas), 3) if p_climas else None,
+        "salidas_reprogramar": n_clima,
         "aristas_bloqueadas": len(cruzadas),
     }
     return drones, rutas_fc, resumen, avisos
@@ -745,22 +773,26 @@ def planificar_area(conn, area, entrada_prefs):
 
     # Amenazas vigentes durante la jornada: las elegidas por el usuario guían el
     # ruteo; todas se usan para evaluar el riesgo de cada técnica.
+    # Bloqueos (A1 incendio activo, A3 alerta peligrosa, A4 accidente) desde
+    # temp_amenazas; probabilidad de las calles desde la tabla del punto 5, sin
+    # A2: el clima es casi uniforme a la escala de la grilla, no cambia las rutas
+    # y se evalúa por hora de cada salida (ver _clima_salida).
     todas = list(preferencias.AMENAZAS_VALIDAS)
     amen = datos.amenazas_region(conn, bbox_red, t0, prefs["jornada_h"], prefs["considerar_clima"],
                                  prefs["amenazas"])
     amen_eval = datos.amenazas_region(conn, bbox_red, t0, prefs["jornada_h"], True, todas)
-    prob, ventana = datos.probabilidades_aristas(conn, bbox_red, prefs["amenazas"])
-    prob_eval, _ = datos.probabilidades_aristas(conn, bbox_red, todas)
-    if not prob_eval:
-        avisos.append("No está la tabla de probabilidades de falla (punto 5): se usa la probabilidad por "
-                      "nivel de cada amenaza vigente. Ejecuta Probabilidades/generar.py.")
-        prob_eval = prob_desde_eventos(amen_eval.eventos)
-        prob = prob_desde_eventos(amen.eventos) if prefs["amenazas"] else {}
-    elif ventana and not (ventana[0] <= t0 <= ventana[1]):
+    prob, ventana = datos.probabilidades_aristas(conn, bbox_red, [a for a in prefs["amenazas"] if a != "A2"])
+    prob_eval, _ = datos.probabilidades_aristas(conn, bbox_red, [a for a in todas if a != "A2"])
+    if ventana is None:
+        avisos.append("No está la tabla de indisponibilidad del punto 5: el costo de las calles queda igual a su "
+                      "largo (solo se aplican los bloqueos). Ejecuta Probabilidades/generar.py.")
+    elif not (ventana[0] <= t0 <= ventana[1]):
         avisos.append("Las probabilidades de falla se calcularon para otra jornada "
                       f"({ventana[0]:%d-%m %H:%M} a {ventana[1]:%d-%m %H:%M} UTC): vuelve a ejecutar main.py.")
     red = Red(amen.bloqueadas, {e: factor_resiliente(p) for e, p in prob.items()})
     red_dist = Red(solo_distancia=True)
+    clima = (datos.clima_celdas(conn, bbox_red, t0, t0 + timedelta(hours=24))
+             if prefs["considerar_clima"] and "A2" in prefs["amenazas"] else ({}, {}))
 
     # 1. Tareas: calles con señal dentro del área
     puntos = datos.puntos_inspeccion(conn, json.dumps(poligono) if poligono else None,
@@ -866,7 +898,7 @@ def planificar_area(conn, area, entrada_prefs):
     for cod in tecs:
         drones_t, rutas_t, resumen_t, avisos_t = _evaluar_tecnica(
             cod, planes[cod], etiquetas, tareas, tarea_por_id, fuera_set, geoms, prob_eval,
-            amen_eval.bloqueadas, amen, prefs, capacidad, t0)
+            amen_eval.bloqueadas, clima, prefs, capacidad, t0)
         info = resultados[cod]["info"]
         tiempo = info["segundos_solver"] + info["segundos_trazado"]
         if cod != "T1":

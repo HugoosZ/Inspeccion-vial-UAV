@@ -26,8 +26,6 @@ Una salida es una lista de (t, entrada, salida) con los índices del vértice
 por donde entra y sale el dron.
 """
 
-import math
-
 import numpy as np
 
 NOMBRES = {
@@ -50,13 +48,6 @@ def factor_resiliente(p):
     debe repetirlo), el número de intentos es geométrico con media 1 / (1 - p):
     el costo esperado de la arista es largo / (1 - p)."""
     return 1.0 / (1.0 - min(max(p, 0.0), P_MAX))
-
-
-def prob_desde_eventos(eventos):
-    """Probabilidad de falla por arista a partir de las amenazas vigentes
-    (respaldo si aún no existe la tabla del punto 5):
-    p(e) = 1 - prod_a (1 - p_a), con p_a según el nivel de la amenaza."""
-    return {e: 1.0 - math.prod(1.0 - p for p in ev.values()) for e, ev in eventos.items()}
 
 
 # ------------------------------------------------------------------------------

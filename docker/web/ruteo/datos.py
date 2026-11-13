@@ -125,12 +125,47 @@ def amenazas_region(conn, bbox, t0, horizonte_h, considerar_clima, amenazas=None
     return Amenazas(filas, considerar_clima, amenazas)
 
 
+def clima_celdas(conn, bbox, t0, t1):
+    """Probabilidad horaria de clima no apto (A2) por celda y la celda de cada arista.
+
+    El clima se evalúa por hora y no como costo de las calles: con celdas de
+    unos 7 x 6 km y un modelo de ensamble de 25 km, es prácticamente uniforme
+    en el área, así que cambiaría todas las calles por el mismo factor (no
+    cambia ninguna ruta) y solo decide CUÁNDO conviene volar.
+    Devuelve (celda_por_arista, horas) con horas = {celda: [(desde, hasta, p, nivel)]}
+    en segundos UNIX; p es None si la hora no trae ensamble."""
+    filas = _filas(conn, """
+        SELECT propiedades->>'id_celda' AS celda, nivel_riesgo,
+               EXTRACT(EPOCH FROM NULLIF(propiedades->>'valido_desde', '')::timestamptz) AS desde,
+               EXTRACT(EPOCH FROM NULLIF(propiedades->>'valido_hasta', '')::timestamptz) AS hasta,
+               NULLIF(propiedades->>'p_no_apto_ensamble', '')::float AS p,
+               ST_AsGeoJSON(geom) AS g
+        FROM temp_amenazas
+        WHERE propiedades->>'fuente_etl' = 'A2_clima'
+          AND NULLIF(propiedades->>'valido_hasta', '')::timestamptz > %(t0)s
+          AND NULLIF(propiedades->>'valido_desde', '')::timestamptz < %(t1)s""", {"t0": t0, "t1": t1})
+    horas, geoms = {}, {}
+    for f in filas:
+        horas.setdefault(f["celda"], []).append((float(f["desde"]), float(f["hasta"]), f["p"], f["nivel_riesgo"]))
+        geoms.setdefault(f["celda"], f["g"])
+    celda_por_arista = {}
+    for celda, g in geoms.items():
+        for f in _filas(conn, """
+                SELECT e.id FROM network_edges e
+                WHERE e.geom && ST_MakeEnvelope(%(xmin)s, %(ymin)s, %(xmax)s, %(ymax)s, 4326)
+                  AND ST_Intersects(e.geom, ST_SetSRID(ST_GeomFromGeoJSON(%(g)s), 4326))""",
+                        {"xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3], "g": g}):
+            celda_por_arista.setdefault(f["id"], celda)
+    return celda_por_arista, horas
+
+
 def probabilidades_aristas(conn, bbox, amenazas):
-    """Probabilidad de falla de cada arista del rectángulo (punto 5, tabla
-    prob_falla_aristas), combinando solo las amenazas elegidas:
+    """Probabilidad de indisponibilidad de cada arista del rectángulo (punto 5,
+    tabla prob_falla_aristas), combinando solo las amenazas elegidas:
         p(e) = 1 - prod_{k elegidas} (1 - p_k(e))
-    Devuelve (dict edge_id -> p, ventana (t0, t1) en que se calculó) o
-    ({}, None) si la tabla no existe o está vacía."""
+    En el modelo revisado solo A1 (tasa histórica de incendios) y A2 (ensamble)
+    tienen probabilidad; A3 y A4 son bloqueos. Devuelve (dict edge_id -> p,
+    ventana (t0, t1) en que se calculó) o ({}, None) si la tabla no existe."""
     if not amenazas:
         return {}, None
     columnas = " * ".join(f"(1 - COALESCE(p.p_{a.lower()}, 0))" for a in amenazas)

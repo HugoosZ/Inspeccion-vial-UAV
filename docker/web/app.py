@@ -145,13 +145,16 @@ def get_capas():
         """)
         try:
             probabilidades = consultar("""
-                SELECT (SELECT count(*) FROM prob_falla_aristas) AS aristas,
-                       (SELECT count(*) FROM prob_falla_nodos) AS nodos,
+                SELECT (SELECT count(*) FROM prob_falla_aristas WHERE p_total > 0) AS aristas,
+                       (SELECT count(*) FROM prob_falla_nodos WHERE p_total > 0) AS nodos,
+                       (SELECT count(*) FROM prob_falla_aristas WHERE bloqueado) AS aristas_bloqueadas,
+                       (SELECT count(*) FROM prob_falla_nodos WHERE bloqueado) AS nodos_bloqueados,
                        (SELECT min(t0) FROM prob_falla_aristas) AS t0,
                        (SELECT min(t1) FROM prob_falla_aristas) AS t1
             """)
         except Exception:  # noqa: BLE001  (tablas aún no creadas)
-            probabilidades = {"aristas": 0, "nodos": 0, "t0": None, "t1": None}
+            probabilidades = {"aristas": 0, "nodos": 0, "aristas_bloqueadas": 0, "nodos_bloqueados": 0,
+                              "t0": None, "t1": None}
         return {"infraestructura": red, "metadata": metadata, "amenazas": amenazas,
                 "probabilidades": probabilidades}
     except Exception as e:  # noqa: BLE001
@@ -221,23 +224,23 @@ def get_amenazas(
 @app.get("/api/probabilidades")
 def get_probabilidades(
     elemento: str = Query("aristas", description="aristas o nodos"),
-    minimo: float = Query(0.0, description="Probabilidad total mínima a devolver (0 a 1)"),
-    amenaza: str = Query(None, description="A1, A2, A3 o A4: filtra por la probabilidad de esa amenaza"),
+    minimo: float = Query(0.0, description="Probabilidad mínima a devolver (0 a 1); los bloqueados siempre se devuelven"),
+    amenaza: str = Query(None, description="A1, A2 o accidente: filtra por esa probabilidad en vez de p_total"),
 ):
-    """Probabilidad de falla por enlace o nodo (tablas prob_falla_*) en GeoJSON."""
-    columna = "p_total" if not amenaza else f"p_{amenaza.lower()}"
-    if columna not in ("p_total", "p_a1", "p_a2", "p_a3", "p_a4"):
-        raise HTTPException(status_code=422, detail="amenaza debe ser A1, A2, A3 o A4")
+    """Indisponibilidad por enlace o nodo (punto 5, tablas prob_falla_*) en GeoJSON."""
+    columna = {None: "p_total", "": "p_total", "A1": "p_a1", "A2": "p_a2", "accidente": "p_accidente"}.get(amenaza)
+    if columna is None:
+        raise HTTPException(status_code=422, detail="amenaza debe ser A1, A2 o accidente")
+    campos = ("p.p_total, p.p_a1, p.p_a2, p.p_accidente, p.riesgo_viento, p.contraste_visual, p.bloqueado, "
+              "p.motivos_bloqueo, p.calidad, p.observaciones, p.t0, p.t1")
     if elemento == "nodos":
-        sub = f"""SELECT p.node_id AS id, p.p_total, p.p_a1, p.p_a2, p.p_a3, p.p_a4, p.n_amenazas,
-                         p.detalle, p.t0, p.t1, n.geom
+        sub = f"""SELECT p.node_id AS id, {campos}, n.geom
                   FROM prob_falla_nodos p JOIN network_nodes n ON n.id = p.node_id
-                  WHERE p.{columna} > %s"""
+                  WHERE COALESCE(p.{columna}, 0) > %s OR p.bloqueado"""
     elif elemento == "aristas":
-        sub = f"""SELECT p.edge_id AS id, e.name, p.p_total, p.p_a1, p.p_a2, p.p_a3, p.p_a4, p.n_amenazas,
-                         p.detalle, p.t0, p.t1, e.geom
+        sub = f"""SELECT p.edge_id AS id, e.name, {campos}, e.geom
                   FROM prob_falla_aristas p JOIN network_edges e ON e.id = p.edge_id
-                  WHERE p.{columna} > %s"""
+                  WHERE COALESCE(p.{columna}, 0) > %s OR p.bloqueado"""
     else:
         raise HTTPException(status_code=422, detail="elemento debe ser aristas o nodos")
     return feature_collection(sub, (minimo,))
