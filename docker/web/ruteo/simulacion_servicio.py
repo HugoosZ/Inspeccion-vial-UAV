@@ -13,7 +13,7 @@ import threading
 import time
 from uuid import uuid4
 
-from . import resiliencia, simulacion, recuperacion
+from . import resiliencia, simulacion, recuperacion, jornadas
 
 
 MAX_PLANES = 4
@@ -66,7 +66,8 @@ def registrar_plan(resultado):
                 "tecnicas_originales": {c: {k: t[k] for k in ("rutas", "resumen", "detalle", "avisos")}
                                          for c, t in resultado["tecnicas"].items()},
                 "t0": _instante(resultado["hora_salida"]),
-                "horas": float(resultado["preferencias"]["jornada_h"]),
+                "horas": float(resultado.get('campana', {}).get('horizonte_evaluacion_h',
+                                resultado["preferencias"]["jornada_h"])),
                 "requeridas": {int(t["id"]): t["senales"] for t in
                                resultado.get("servicio_requerido", {}).get("tareas", [])},
                 "capacidad_m": (float(resultado["preferencias"]["velocidad_crucero_ms"])
@@ -234,7 +235,9 @@ def _metricas_servicio(registro, modelo, eventos_ocurridos=None):
             ini, fin = _instante(ruta["inicio"]).timestamp(), _instante(ruta["fin"]).timestamp()
             factible = (ruta["camino_completo"] and ruta["retorno_base"]
                         and metros <= registro["capacidad_m"] + 1e-6
-                        and ini >= t0 and fin <= t1)
+                        and ini >= t0 and fin <= t1
+                        and jornadas.contiene(_instante(ruta['inicio']), _instante(ruta['fin']), registro['preferencias'])
+                        and simulacion.clima_cubierto(modelo, ini, fin))
             salidas.append({"id": clave, "dron": ruta["dron"], "tipo": ruta["tipo"],
                             "tareas": list(ruta["tareas"]), "factible": factible,
                             "dependencias": list(dependencias[ruta["dron"]]),
@@ -350,7 +353,8 @@ def simular_plan(conn, plan_id, semilla):
     for codigo, tecnica in tecnicas.items():
         tecnica["resiliencia"] = metricas[codigo]
     advertencias = list(modelo["advertencias"])
-    advertencias.append("Escenario conocido antes de despegar: A1/A3 cierran zonas toda la jornada; A2 suspende por horario. No se simula emergencia en vuelo ni reprogramación al día siguiente.")
+    advertencias.append("Escenario conocido antes de despegar: A1/A3 cierran zonas conservadoramente; A2 suspende por horario. "
+                        "Los recorridos se distribuyen en ventanas diarias fijas; no se simula emergencia en vuelo.")
     if any(t["fuera_ventana"] for t in tecnicas.values()):
         advertencias.append("Hay salidas total o parcialmente fuera de la jornada simulada; "
                             "los cruces informados corresponden a los eventos de esa ventana.")

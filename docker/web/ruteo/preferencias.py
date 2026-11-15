@@ -62,7 +62,7 @@ LIMITES = {
 # se usan 36 min, el valor de la propuesta del grupo, más conservador que ambos,
 # con 20 % de reserva: alcance de 10 m/s x 36 min x 0,8 = 17,3 km por salida.
 # La velocidad de 10 m/s y la reserva son supuestos del modelo; entre salidas
-# se cambia la batería (15 min).
+# se espera la recarga (75 min, supuesto operativo del grupo).
 PREFERENCIAS_FLOTA = {
     "n_drones": 3,                            # drones de la flota; cada uno cubre un área
     "categorias_base": list(CATEGORIAS_BASE_VALIDAS),  # recintos públicos (M2) donde instalar las bases
@@ -77,8 +77,10 @@ PREFERENCIAS_FLOTA = {
     "velocidad_crucero_ms": 10.0,
     "autonomia_min": 36.0,
     "reserva_bateria_pct": 20.0,
-    "tiempo_recarga_min": 15.0,               # cambio de batería entre salidas
+    "tiempo_recarga_min": 75.0,               # pausa de recarga entre salidas
     "jornada_h": 8.0,                         # horas de vuelo diurno disponibles
+    "hora_inicio_jornada": "08:00",          # apertura diaria en la zona configurada
+    "zona_horaria": "America/Santiago",
 }
 
 LIMITES_FLOTA = {

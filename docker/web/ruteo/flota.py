@@ -53,12 +53,13 @@ import json
 import math
 import time
 from collections import Counter, defaultdict
-from datetime import timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import numpy as np
 from psycopg2.extras import execute_values
 
-from . import datos, dpso, milp, preferencias, simulacion
+from . import datos, dpso, milp, preferencias, simulacion, jornadas
 from .tecnicas import (COSTO, NOMBRES, constructiva, costo_salida, factible,  # noqa: F401
                        factor_resiliente, minutos_sector)
 
@@ -664,6 +665,8 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
         ids_dron = [t["id"] for t, e in zip(tareas, etiquetas) if e == d and t["id"] not in fuera_set]
         km_insp = sum(tarea_por_id[i]["length_m"] for i in ids_dron)
         minutos, detalle, n_insp = 0.0, [], 0
+        disponible = t0
+        fechas = set()
         salidas = [s for s in salidas if s["aristas"] or not s.get("camino_completo", True)]
         for s, sal in enumerate(salidas, start=1):
             aristas = sal["aristas"]
@@ -672,8 +675,9 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
                 avisos.append(f"El traslado del dron {d + 1} entre bases ({km:.1f} km) supera la batería: "
                               "debe hacerse por tierra o con una recarga intermedia.")
             vuelo = km * 1000 / v / 60
-            ini = t0 + timedelta(minutes=minutos)
-            fin = ini + timedelta(minutes=vuelo)
+            ini, fin = jornadas.programar(disponible, vuelo, prefs)
+            fecha_jornada = ini.astimezone(ZoneInfo(prefs['zona_horaria'])).date().isoformat()
+            fechas.add(fecha_jornada)
             p_clima, nivel_clima = _clima_salida(aristas, ini.timestamp(), fin.timestamp(), clima)
             aviso = None
             if p_clima is not None:
@@ -699,6 +703,7 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
             metros_tot += metros
             n_insp += sal["tipo"] == "inspeccion"
             detalle.append({"salida": s, "tipo": sal["tipo"], "km": round(km, 2), "vuelo_min": round(vuelo, 1),
+                            "jornada_fecha": fecha_jornada,
                             "tareas": len(sal["tareas"]), "inicio": ini.isoformat(), "fin": fin.isoformat(),
                             "clima": aviso, "p_clima": None if p_clima is None else round(p_clima, 3),
                             "p_media": round(p_media, 4), "aristas_bloqueadas": len(bloq)})
@@ -707,6 +712,7 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
                                           "coordinates": [geoms[e]["coords"] for e in aristas if e in geoms]},
                              "properties": {"tecnica": cod, "dron": d + 1, "salida": s, "tipo": sal["tipo"],
                                             "km": round(km, 2), "vuelo_min": round(vuelo, 1),
+                                            "jornada_fecha": fecha_jornada,
                                             "tareas": len(sal["tareas"]), "inicio": ini.isoformat(),
                                             "fin": (ini + timedelta(minutes=vuelo)).isoformat(),
                                             "aristas": list(aristas),
@@ -721,6 +727,7 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
                                             "p_clima": None if p_clima is None else round(p_clima, 3),
                                             "aristas_bloqueadas": len(bloq)}})
             minutos += vuelo + (recarga if s < len(salidas) else 0)
+            disponible = fin + timedelta(minutes=recarga)
         drones.append({
             "dron": d + 1, "bases": bases_d, "tareas": len(ids_dron),
             "puntos": sum(tarea_por_id[i]["n_puntos"] for i in ids_dron),
@@ -729,15 +736,21 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
             "km_repetidos": round(repetido / 1000, 2),
             "repeticion_rho": round(repetido / dis, 3) if dis else 0.0,
             "salidas": n_insp, "traslados": len(salidas) - n_insp,
-            "tiempo_min": round(minutos, 1), "detalle_salidas": detalle,
+            "tiempo_min": round((fin-t0).total_seconds()/60, 1) if detalle else 0.0,
+            "tiempo_operativo_min": round(minutos, 1), "jornadas": len(fechas),
+            "inicio_programado": detalle[0]['inicio'] if detalle else None,
+            "fin_programado": detalle[-1]['fin'] if detalle else None,
+            "detalle_salidas": detalle,
         })
     activos = [x for x in drones if x["km_total"] > 0]
     Dis = sum(x["km_total"] for x in drones)
     L_insp = sum(x["km_inspeccion"] for x in drones)
     T = max((x["tiempo_min"] for x in drones), default=0.0)
     kms = [x["km_total"] for x in activos]
-    if T / 60 > prefs["jornada_h"]:
-        avisos.append(f"La inspección toma {T / 60:.1f} h y supera la jornada de {prefs['jornada_h']:g} h.")
+    fechas_plan = {s['jornada_fecha'] for d in drones for s in d['detalle_salidas']}
+    if len(fechas_plan) > 1:
+        avisos.append(f"La campaña ocupa {len(fechas_plan)} jornadas; T incluye las esperas nocturnas. "
+                      "Cada vuelo termina dentro de la ventana diaria configurada.")
     n_clima = sum(1 for x in drones for s in x["detalle_salidas"] if s["clima"] and "reprogramar" in s["clima"])
     if n_clima:
         avisos.append(f"{n_clima} salida(s) caen en horas con clima no apto para el Mavic 3E (A2): conviene "
@@ -746,6 +759,10 @@ def _evaluar_tecnica(cod, plan_t, etiquetas, tareas, tarea_por_id, fuera_set, ge
         avisos.append(f"Cruza {len(cruzadas)} calle(s) bloqueadas por amenazas activas.")
     resumen = {
         "tiempo_global_min": round(T, 1),
+        "tiempo_operativo_min": max((d['tiempo_operativo_min'] for d in drones), default=0.0),
+        "jornadas": len(fechas_plan),
+        "inicio_programado": min((d['inicio_programado'] for d in drones if d['inicio_programado']), default=None),
+        "fin_programado": max((d['fin_programado'] for d in drones if d['fin_programado']), default=None),
         "km_total_Dis": round(Dis, 2), "km_a_inspeccionar": round(L_insp, 2),
         "km_esperados": round(sum(x["km_esperados"] for x in drones), 2),
         "salidas": sum(x["salidas"] for x in drones),
@@ -777,6 +794,7 @@ METODOS = {
 def planificar_area(conn, area, entrada_prefs):
     prefs, por_defecto = preferencias.normalizar(
         entrada_prefs, preferencias.PREFERENCIAS_FLOTA, preferencias.LIMITES_FLOTA)
+    prefs.update(jornadas.politica(prefs))
     t0 = preferencias.hora_salida(prefs)
     avisos = []
 
@@ -803,6 +821,7 @@ def planificar_area(conn, area, entrada_prefs):
     if not prefs["considerar_clima"]:
         fuentes.discard("A2")
     modelo = simulacion.seleccionar_fuentes(simulacion.cargar(conn, t0, prefs["jornada_h"]), fuentes)
+    modelo_costos = {"id": modelo['id_modelo'], "t0": modelo['t0'], "t1": modelo['t1']}
     if "A3" in fuentes:
         avisos.extend(a for a in modelo["advertencias"] if a.startswith("SOSAFE:"))
     eventos_seleccionados = [e for e in modelo["eventos"] if e["fuente"] in fuentes]
@@ -933,11 +952,15 @@ def planificar_area(conn, area, entrada_prefs):
         detalle = {"minutos_modelo": round(info["minutos_modelo"], 1), "sectores": info["sectores"]}
         if cod == "T2":
             valor, cota = info.get("valor"), info.get("cota")
+            # Un solver sin cota finita (p. ej. límite muy corto) no ofrece una
+            # brecha certificable. Inf/NaN tampoco son JSON válidos para la API.
+            valor = valor if valor is not None and math.isfinite(valor) else None
+            cota = cota if cota is not None and math.isfinite(cota) else None
             detalle.update({
                 "solver": info.get("solver"), "estados": sorted(set(info.get("estados", []))),
                 "variables": info.get("variables"), "binarias": info.get("binarias"),
                 "restricciones": info.get("restricciones"),
-                "cota_inferior_min": round(cota, 1) if cota else None,
+                "cota_inferior_min": round(cota, 1) if cota is not None else None,
                 "gap": round((valor - cota) / valor, 4) if valor and cota is not None else None,
                 "limite_s": prefs["limite_milp_s"], "sectores_sin_milp": info.get("sectores_sin_milp", 0),
                 "nota": info.get("nota")})
@@ -957,6 +980,38 @@ def planificar_area(conn, area, entrada_prefs):
             "drones": drones_t, "rutas": {"type": "FeatureCollection", "features": rutas_t},
             "avisos": avisos_t,
         }
+
+    # P5/P7/P8 evalúan el calendario completo, sin declarar riesgo cero en
+    # jornadas posteriores. Los costos originales usan la primera jornada.
+    fines = [datetime.fromisoformat(t['resumen']['fin_programado']) for t in salida_tecnicas.values()
+             if t['resumen']['fin_programado']]
+    fin_campana = max(fines, default=t0)
+    horas_campana = max(prefs['jornada_h'], (fin_campana-t0).total_seconds()/3600)
+    if horas_campana > prefs['jornada_h'] + 1e-9:
+        modelo = simulacion.seleccionar_fuentes(simulacion.cargar(
+            conn, t0, horas_campana, configuracion=modelo['configuracion_escenarios']), fuentes)
+        eventos_seleccionados = modelo['eventos']
+        clima = simulacion.clima_para_plan(modelo) if 'A2' in fuentes else ({}, {})
+        for cod, tecnica in salida_tecnicas.items():
+            ds, rs, resumen, notas = _evaluar_tecnica(
+                cod, planes[cod], etiquetas, tareas, tarea_por_id, fuera_set, geoms,
+                prob_eval, bloqueadas, clima, prefs, capacidad, t0)
+            tecnica.update(drones=ds, rutas={'type':'FeatureCollection','features':rs},
+                           resumen=resumen, avisos=notas)
+        avisos.append('P5/P7/P8 abarcan la campaña completa; los costos de ruteo originales '
+                      'usan el riesgo de la jornada inicial. La revisión previa a salida actualiza la decisión operativa.')
+    for tecnica in salida_tecnicas.values():
+        sin_pronostico = 0
+        for f in tecnica['rutas']['features']:
+            p = f['properties']
+            p['clima_cubierto'] = simulacion.clima_cubierto(
+                modelo, datetime.fromisoformat(p['inicio']), datetime.fromisoformat(p['fin']))
+            sin_pronostico += not p['clima_cubierto']
+        if sin_pronostico:
+            tecnica['avisos'].append(f'{sin_pronostico} salida(s) sin pronóstico que cubra toda su duración; '
+                                      'requieren actualización antes de autorizarse. No se presume clima apto.')
+    campana = jornadas.resumen_campana(t0, fin_campana, prefs)
+    campana['horizonte_evaluacion_h'] = horas_campana
 
     # Capas comunes (iguales para todas las técnicas): calles, áreas y bases
     tareas_fc, areas_fc, bases_fc = [], [], []
@@ -1010,6 +1065,8 @@ def planificar_area(conn, area, entrada_prefs):
         "modelo_probabilidades": {"id": modelo["id_modelo"], "t0": modelo["t0"], "t1": modelo["t1"],
                                   "fuentes_seleccionadas": modelo["fuentes_seleccionadas"],
                                   "configuracion_escenarios": modelo["configuracion_escenarios"]},
+        "modelo_costos": modelo_costos,
+        "campana": campana,
         # Guardar únicamente grupos y bases: las matrices numpy se recalculan
         # para el escenario y no deben ocupar memoria por cada plan en caché.
         "_instancia_recuperacion": {"plan": [([], [], bs, [

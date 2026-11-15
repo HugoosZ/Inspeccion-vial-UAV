@@ -67,7 +67,7 @@
   details#prefs { font-size: 12.5px; border-top: 1px solid var(--borde); padding-top: 6px; }
   details#prefs summary { cursor: pointer; font-weight: 600; }
   .form-prefs { display: grid; grid-template-columns: 1fr auto; gap: 5px 8px; align-items: center; margin-top: 6px; }
-  .form-prefs input[type=number], .form-prefs select, .form-prefs input[type=datetime-local] {
+  .form-prefs input[type=number], .form-prefs select, .form-prefs input[type=datetime-local], .form-prefs input[type=time] {
     width: 120px; padding: 2px 4px; border: 1px solid var(--borde); border-radius: 5px;
     background: var(--panel); color: var(--texto); font: inherit; }
   .form-prefs .ancho { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 10px; }
@@ -550,7 +550,9 @@ const CAMPOS = [
   { id: "bases", etiqueta: "Bases", tipo: "select",
     opciones: [["distribuidas", "Una base por área (distribuidas)"], ["centralizada", "Una sola base para todos"]] },
   { id: "hora_salida", etiqueta: "Hora de inicio (vacío = ahora)", tipo: "datetime" },
-  { id: "jornada_h", etiqueta: "Jornada de vuelo (h)", tipo: "num", paso: 0.5 },
+  { id: "hora_inicio_jornada", etiqueta: "Inicio de jornada diaria", tipo: "time" },
+  { id: "jornada_h", etiqueta: "Duración de jornada diaria (h)", tipo: "num", paso: 0.5 },
+  { ayuda: "Los vuelos completos se programan dentro del horario diario; los que no caben continúan al día siguiente. La recarga puede completarse durante la noche." },
   { id: "categorias_base", etiqueta: "Recintos públicos para las bases (M2)", tipo: "lista",
     valores: () => ruteo.categoriasBase, nombres: () => NOMBRE_LUGAR },
   { grupo: "Qué inspeccionar" },
@@ -568,7 +570,7 @@ const CAMPOS = [
   { id: "velocidad_crucero_ms", etiqueta: "Velocidad de crucero (m/s)", tipo: "num", paso: 0.5 },
   { id: "autonomia_min", etiqueta: "Autonomía de la batería (min)", tipo: "num", paso: 1 },
   { id: "reserva_bateria_pct", etiqueta: "Reserva de batería (%)", tipo: "num", paso: 5 },
-  { id: "tiempo_recarga_min", etiqueta: "Cambio de batería entre salidas (min)", tipo: "num", paso: 1 },
+  { id: "tiempo_recarga_min", etiqueta: "Recarga entre salidas (min)", tipo: "num", paso: 1 },
 ];
 const NOMBRE_TECNICA = { T1: "T1 · pgr_dijkstra por distancia", T2: "T2 · Modelo MILP (Gurobi)",
                          T3: "T3 · pgr_dijkstra resiliente", T4: "T4 · Metaheurística DA-DPSO" };
@@ -585,10 +587,12 @@ function construirFormulario() {
   const f = document.getElementById("formPrefs");
   f.innerHTML = CAMPOS.map(c => {
     if (c.grupo) return `<div class="grupo">${c.grupo}</div>`;
+    if (c.ayuda) return `<p class="ayuda ancho">${c.ayuda}</p>`;
     if (c.tipo === "bool") return `<label for="p_${c.id}">${c.etiqueta}</label><input type="checkbox" id="p_${c.id}">`;
     if (c.tipo === "select") return `<label for="p_${c.id}">${c.etiqueta}</label><select id="p_${c.id}">${
       c.opciones.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}</select>`;
     if (c.tipo === "datetime") return `<label for="p_${c.id}">${c.etiqueta}</label><input type="datetime-local" id="p_${c.id}">`;
+    if (c.tipo === "time") return `<label for="p_${c.id}">${c.etiqueta}</label><input type="time" id="p_${c.id}" step="60">`;
     if (c.tipo === "tipos") return `<div class="grupo">${c.etiqueta}</div><div class="ancho">${
       ruteo.tipos.map(t => `<label><input type="checkbox" name="p_tipos" value="${t}">${NOMBRE_TIPO[t] || t}</label>`).join("")}</div>`;
     if (c.tipo === "lista") return `<div class="grupo">${c.etiqueta}</div><div class="ancho">${
@@ -634,7 +638,7 @@ function preferenciasUsuario() {
     } else if (c.tipo === "datetime") {
       const v = document.getElementById(`p_${c.id}`).value;
       if (v) p[c.id] = new Date(v).toISOString();          // hora local -> UTC
-    } else if (c.tipo === "select") {
+    } else if (c.tipo === "select" || c.tipo === "time") {
       const v = document.getElementById(`p_${c.id}`).value;
       if (v !== d[c.id]) p[c.id] = v;
     } else {
@@ -749,9 +753,12 @@ function limpiarTodo() {
 }
 
 const pct = v => v === null || v === undefined ? "—" : `${(v * 100).toFixed(1)} %`;
-const horas = min => { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${m} min` : `${m} min`; };
-const horaCorta = min => `${Math.floor(min / 60)}:${String(Math.round(min % 60)).padStart(2, "0")} h`;
+const horas = min => { const total = Math.max(0, Math.round(min)), h = Math.floor(total / 60), m = total % 60; return h ? `${h} h ${m} min` : `${m} min`; };
+const horaCorta = min => { const total = Math.max(0, Math.round(min)); return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")} h`; };
 const hora = iso => new Date(iso).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+const fechaProgramada = (iso, zona = "America/Santiago") => iso ? new Date(iso).toLocaleString("es-CL", {
+  timeZone: zona, day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+}) : "—";
 
 // Ícono de edificio para las bases: el dron despega desde un recinto público (M2)
 const SVG_EDIFICIO = `<svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 15V3l6-2 6 2v12h-4v-3H6v3H2zm2-9h2V4H4v2zm0 3h2V7H4v2zm6-3h2V4h-2v2zm0 3h2V7h-2v2zM7 6h2V4H7v2zm0 3h2V7H7v2z"/></svg>`;
@@ -878,6 +885,7 @@ function dibujarResultado(r) {
   actualizarProbabilidadesPlan();
   const capas = r.capas;
   const centralizada = r.preferencias.bases === "centralizada";
+  const zona = r.preferencias.zona_horaria || "America/Santiago";
 
   // Instancia común: áreas de cada dron, calles a inspeccionar y bases
   const instancia = L.featureGroup();
@@ -918,7 +926,8 @@ function dibujarResultado(r) {
       onEachFeature: (f, l) => l.bindPopup(popup({ nombre: `${c} · dron ${f.properties.dron} · ${
           f.properties.tipo === "traslado" ? "traslado entre bases" : `salida ${f.properties.salida}`}` }, {
         técnica: t.nombre, km: f.properties.km, vuelo_min: f.properties.vuelo_min, calles: f.properties.tareas,
-        inicio: hora(f.properties.inicio), "prob. de falla media": pctP(f.properties.p_media),
+        inicio: fechaProgramada(f.properties.inicio, zona), fin: fechaProgramada(f.properties.fin, zona),
+        "zona horaria": zona, "prob. de falla media": pctP(f.properties.p_media),
         "escenarios de clima no aptos": f.properties.p_clima == null ? "sin dato" : pctP(f.properties.p_clima),
         "calles bloqueadas cruzadas": f.properties.aristas_bloqueadas, clima: f.properties.clima || "sin aviso" })) })
       .addTo(mapa);
@@ -940,7 +949,7 @@ function dibujarResultado(r) {
     return `<tr>
       <td><label title="${escapar(t.metodo)}"><input type="checkbox" checked data-capa="tec_${c}">
         <span class="linea" style="border-top-color:${e.color}"></span>${c}</label></td>
-      <td>${horaCorta(m.tiempo_global_min)}</td><td>${m.km_total_Dis.toLocaleString("es-CL")}</td>
+      <td>${horaCorta(m.tiempo_global_min)}</td><td>${m.jornadas ?? "—"}</td><td>${m.km_total_Dis.toLocaleString("es-CL")}</td>
       <td>${m.km_esperados.toLocaleString("es-CL")}</td>
       <td>${m.aristas_bloqueadas}</td><td>${seg(t.tiempo_calculo_s)}</td></tr>`;
   }).join("");
@@ -948,7 +957,12 @@ function dibujarResultado(r) {
     const t = r.tecnicas[c], dt = t.detalle;
     const extra = {
       "costo de las calles": t.costo === "distancia" ? "largo (sin amenazas)" : "largo / (1 − p)",
-      "objetivo del modelo": `${dt.minutos_modelo} min (vuelo + cambios de batería, suma de sectores)`,
+      "objetivo del modelo": `${dt.minutos_modelo} min (vuelo + recargas, suma de sectores)`,
+      "tiempo calendario de la flota": `${horaCorta(t.resumen.tiempo_global_min)} (incluye espera nocturna)`,
+      "tiempo operativo del dron que más trabaja": t.resumen.tiempo_operativo_min == null ? "—" : horaCorta(t.resumen.tiempo_operativo_min),
+      "jornadas con vuelos": t.resumen.jornadas ?? "—",
+      "primer despegue": fechaProgramada(t.resumen.inicio_programado, zona),
+      "último aterrizaje": fechaProgramada(t.resumen.fin_programado, zona),
       "prob. de falla media por metro": pct2(t.resumen.p_media_km),
       "clima (A2)": t.resumen.p_clima_max == null ? "sin ensamble" :
         `hasta ${pct2(t.resumen.p_clima_max)} de escenarios no aptos · ${t.resumen.salidas_reprogramar} salida(s) a reprogramar`,
@@ -969,10 +983,16 @@ function dibujarResultado(r) {
       <table>${Object.entries(extra).map(([k, v]) => `<tr><td>${escapar(k)}</td><td>${escapar(v)}</td></tr>`).join("")}</table>
       ${dt.nota ? `<div class="aviso">${escapar(dt.nota)}</div>` : ""}
       ${t.avisos.map(a => `<div class="aviso">⚠ ${escapar(a)}</div>`).join("")}
-      <table class="tabla-drones"><tr><th>Dron</th><th>Calles</th><th>Km</th><th>Salidas</th><th>Tiempo</th><th>ρ</th></tr>
+      <div style="overflow-x:auto"><table class="tabla-drones"><tr><th>Dron</th><th>Calles</th><th>Km</th><th>Salidas</th><th title="Tiempo transcurrido, incluidas las noches">T calendario</th><th title="Vuelo y recargas, sin la espera nocturna adicional">T operativo</th><th>Jornadas</th><th>ρ</th></tr>
       ${t.drones.map(dr => `<tr><td>${dr.dron}</td><td>${fmt(dr.tareas)}</td><td>${dr.km_total.toLocaleString("es-CL")}</td>
         <td>${dr.salidas}${dr.traslados ? `+${dr.traslados}` : ""}</td><td>${horaCorta(dr.tiempo_min)}</td>
-        <td>${pct(dr.repeticion_rho)}</td></tr>`).join("")}</table></details>`;
+        <td>${dr.tiempo_operativo_min == null ? "—" : horaCorta(dr.tiempo_operativo_min)}</td><td>${dr.jornadas ?? "—"}</td>
+        <td>${pct(dr.repeticion_rho)}</td></tr>`).join("")}</table></div>
+      ${t.drones.map(dr => `<details class="dron"><summary>Calendario del dron ${dr.dron}</summary>
+        <p class="ayuda">${escapar(zona)} · ${fechaProgramada(dr.inicio_programado, zona)} → ${fechaProgramada(dr.fin_programado, zona)}</p>
+        <ol>${(dr.detalle_salidas || []).map(sal => `<li>Salida ${sal.salida} · ${sal.tipo === "traslado" ? "traslado entre bases" : "inspección"} ·
+          ${fechaProgramada(sal.inicio, zona)} → ${fechaProgramada(sal.fin, zona)} · ${sal.vuelo_min} min de vuelo</li>`).join("")}</ol>
+      </details>`).join("")}</details>`;
   }).join("");
   const vistos = new Set();
   const listaBases = `<div class="grupo">Bases (recintos públicos, M2)</div><ol class="bases">${
@@ -1000,12 +1020,15 @@ function dibujarResultado(r) {
     </table>
     <label class="ayuda"><input type="checkbox" checked data-capa="instancia"> Áreas, calles a inspeccionar y bases</label>
     <div style="overflow-x:auto"><table class="tabla-tec">
-      <tr><th>Técnica</th><th title="Tiempo de inspección global (el dron que más tarda)">T</th><th>Km</th>
+      <tr><th>Técnica</th><th title="Tiempo calendario hasta terminar: incluye recargas y espera entre jornadas">T calendario</th><th title="Fechas distintas con vuelos programados">Jornadas</th><th>Km</th>
         <th title="Km esperados: suma de largo / (1 − p) con A1/A3 seleccionadas">Km esp.</th>
         <th title="Calles bloqueadas por amenazas activas que la ruta cruza">Bloq.</th>
         <th title="Tiempo de cálculo de la técnica">Cálculo</th></tr>
       ${filasTec}
     </table></div>
+    <p class="ayuda">Horario diario: ${escapar(r.preferencias.hora_inicio_jornada || "08:00")} + ${r.preferencias.jornada_h} h,
+      ${escapar(zona)}. Los vuelos no se dividen entre dos jornadas.
+      T calendario incluye las noches; T operativo muestra vuelo y recargas sin esa espera adicional.</p>
     ${detalleTec}
     ${listaBases}
     ${capas.postergadas.features.length ? `<label class="ayuda"><input type="checkbox" checked data-capa="postergadas">

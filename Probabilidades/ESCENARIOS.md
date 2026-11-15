@@ -105,6 +105,45 @@ eventos y firma `id_modelo`. P5 del plan proyecta las mismas fuentes seleccionad
 que P7 (una fuente desactivada deja de contribuir al índice). Las tablas persistidas son la referencia del último
 pipeline; la capa P5 del sitio usa `plan_id` cuando hay un plan seleccionado.
 
+## Calendario de campaña por jornadas
+
+La planificación de la flota utiliza una ventana operativa fija por fecha
+local. Por defecto, `hora_inicio_jornada="08:00"`, `jornada_h=8` y
+`zona_horaria="America/Santiago"` definen **08:00–16:00 cada día**. Es un
+horario operativo supuesto; no calcula las horas astronómicas de amanecer y
+atardecer. `hora_salida` fija cuándo puede comenzar la campaña.
+
+Una salida completa, incluidos desplazamientos y retorno, debe caber en una
+ventana diaria. Si el tiempo restante del día no alcanza, la salida pasa
+íntegra a la siguiente ventana. La secuencia de tareas se conserva y no se
+repiten las ya programadas por comenzar otra jornada. Una salida más larga
+que la ventana diaria no es programable con esa configuración.
+
+Entre salidas de un mismo dron se esperan **75 minutos de recarga por
+defecto**, como supuesto del grupo. No se modelan cargadores, estado de carga
+ni varias baterías en paralelo. La recarga puede terminar durante la noche;
+no se vuelve a sumar otra pausa al abrir la siguiente jornada. No se agrega
+recarga después de la última salida.
+
+Se informa por separado el tiempo calendario, que incluye las esperas entre
+jornadas, y el tiempo operativo de vuelo más recargas. El número de jornadas
+es el de fechas locales distintas con vuelos, no la suma de días de cada dron.
+
+Los costos de las rutas originales se construyen con el modelo de amenazas
+de la jornada inicial. Una vez programadas las alternativas, la evaluación
+común de P5/P7/P8 abarca desde el inicio hasta la última llegada de todas las
+técnicas, como mínimo la jornada inicial. Ese horizonte y su configuración
+quedan congelados con el plan. Las noches forman parte del tiempo calendario,
+pero no se convierten en vuelos ni se aceptan salidas fuera de la ventana diaria.
+
+La recuperación aplica el mismo calendario y el plazo de la campaña original.
+Una salida recuperada posterior a ese plazo queda pendiente para esta
+comparación. No se reintentan automáticamente en otro día las salidas
+suspendidas por clima. Si falta pronóstico para un vuelo posterior, se avisa y
+no se cuenta como servicio confirmado por P8 mientras A2 esté habilitada;
+**sin pronóstico no significa clima apto**. Esta programación no incluye aún
+descargas automáticas ni consultas nuevas antes de cada salida.
+
 ## Sorteo y recuperación
 
 Un único sorteo por evento se comparte entre las cuatro técnicas y todos sus
@@ -116,7 +155,7 @@ Se conservan los eventos A1/A3 de toda la red para que un desvío fuera del
 recorrido original tampoco atraviese un peligro conocido. A4 se limita al
 área solicitada; A2 se selecciona por el área y recorridos de operación iniciales.
 
-La implementación es una **replanificación antes del despegue**: el escenario
+La simulación es una **replanificación antes del despegue**: el escenario
 se conoce completo para comparar planes alternativos. No modela detección
 en vuelo, posición instantánea ni batería restante en el momento del aviso.
 Las zonas A1/A3 se excluyen conservadoramente durante toda la jornada. Un
@@ -156,8 +195,9 @@ eventos simultáneos; intervalos distintos siguen siendo eventos independientes.
 El máximo es una aproximación conservadora y no una calibración conjunta del
 clima regional. Las salidas posteriores conservan su horario. Si no se ejecuta un
 traslado entre bases, las salidas dependientes no se cuentan como realizadas.
-No se programa automáticamente el día siguiente. El horizonte actual es una
-jornada de hasta 24 h; esto no implementa una campaña dinámica de cinco días.
+Las salidas se ubican en las ventanas diarias descritas arriba. La campaña
+inicial puede ocupar varios días, pero una suspensión A2 no activa por sí sola
+un reintento ni una actualización automática del pronóstico al día siguiente.
 
 ## Resiliencia y cumplimiento (punto 8)
 
@@ -168,7 +208,8 @@ inalcanzables, suspendidas o fuera de jornada:
 `R_recuperada = señales originales en salidas ejecutables del plan recuperado / señales originales requeridas`.
 
 Una salida debe tener camino completo, retorno a base, alcance dentro de la
-batería, horario dentro de la jornada y traslados previos ejecutables. No se
+batería, horario dentro de su ventana diaria y del plazo común de la campaña,
+cobertura meteorológica cuando A2 está habilitada y traslados previos ejecutables. No se
 cuentan señales dos veces. Se informa también:
 
 - `R_sin_recuperacion`: servicio que conserva el plan fijo bajo el mismo sorteo.

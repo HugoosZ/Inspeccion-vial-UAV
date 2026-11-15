@@ -110,7 +110,7 @@ def firma_red(conn):
         return cur.fetchone()[0]
 
 
-def cargar(conn, t0, horas):
+def cargar(conn, t0, horas, configuracion=None):
     """Construye los eventos y la red con los datos actuales de PostGIS.
 
     Usa el cálculo del punto 5 sobre toda la red para conservar sus radios y
@@ -127,7 +127,8 @@ def cargar(conn, t0, horas):
     modelo = _probabilidades()
     aristas_geom, nodos_coords, amenazas = modelo.cargar_desde_bd(conn)
     eventos = []
-    configuracion = modelo.cargar_configuracion()
+    configuracion = (modelo.cargar_configuracion() if configuracion is None else
+                     modelo.normalizar_configuracion(configuracion))
     marginales, t1, advertencias = modelo.calcular(
         aristas_geom, nodos_coords, amenazas, modelo.cargar_siniestros(), t0, horas,
         eventos=eventos, configuracion=configuracion)
@@ -162,7 +163,28 @@ def cargar(conn, t0, horas):
                            "nodos": {r["id"]: r for r in marginales["v"]}},
         "configuracion_escenarios": configuracion, "id_modelo": firma, "firma_red": huella_red,
         "advertencias": advertencias,
+        "cobertura_clima": sorted({(modelo.instante(a['props'].get('valido_desde')).timestamp(),
+                                    modelo.instante(a['props'].get('valido_hasta')).timestamp())
+                                   for a in amenazas if a['fuente'] == 'A2_clima'
+                                   and modelo.instante(a['props'].get('valido_desde')) is not None
+                                   and modelo.instante(a['props'].get('valido_hasta')) is not None}),
     }
+
+
+def clima_cubierto(modelo, inicio, fin):
+    """La falta de pronóstico para una fecha no equivale a tiempo apto."""
+    if 'A2' not in modelo.get('fuentes_seleccionadas', ('A2',)):
+        return True
+    cursor = inicio.timestamp() if isinstance(inicio, datetime) else float(inicio)
+    termino = fin.timestamp() if isinstance(fin, datetime) else float(fin)
+    for desde, hasta in sorted(modelo.get('cobertura_clima', ())):
+        if desde > cursor + 1e-6:
+            break
+        if hasta > cursor:
+            cursor = hasta
+        if cursor >= termino - 1e-6:
+            return True
+    return cursor >= termino - 1e-6
 
 
 def clima_para_plan(modelo):

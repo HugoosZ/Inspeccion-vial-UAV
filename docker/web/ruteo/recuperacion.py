@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 
-from . import datos, flota
+from . import datos, flota, jornadas, simulacion
 
 
 def epoch(iso):
@@ -122,7 +122,9 @@ def replanificar(conn, registro, modelo, eventos):
                       "suspendida_A2" if meteorologia else
                       "bloqueada" if set(p["aristas"]) & cierres else
                       "inviable" if not p["camino_completo"] or not p["retorno_base"] or metros > registro["capacidad_m"]+1e-6 else
-                      "fuera_jornada" if ini < t0 or fin > t1 else "ejecutable")
+                      "fuera_jornada" if ini < t0 or fin > t1 or not jornadas.contiene(
+                          datetime.fromisoformat(p['inicio']), datetime.fromisoformat(p['fin']), prefs) else
+                      "clima_sin_datos" if not simulacion.clima_cubierto(modelo, ini, fin) else "ejecutable")
             p["estado_recuperacion"] = estado
             p["tareas_A4"] = sorted(set(p["tarea_ids"]) & demanda)
             if estado == "ejecutable":

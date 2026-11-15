@@ -10,6 +10,7 @@ El módulo tiene dos modos:
 | Archivo | Contenido |
 |---|---|
 | `flota.py` | Planificación por área: tareas, partición entre drones, bases (instancia común) y ejecución de las técnicas T1–T4 |
+| `jornadas.py` | Calendario de vuelos completos dentro de una ventana operativa fija por día |
 | `tecnicas.py` | Técnicas de ruteo (punto 6): costo resiliente, regla constructiva + 2-opt (T1/T3), split óptimo, objetivo común |
 | `milp.py` | T2: modelo MILP de ruteo multi-salida, resuelto con Gurobi (licencia WLS) o HiGHS de respaldo |
 | `dpso.py` | T4: metaheurística DA-DPSO con búsqueda local y reinicios |
@@ -42,11 +43,11 @@ $$j^{*}=\arg\min_{j\in C}\sum_{i\in \text{área}} \ell_i\,\lVert p_i-c_j\rVert$$
    Dos drones no comparten recinto. El dron despega desde la calle más cercana al recinto (en el mapa, una línea punteada une el recinto con ese punto). Si un área es grande, se divide en sectores que quepan en el alcance de la batería; cada sector tiene su propio recinto (droneport distribuido) y el dron vuela de uno a otro al terminar un sector. Con `bases = centralizada` todos los drones salen de un solo recinto, para comparar. Si M2 no está cargado, la base queda en la calle más cercana a la mediana geométrica del área y el plan lo avisa.
 4. **Ruta de cada dron** (técnica T3; T1, T2 y T4 resuelven este mismo paso de otra forma, sección C):
    - costos entre la base y los extremos de sus tareas con **`pgr_dijkstraCostMatrix`**, usando el costo resiliente $c_e=\ell_e/(1-p_e)$ de la sección C.2 (calles bloqueadas fuera del grafo);
-   - salidas con la regla del tramo pendiente más cercano, entrando por el extremo más cercano de cada calle; antes de tomar una tarea se verifica que alcance la batería para inspeccionarla y volver a la base, y si no alcanza el dron vuelve, cambia batería y empieza otra salida;
+   - salidas con la regla del tramo pendiente más cercano, entrando por el extremo más cercano de cada calle; antes de tomar una tarea se verifica que alcance la batería para inspeccionarla y volver a la base, y si no alcanza el dron vuelve, espera la recarga y empieza otra salida;
    - mejora **2-opt** dentro de cada salida (invierte tramos de la secuencia si acortan los traslados);
    - trazado de cada traslado sobre las calles con **`pgr_dijkstra`** (consulta con pares origen–destino).
 5. **Equilibrio.** El ciclo partición–ruteo se repite hasta dos veces más, aumentando la carga de las áreas que resultaron más lentas, y se conserva el plan con menor $T$.
-6. **Tiempos y clima.** Cada salida dura $\text{km}/v$; entre salidas se suma el cambio de batería. Cada salida tiene hora de inicio y término, y se avisa si coincide con una celda de clima A2 vigente en esa franja (el clima decide **cuándo** volar cada salida, no se usa como bloqueo de calles).
+6. **Calendario y clima.** Cada salida dura $\text{km}/v$; entre salidas del mismo dron se suma la espera de recarga. El vuelo completo, incluidos sus desplazamientos y regreso, se ubica en la primera ventana diaria donde cabe. Si no cabe antes del cierre, pasa íntegro al día siguiente. Se conserva el orden de tareas y sectores, sin repetir inspecciones por comenzar otro día. Cada salida tiene fecha y hora; se evalúa el clima A2 sobre ese intervalo, sin buscar otra calle para esquivarlo.
 
 El alcance por salida es
 
@@ -55,17 +56,21 @@ $$C = v \cdot t_{\text{autonomía}} \cdot \left(1-\frac{\text{reserva}}{100}\rig
 con los valores por defecto para el **DJI Mavic 3E**, el mismo dron del punto 5:
 - **Autonomía:** DJI declara 45 min de vuelo, medidos a 32,4 km/h sin viento hasta agotar la batería, y 38 min en vuelo estacionario. Se usan 36 min, el valor de la propuesta del grupo, más conservador que ambos.
 - **Reserva y velocidad:** 20 % de reserva para retorno seguro, y 10 m/s de velocidad de crucero.
-- **Entre salidas:** se cambia la batería, en 15 min.
+- **Entre salidas:** se esperan 75 min de recarga, como supuesto elegido por el grupo. No se simulan estados de carga, cargadores ni inventarios de baterías de repuesto.
 
 Ver las [especificaciones oficiales del Mavic 3E](https://enterprise.dji.com/mavic-3-enterprise/specs).
 
-El alcance es una referencia de planificación, no la autonomía verificada de una misión. Los 10 m/s, la reserva y el cambio de batería son supuestos del proyecto, no valores garantizados por DJI. [Especificaciones oficiales del Mavic 3E](https://enterprise.dji.com/mavic-3-enterprise/specs).
+El alcance es una referencia de planificación, no la autonomía verificada de una misión. Los 10 m/s, la reserva y la pausa de recarga son supuestos del proyecto, no valores garantizados por DJI. [Especificaciones oficiales del Mavic 3E](https://enterprise.dji.com/mavic-3-enterprise/specs).
+
+El horario operativo es una ventana fija local: por defecto **08:00–16:00 en `America/Santiago`**. No es un cálculo astronómico de amanecer y atardecer. `hora_salida` es la fecha y hora desde la que se solicita planificar; si queda fuera de la ventana, el primer vuelo se desplaza a la próxima apertura. La recarga puede completarse durante la noche: el siguiente vuelo se programa cuando tanto el dron está disponible como la ventana está abierta, sin sumar una segunda pausa nocturna de recarga. Una salida que por sí sola dure más que la ventana diaria no puede programarse en ella.
 
 ### A.2 Indicadores (Zhong et al., 2023)
 
 | Indicador | Definición |
 |---|---|
-| Tiempo de inspección global $T$ | $\max_i T_i$: el dron que más tarda |
+| Tiempo calendario global $T$ | $\max_i T_i$: tiempo transcurrido hasta terminar el último dron, incluidas las recargas y las esperas entre jornadas |
+| Tiempo operativo | Vuelo y pausas de recarga entre salidas; excluye la espera nocturna adicional. Se informa por dron y como máximo de la flota |
+| Jornadas | Fechas locales distintas con vuelos programados; no es la suma de jornadas de todos los drones |
 | Kilometraje total $Dis$ | $\sum_i dis_i$ |
 | Eficiencia $\eta$ | km de calles a inspeccionar / $Dis$ |
 | Uso equilibrado $\beta$ | $\min_i dis_i / \max_i dis_i$ |
@@ -77,15 +82,17 @@ El alcance es una referencia de planificación, no la autonomía verificada de u
 |---|---|---|
 | `n_drones` | 3 | Drones de la flota (1 a 10) |
 | `bases` | `distribuidas` | `distribuidas` o `centralizada` |
-| `hora_salida` | ahora | Inicio de la jornada |
-| `jornada_h` | 8 | Horas de vuelo disponibles; se avisa si $T$ las supera |
+| `hora_salida` | ahora | Fecha y hora desde la que se solicita iniciar la campaña |
+| `hora_inicio_jornada` | `08:00` | Hora local de apertura diaria, formato `HH:MM` |
+| `zona_horaria` | `America/Santiago` | Zona IANA del calendario operativo |
+| `jornada_h` | 8 | Duración de la ventana operativa diaria; los vuelos completos deben caber dentro |
 | `tipos_senal` | PARE, Ceda el paso, Semáforo | Señaléticas M1 a inspeccionar |
 | `categorias_base` | Salud, educación, Carabineros, Bomberos | Recintos públicos (M2) donde se pueden instalar las bases |
 | `considerar_clima` | Sí | Avisos de salidas con mal tiempo (A2) |
 | `velocidad_crucero_ms` | 10 | Supuesto de velocidad de crucero (m/s) |
 | `autonomia_min` | 36 | Autonomía del DJI Mavic 3E usada en la planificación (min; DJI declara 45 a 32,4 km/h sin viento) |
-| `reserva_bateria_pct` | 30 | Batería que no se usa |
-| `tiempo_recarga_min` | 15 | Cambio de batería entre salidas |
+| `reserva_bateria_pct` | 20 | Batería que no se usa |
+| `tiempo_recarga_min` | 75 | Espera de recarga entre vuelos del mismo dron, sin pausa después del último |
 | `tecnicas` | T1, T2, T3, T4 | Técnicas de ruteo a ejecutar y comparar (sección C) |
 | `amenazas` | A1, A2, A3, A4 | Amenazas que bloquean calles o entran en el costo resiliente de T2–T4, y A2 en la evaluación por hora; vacía = sin amenazas |
 | `limite_milp_s` | 60 | Tiempo máximo de Gurobi (T2) para toda el área, repartido entre sectores según su número de calles |
@@ -103,9 +110,13 @@ POST /api/flota
 
 `area: null` planifica toda la comuna. La respuesta trae `resumen` (la instancia común), `capas` (GeoJSON de tareas, calles postergadas, áreas y bases, iguales para todas las técnicas), `tecnicas` (por técnica: nombre, tiempo de cálculo, indicadores, detalle del solver, drones con sus salidas y GeoJSON de rutas) y `avisos`.
 
+Los indicadores separan `tiempo_global_min`/`tiempo_min` de calendario y `tiempo_operativo_min`; también informan `jornadas`, `inicio_programado` y `fin_programado`. El detalle de cada salida contiene su fecha de inicio y fin. En la interfaz se pueden desplegar los calendarios por dron; una duración calendario de varias jornadas no representa vuelo nocturno continuo.
+
 ### A.5 Resultados de referencia (red de Maipú, 13/11/2026, técnica T3)
 
 Toda la comuna con los valores por defecto (Mavic 3E: 36 min, 20 % de reserva, 17,3 km por salida) y salida a las 08:00:
+
+Estas cifras históricas corresponden al modelo anterior, con pausas de 15 min y tiempos operativos continuos. No son resultados del calendario por jornadas ni del supuesto actual de 75 min de recarga; deben recalcularse para compararlos con una ejecución nueva.
 - 1.824 calles y 173 km a inspeccionar (señaléticas M1 PARE, Ceda el paso y semáforo).
 - 4 calles postergadas, dentro de la alerta SOSAFE crítica de ese día. Los cierres de TomTom ya no bloquean.
 
@@ -145,7 +156,7 @@ orientación mediante `z_a`; no contiene un `alpha` que restrinja la inversa.
 Se valida que la infraestructura no conserve sentidos restringidos de una
 carga antigua. Esto no verifica aún la orientación de observación de cada señal.
 
-En cada sector, el subproblema es: desde la base, recorrer todas las calles requeridas en salidas que empiezan y terminan en la base, sin que ninguna salida consuma más que la batería $B$, y con un cambio de batería de $\tau$ minutos entre salidas consecutivas. Es un problema de ruteo de arcos capacitado con múltiples viajes. Las cuatro técnicas se comparan con la misma función objetivo, el tiempo del dron en el sector:
+En cada sector, el subproblema es: desde la base, recorrer todas las calles requeridas en salidas que empiezan y terminan en la base, sin que ninguna salida consuma más que la batería $B$, y con una pausa de recarga de $\tau$ minutos entre salidas consecutivas. Es un problema de ruteo de arcos capacitado con múltiples viajes. Las cuatro técnicas se comparan con la misma función objetivo operativa, antes de ubicar las salidas en el calendario diario:
 
 $$Z=\frac{1}{60\,v}\sum_{\text{salidas}}\text{costo}+\tau\,(K-1)$$
 
@@ -226,6 +237,7 @@ Además de los de la sección A.2:
 | Indicador | Definición |
 |---|---|
 | Tiempo de cálculo | Lo que tarda la técnica, incluidas su matriz de costos y el trazado con `pgr_dijkstra`. T2 y T4 incluyen la matriz resiliente y la solución inicial de T3 |
+| Tiempo calendario / operativo | El primero incluye la espera entre ventanas diarias; el segundo conserva vuelo y recargas. El objetivo del ruteo no incluye como distancia una espera nocturna |
 | Km esperados | $\sum_{e\in\text{ruta}} \ell_e/(1-p_e)$, con A1/A3 seleccionadas |
 | $p$ media | Probabilidad media por metro recorrido, con A1/A3 seleccionadas |
 | Calles bloqueadas cruzadas | Calles con una amenaza activa que bloquea y que la ruta recorre |
@@ -253,6 +265,12 @@ con firma, horizonte y configuración; el sorteo devuelve la misma firma como
 `id_modelo`. La capa P5 usa `/api/probabilidades?plan_id=...` para mostrar esa
 instantánea, en lugar de la tabla del último pipeline. A3/A4 futuros son escenarios supuestos, no
 predicciones calibradas. El plan y su modelo se conservan hasta 30 minutos.
+
+Una campaña puede ocupar varias ventanas diarias. Los costos usados para construir las rutas originales se calculan con las amenazas de la jornada inicial de `jornada_h` horas. Después de programar las cuatro alternativas, P5/P7/P8 comparten un horizonte de evaluación hasta su última llegada, con un mínimo de la jornada inicial. La configuración se congela con el plan; el riesgo acumulado de la campaña no se confunde con el costo usado para construirla.
+
+El horizonte común contiene también las esperas nocturnas, pero solo los vuelos se validan contra las ventanas operativas. La recuperación utiliza el mismo calendario diario y el plazo común de la campaña original: una ruta recuperada que termine después de ese plazo no aporta servicio dentro de esta comparación. Las salidas suspendidas por clima no se reintentan automáticamente otro día.
+
+Si el pronóstico disponible no cubre un vuelo posterior, la ausencia de datos no se interpreta como buen tiempo. Se informa la falta de cobertura meteorológica y ese vuelo no aporta servicio confirmado en P8 mientras el clima esté habilitado. Esta programación por jornadas no descarga amenazas nuevas antes de cada salida; esa actualización corresponde a un paso operativo separado.
 
 La métrica del punto 8 es `R = señales originales atendidas / señales originales
 requeridas`, después de recalcular. Las tareas pendientes no desaparecen del
