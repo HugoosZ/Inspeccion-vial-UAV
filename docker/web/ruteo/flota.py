@@ -803,6 +803,8 @@ def planificar_area(conn, area, entrada_prefs):
     if not prefs["considerar_clima"]:
         fuentes.discard("A2")
     modelo = simulacion.seleccionar_fuentes(simulacion.cargar(conn, t0, prefs["jornada_h"]), fuentes)
+    if "A3" in fuentes:
+        avisos.extend(a for a in modelo["advertencias"] if a.startswith("SOSAFE:"))
     eventos_seleccionados = [e for e in modelo["eventos"] if e["fuente"] in fuentes]
     peligros = [e for e in eventos_seleccionados if e["determinista"] and e["fuente"] in ("A1", "A3")]
     bloqueadas = {a for e in peligros for a in e["aristas"]}

@@ -80,6 +80,32 @@ Además se guardan dos índices que no son probabilidades:
 - `riesgo_viento` $=\min\!\big(1,(\text{ráfaga}/28{,}8)^2\big)$, un índice de costo.
 - `contraste_visual` $=0{,}05^{\,d/V}$, la calidad de imagen esperada.
 
+### Filtro temporal de SOSAFE (A3)
+
+`Probabilidades/escenario.json` comparte esta política entre P5 y los planes
+P7/P8:
+
+| Campo | Defecto | Efecto |
+|---|---|---|
+| `a3_filtrar_tiempo` | `false` | `false` usa todos los reportes peligrosos cargados como escenario manual; `true` selecciona los vigentes a la hora de salida de la consulta |
+| `a3_vigencia_h` | `24` | Duración supuesta cuando el reporte no trae `valido_hasta` |
+| `a3_zona_horaria` | `America/Santiago` | Zona para interpretar fechas sin desplazamiento horario |
+
+Con el filtro activado, el inicio se obtiene de `valido_desde`, `fecha` o
+`created_at`, en ese orden; el fin es `valido_hasta` o inicio más la duración
+configurada. Se excluyen los reportes futuros, vencidos o sin fechas utilizables;
+las fechas faltantes o inválidas generan un aviso. La selección se hace
+respecto de `t0`, no del reloj del scrapeo. Las 24 horas son una hipótesis
+configurable, no la duración observada de un incidente.
+
+El modo por defecto permite reutilizar datos descargados manualmente y **no
+afirma vigencia real de todos los incidentes**. El filtro no borra el historial,
+no calibra tasas futuras y no actualiza SOSAFE automáticamente. Los eventos
+futuros sintéticos mantienen los supuestos existentes. Las alertas seleccionadas
+siguen excluyéndose toda la jornada como política conservadora. Un cambio del
+JSON se aplica a planes nuevos; las tablas persistidas requieren regenerar P5.
+Contrato completo: [ESCENARIOS.md](ESCENARIOS.md#vigencia-de-los-reportes-sosafe).
+
 ### Pronóstico por conjuntos (A2)
 
 `Amenazas/A2/extractor.py` descarga, para el centro de cada celda de la grilla 3 × 3, los escenarios horarios de la Ensemble API de Open-Meteo:

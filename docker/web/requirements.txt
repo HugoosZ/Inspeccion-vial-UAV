@@ -5,3 +5,4 @@ requests>=2.31.0
 numpy>=1.26
 scipy>=1.11
 gurobipy>=11.0
+tzdata

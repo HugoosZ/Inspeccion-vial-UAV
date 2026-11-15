@@ -10,7 +10,7 @@ una extensión de demanda, no como un enlace averiado.
 |---|---|---|
 | A1 incendios | Eventos activos y probabilidad histórica existente | Excluir zona y recalcular; tareas dentro de ella quedan pendientes |
 | A2 clima | Máximo regional de las fracciones de escenarios horarios no aptos; estado determinista si falta ensamble | Un único sorteo regional por intervalo suspende las salidas coincidentes, sin buscar otra calle para evadirlo |
-| A3 SOSAFE | Alertas peligrosas activas y escenarios futuros supuestos | Excluir zona y recalcular, igual que A1 |
+| A3 SOSAFE | Reportes peligrosos seleccionados por la política temporal y escenarios futuros supuestos | Excluir zona y recalcular, igual que A1 |
 | A4 TomTom | Accidentes activos y escenarios futuros supuestos | Añadir una inspección por arista asociada; se atiende primero al llegar a su base/sector |
 
 Los cierres y obras terrestres siguen como información. No se modela presencia
@@ -18,8 +18,51 @@ de personas como bloqueo A4. Esto no es una autorización de vuelo real.
 
 ## Probabilidades que se están suponiendo
 
+### Vigencia de los reportes SOSAFE
+
+La extracción de SOSAFE es manual y conserva los reportes acumulados. El filtro
+temporal se configura en `Probabilidades/escenario.json`, sin borrar ni volver a
+descargar ese historial:
+
+```json
+{
+  "a3_filtrar_tiempo": false,
+  "a3_vigencia_h": 24,
+  "a3_zona_horaria": "America/Santiago"
+}
+```
+
+- **`false` (valor por defecto):** todos los reportes peligrosos cargados se
+  consideran parte del escenario manual de la jornada, independientemente de
+  sus fechas. Esto permite repetir una demostración con un scrapeo guardado;
+  **no acredita que todos esos incidentes sigan activos en la realidad**.
+- **`true`:** solo se incluyen reportes vigentes al inicio de la consulta
+  (`t0`, la hora de salida elegida). Se utiliza `valido_desde`, o en su defecto
+  `fecha` o `created_at`. El fin es `valido_hasta` si existe; de lo contrario,
+  el inicio más `a3_vigencia_h`. Se excluyen los reportes futuros y los vencidos.
+  Los registros sin fecha utilizable o con fechas inválidas se descartan con
+  un aviso; no se interpretan como vigentes indefinidamente.
+
+Las fechas sin zona horaria se interpretan con `a3_zona_horaria`; las que ya
+incluyen un desplazamiento horario lo conservan. Las **24 horas son una
+duración supuesta y configurable**, no una medición del incidente ni un plazo
+certificado. La antigüedad se evalúa respecto de la hora del plan, no respecto
+del momento en que se descargó el archivo o se abrió la página.
+
+El filtro selecciona el escenario conocido antes de despegar. Una vez aceptada
+una alerta, su zona A3 se mantiene excluida toda la jornada, según la política
+conservadora de recuperación; el filtro no implementa una reapertura horaria.
+
+Conservar un historial permite una futura estimación de tasas, pero este
+filtro **no calibra automáticamente las probabilidades** a partir de los
+reportes acumulados. Los eventos futuros A3 sintéticos siguen utilizando las
+tasas explícitas de `escenario.json`. Los planes ya calculados conservan su
+instantánea de configuración: para aplicar un cambio hay que planificar de nuevo.
+
+### Tasas de los eventos futuros
+
 `escenario.json` es la fuente compartida por el generador del punto 5 y la
-simulación. **No hay historial para calibrar A3/A4**. Los valores iniciales
+simulación. **No hay un historial calibrado para estimar las tasas A3/A4**. Los valores iniciales
 sirven para experimentos, no son frecuencias observadas en Maipú:
 
 | Parámetro | Valor inicial | Interpretación |

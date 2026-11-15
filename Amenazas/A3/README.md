@@ -84,10 +84,47 @@ python3 classifier.py
 
 ---
 
-## 5. Tiempos de Respuesta y Dinámica en Tiempo Real
+## 5. Actualización manual y vigencia de los reportes
 
-* **Tiempo de respuesta de la API (HTTP):** Entre **0,8 y 1,5 segundos** por petición GET al endpoint de SOSAFE.
-* **Tiempo de inferencia del clasificador IA:** Entre **1,2 y 3,0 segundos** con Google Gemini Flash (o < 50 ms con el clasificador heurístico local).
-* **Frecuencia de actualización y frescura del dato en el mundo real:**
-  * **Tiempo Real Inmediato (*Crowdsourcing*):** Los reportes ciudadanos son transmitidos por los vecinos desde la app móvil en tiempo real. La latencia entre la ocurrencia del incidente en el barrio (ej. balacera o fuegos artificiales) y su disponibilidad en la API de SOSAFE es de **1 a 5 minutos**.
-* **Implicancia operacional UAV:** Es la fuente de mayor dinamismo táctico inmediato. Permite al sistema de ruteo emitir órdenes de aborto de misión o desvío en pleno vuelo si surge un conflicto armado o pirotecnia en el tramo programado.
+El extractor acumula reportes entre ejecuciones manuales. El historial se
+conserva para auditoría y posibles estudios posteriores; acumular un reporte
+no demuestra que el incidente siga activo.
+
+La selección temporal para el ruteo se configura en
+[`Probabilidades/escenario.json`](../../Probabilidades/escenario.json):
+
+```json
+{
+  "a3_filtrar_tiempo": false,
+  "a3_vigencia_h": 24,
+  "a3_zona_horaria": "America/Santiago"
+}
+```
+
+- **Filtro desactivado (`false`, por defecto):** todos los reportes peligrosos
+  cargados se incluyen como escenario manual, independientemente de su fecha.
+  Sirve para reutilizar un scrapeo guardado, sin afirmar que los incidentes
+  permanecen activos en la realidad.
+- **Filtro activado (`true`):** se incluyen solo los reportes vigentes a la
+  hora de salida `t0` de la consulta. El inicio se obtiene de `valido_desde`,
+  `fecha` o `created_at`; el fin es `valido_hasta` o inicio más
+  `a3_vigencia_h`. Se excluyen reportes futuros y vencidos. Los registros sin
+  fecha utilizable o con fechas inválidas se descartan con un aviso.
+
+Las fechas sin zona se interpretan en `a3_zona_horaria`; las fechas que traen
+desplazamiento horario lo conservan. Las **24 horas son un supuesto
+configurable**, no una duración medida ni certificada de una alerta. La
+referencia es la hora del plan, no la fecha del scrapeo ni el momento de abrir
+la página. Una alerta aceptada se mantiene como zona excluida toda la jornada
+según la política conservadora del piloto.
+
+El filtro no borra reportes ni estima probabilidades a partir del historial.
+Las tasas de futuros eventos A3 continúan siendo supuestos explícitos. Para
+aplicar cambios del JSON debe calcularse un plan nuevo; el plan existente
+conserva su instantánea. Si se cambian las fechas exportadas, hay que recargar
+las geocercas en la BD mediante `cargar.py` o el pipeline habitual.
+
+El piloto no consulta SOSAFE automáticamente antes de cada salida ni durante
+el vuelo. La simulación utiliza el escenario conocido antes del despegue y
+recalcula los recorridos con los datos cargados. Véase el
+[contrato de P5–P7–P8](../../Probabilidades/ESCENARIOS.md).

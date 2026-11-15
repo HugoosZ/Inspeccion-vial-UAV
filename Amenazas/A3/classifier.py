@@ -294,6 +294,10 @@ def export_geojson_geofences(classified_reports):
             "MEDIO": "#fcbf49",    # Amarillo
         }
         color = color_map.get(nivel, "#d90429")
+        # Conservar las fechas originales para el filtro opcional de P5/P7.
+        # La zona y la vigencia supuesta se aplican al consultar, no al scrapear.
+        fechas = {k: item[k] for k in ("fecha", "created_at", "valido_desde", "valido_hasta")
+                  if item.get(k) not in (None, "")}
 
         # 1. Marcador del punto de amenaza
         features.append({
@@ -303,6 +307,7 @@ def export_geojson_geofences(classified_reports):
                 "coordinates": [lon, lat]
             },
             "properties": {
+                **fechas,
                 "id": item["id"],
                 "tipo": item["tipo_original"],
                 "categoria": item["categoria"],
@@ -325,6 +330,7 @@ def export_geojson_geofences(classified_reports):
                     "coordinates": circle_poly
                 },
                 "properties": {
+                    **fechas,
                     "id": item["id"],
                     "geofence_id": f"nfz_{item['id']}",
                     "nivel_riesgo": nivel,
@@ -374,6 +380,8 @@ def export_active_threats_for_graph(amenazas_reales):
         factor_penalizacion = "INF" if accion == "BLOQUEAR_ARISTAS" else 10.0
 
         graph_threats.append({
+            **{k: item[k] for k in ("fecha", "created_at", "valido_desde", "valido_hasta")
+               if item.get(k) not in (None, "")},
             "id": item["id"],
             "uuid": item.get("uuid"),
             "categoria": item["categoria"],

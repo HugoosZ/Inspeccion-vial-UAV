@@ -34,6 +34,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 DIR = Path(__file__).resolve().parent
 RAIZ = DIR.parent
@@ -241,6 +242,39 @@ def vigente(props, t0, t1):
     return (desde is None or desde < t1) and (hasta is None or hasta > t0)
 
 
+def vigente_sosafe(props, t0, config):
+    """Selecciona reportes conocidos y vigentes al despegue; no borra historial.
+
+    Sin filtro se usa el catálogo completo como escenario manual. Con filtro,
+    la vigencia sin fecha de término es un supuesto configurable, no una
+    confirmación del proveedor. Devuelve también el motivo de fecha inválida.
+    """
+    if not config["a3_filtrar_tiempo"]:
+        return True, None
+
+    def fecha(valor):
+        t = datetime.fromisoformat(str(valor).replace("Z", "+00:00"))
+        return t if t.tzinfo else t.replace(tzinfo=ZoneInfo(config["a3_zona_horaria"]))
+
+    valor_inicio = next((props[k] for k in ("valido_desde", "fecha", "created_at")
+                         if props.get(k) not in (None, "")), None)
+    if valor_inicio is None:
+        return False, "sin fecha de inicio"
+    try:
+        desde = fecha(valor_inicio).astimezone(timezone.utc)
+        valor_fin = props.get("valido_hasta")
+        hasta = (fecha(valor_fin) if valor_fin not in (None, "") else
+                 desde + timedelta(hours=config["a3_vigencia_h"]))
+        # Comparar instantes UTC, también en cambios de hora de Santiago.
+        hasta = hasta.astimezone(timezone.utc)
+        inicio = t0 if t0.tzinfo else t0.replace(tzinfo=timezone.utc)
+        if hasta <= desde:
+            return False, "intervalo de vigencia inválido"
+        return desde <= inicio < hasta, None
+    except (ValueError, TypeError, OverflowError):
+        return False, "fecha inválida"
+
+
 # ------------------------------------------------------------------------------
 # Clima (A2)
 # ------------------------------------------------------------------------------
@@ -296,12 +330,35 @@ def p_clima(props):
 # ------------------------------------------------------------------------------
 # Cálculo: separar prohibición, incertidumbre y nueva demanda
 # ------------------------------------------------------------------------------
+def normalizar_configuracion(config):
+    """Valida la política A3 y conserva compatibilidad con configuraciones previas."""
+    if not isinstance(config, dict):
+        raise ValueError("escenario.json debe contener un objeto de configuración")
+    config = dict(config)
+    config.setdefault("a3_filtrar_tiempo", False)
+    config.setdefault("a3_vigencia_h", 24.0)
+    config.setdefault("a3_zona_horaria", "America/Santiago")
+    if not isinstance(config["a3_filtrar_tiempo"], bool):
+        raise ValueError("a3_filtrar_tiempo debe ser true o false")
+    vigencia = config["a3_vigencia_h"]
+    try:
+        if isinstance(vigencia, bool) or not math.isfinite(float(vigencia)) or float(vigencia) <= 0:
+            raise ValueError
+        config["a3_vigencia_h"] = float(vigencia)
+    except (ValueError, TypeError, OverflowError) as exc:
+        raise ValueError("a3_vigencia_h debe ser positiva y finita") from exc
+    try:
+        ZoneInfo(config["a3_zona_horaria"])
+    except (ZoneInfoNotFoundError, ValueError, TypeError) as exc:
+        raise ValueError("a3_zona_horaria debe ser una zona IANA válida; "
+                         "comprueba la zona y la disponibilidad del paquete tzdata") from exc
+    return config
+
+
 def cargar_configuracion():
     """Lee una instantánea de los supuestos A3/A4 compartidos por P5 y P7."""
     config = json.loads((DIR / "escenario.json").read_text(encoding="utf-8"))
-    if not isinstance(config, dict):
-        raise ValueError("escenario.json debe contener un objeto de configuración")
-    return config
+    return normalizar_configuracion(config)
 
 
 def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None, configuracion=None):
@@ -312,6 +369,7 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None, conf
     """
     if horas <= 0:
         raise ValueError("El horizonte debe ser positivo")
+    config = cargar_configuracion() if configuracion is None else normalizar_configuracion(configuracion)
     t1 = t0 + timedelta(hours=horas)
     muestras = {("e", i): muestrear(g) for i, g in aristas.items()}
     muestras.update({("v", i): [xy(*c)] for i, c in nodos.items()})
@@ -324,6 +382,12 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None, conf
     riesgo_viento = defaultdict(list)
     contraste_visual = defaultdict(list)
     clima_registros = []
+    if config["a3_filtrar_tiempo"]:
+        advertencias.add("SOSAFE: filtro temporal activo al despegue; vigencia sin término "
+                         f"supuesto de {config['a3_vigencia_h']:g} h, zona {config['a3_zona_horaria']} para fechas sin offset.")
+    else:
+        advertencias.add("SOSAFE: filtro temporal desactivado; se usan todos los reportes peligrosos "
+                         "como escenario manual, sin confirmar su vigencia real.")
 
     def registrar_evento(identificador, fuente, keys, motivo, p=None, desde=None, hasta=None):
         if eventos is None or not keys:
@@ -364,7 +428,13 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None, conf
             continue        # sin calibración, PI no multiplica la tasa de Poisson
         if fuente not in ("A1_incendios", "A2_clima", "A3_sosafe", "A4_tomtom"):
             continue
-        if not vigente(props, t0, t1):
+        if fuente == "A3_sosafe":
+            incluir, motivo_fecha = vigente_sosafe(props, t0, config)
+            if not incluir:
+                if motivo_fecha:
+                    advertencias.add("SOSAFE: se excluyeron reportes con " + motivo_fecha + ".")
+                continue
+        elif not vigente(props, t0, t1):
             continue
         radio = float(props.get("radio_afectacion_m") or 0)
         if fuente == "A3_sosafe" and a["geom"]["type"] == "Point":
@@ -450,7 +520,6 @@ def calcular(aristas, nodos, amenazas, siniestros, t0, horas, eventos=None, conf
 
     # Sin archivo histórico A3/A4: escenarios sintéticos explícitos, no tasas
     # inferidas del porcentaje de alertas de una captura instantánea.
-    config = cargar_configuracion() if configuracion is None else configuracion
     celdas = defaultdict(list)
     tam = float(config["celda_m"])
     if not math.isfinite(tam) or tam <= 0:
