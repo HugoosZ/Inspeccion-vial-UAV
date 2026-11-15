@@ -1,1 +1,87 @@
-[]
+[
+  {
+    "id": 12199455,
+    "uuid": "0ae0d06f-959a-5ca4-9085-e6acdad26ec5",
+    "categoria": "INCENDIO_COLUMNA_TERMICA",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.530311041188,
+    "longitud": -70.761391818523,
+    "coordenadas": [
+      -33.530311041188,
+      -70.761391818523
+    ],
+    "radio_buffer_metros": 500,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "Pasto quemándose con peligro",
+    "justificacion": "Incendio de pastizal activo genera corrientes térmicas ascendentes y humos densos que afectan la sustentación y sensores del dron."
+  },
+  {
+    "id": 12199452,
+    "uuid": "8642334e-d039-5ea1-b84c-3df12d7d995c",
+    "categoria": "INCENDIO_COLUMNA_TERMICA",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.535489725951,
+    "longitud": -70.768347121775,
+    "coordenadas": [
+      -33.535489725951,
+      -70.768347121775
+    ],
+    "radio_buffer_metros": 500,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "Están quemando neumáticos y cosas frente a la Goodyear",
+    "justificacion": "Quema de neumáticos genera fuego y humo denso tóxico, creando riesgo térmico severo y ceguera óptica para la aeronave."
+  },
+  {
+    "id": 12199136,
+    "uuid": "70341c76-2800-5a45-a017-4c0b1f938256",
+    "categoria": "OBSTACULO_CABLES_POSTES",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.518471732462,
+    "longitud": -70.778661745781,
+    "coordenadas": [
+      -33.518471732462,
+      -70.778661745781
+    ],
+    "radio_buffer_metros": 300,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "El día de hoy mi perrita se electrocuto con un poste de alumbrado público. Es el único que se encuentra apagado y se nota intervención de terceros. Ya fue avisado a la municipalidad, pero aviso para que tengan mucha precaución. El alumbrado se encuentra ubicado entre avenida portales con tres poniente, su numeración es 474. Mi perrita está bien!!",
+    "justificacion": "Problemas graves en poste de alumbrado eléctrico con riesgo de electrocución e infraestructura energizada expuesta a baja cota."
+  },
+  {
+    "id": 12199016,
+    "uuid": "40288df7-e5dd-5f61-bf83-838a89990946",
+    "categoria": "DISPAROS_BALACERA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.479829318926,
+    "longitud": -70.728877745569,
+    "coordenadas": [
+      -33.479829318926,
+      -70.728877745569
+    ],
+    "radio_buffer_metros": 400,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "fueron balazos lo que sonó hace un par de minutos?",
+    "justificacion": "Reporte de detonaciones de bala. Riesgo balístico crítico por proyectiles ascendentes que pueden impactar la estructura o rotores del dron."
+  },
+  {
+    "id": 12195341,
+    "uuid": "a2e3d2b7-11ea-58dd-89f5-94cf7de51f80",
+    "categoria": "OBSTACULO_CABLES_POSTES",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.511719718987,
+    "longitud": -70.746611505747,
+    "coordenadas": [
+      -33.511719718987,
+      -70.746611505747
+    ],
+    "radio_buffer_metros": 300,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "Robos de cables;\n¿El robo de cable está ocurriendo ahora?: Sí;\n¿Qué servicio fue interrumpido?: Luz;\n",
+    "justificacion": "Reporte de robo y corte de cables eléctricos. A 20 metros de altitud representa un riesgo fatal de colisión con el tendido dañado o desprendido."
+  }
+]

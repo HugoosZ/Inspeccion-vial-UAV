@@ -1,5 +1,881 @@
 {
   "type": "FeatureCollection",
   "name": "uav_threat_geofences_maipu",
-  "features": []
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.761391818523,
+          -33.530311041188
+        ]
+      },
+      "properties": {
+        "id": 12199455,
+        "tipo": "Emergencia de Bomberos",
+        "categoria": "INCENDIO_COLUMNA_TERMICA",
+        "nivel_riesgo": "ALTO",
+        "descripcion": "Pasto quemándose con peligro",
+        "justificacion": "Incendio de pastizal activo genera corrientes térmicas ascendentes y humos densos que afectan la sustentación y sensores del dron.",
+        "radio_buffer": 500,
+        "marker_color": "#f77f00",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.756004,
+              -33.530311
+            ],
+            [
+              -70.756107,
+              -33.529435
+            ],
+            [
+              -70.756414,
+              -33.528592
+            ],
+            [
+              -70.756912,
+              -33.527816
+            ],
+            [
+              -70.757582,
+              -33.527135
+            ],
+            [
+              -70.758398,
+              -33.526576
+            ],
+            [
+              -70.75933,
+              -33.526161
+            ],
+            [
+              -70.760341,
+              -33.525906
+            ],
+            [
+              -70.761392,
+              -33.525819
+            ],
+            [
+              -70.762443,
+              -33.525906
+            ],
+            [
+              -70.763454,
+              -33.526161
+            ],
+            [
+              -70.764385,
+              -33.526576
+            ],
+            [
+              -70.765202,
+              -33.527135
+            ],
+            [
+              -70.765872,
+              -33.527816
+            ],
+            [
+              -70.76637,
+              -33.528592
+            ],
+            [
+              -70.766676,
+              -33.529435
+            ],
+            [
+              -70.76678,
+              -33.530311
+            ],
+            [
+              -70.766676,
+              -33.531187
+            ],
+            [
+              -70.76637,
+              -33.53203
+            ],
+            [
+              -70.765872,
+              -33.532806
+            ],
+            [
+              -70.765202,
+              -33.533487
+            ],
+            [
+              -70.764385,
+              -33.534046
+            ],
+            [
+              -70.763454,
+              -33.534461
+            ],
+            [
+              -70.762443,
+              -33.534716
+            ],
+            [
+              -70.761392,
+              -33.534803
+            ],
+            [
+              -70.760341,
+              -33.534716
+            ],
+            [
+              -70.75933,
+              -33.534461
+            ],
+            [
+              -70.758398,
+              -33.534046
+            ],
+            [
+              -70.757582,
+              -33.533487
+            ],
+            [
+              -70.756912,
+              -33.532806
+            ],
+            [
+              -70.756414,
+              -33.53203
+            ],
+            [
+              -70.756107,
+              -33.531187
+            ],
+            [
+              -70.756004,
+              -33.530311
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": 12199455,
+        "geofence_id": "nfz_12199455",
+        "nivel_riesgo": "ALTO",
+        "categoria": "INCENDIO_COLUMNA_TERMICA",
+        "fillColor": "#f77f00",
+        "color": "#f77f00",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 500,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.768347121775,
+          -33.535489725951
+        ]
+      },
+      "properties": {
+        "id": 12199452,
+        "tipo": "Emergencia de Bomberos",
+        "categoria": "INCENDIO_COLUMNA_TERMICA",
+        "nivel_riesgo": "ALTO",
+        "descripcion": "Están quemando neumáticos y cosas frente a la Goodyear",
+        "justificacion": "Quema de neumáticos genera fuego y humo denso tóxico, creando riesgo térmico severo y ceguera óptica para la aeronave.",
+        "radio_buffer": 500,
+        "marker_color": "#f77f00",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.762959,
+              -33.53549
+            ],
+            [
+              -70.763062,
+              -33.534613
+            ],
+            [
+              -70.763369,
+              -33.533771
+            ],
+            [
+              -70.763867,
+              -33.532994
+            ],
+            [
+              -70.764537,
+              -33.532314
+            ],
+            [
+              -70.765353,
+              -33.531755
+            ],
+            [
+              -70.766285,
+              -33.53134
+            ],
+            [
+              -70.767296,
+              -33.531084
+            ],
+            [
+              -70.768347,
+              -33.530998
+            ],
+            [
+              -70.769398,
+              -33.531084
+            ],
+            [
+              -70.770409,
+              -33.53134
+            ],
+            [
+              -70.771341,
+              -33.531755
+            ],
+            [
+              -70.772157,
+              -33.532314
+            ],
+            [
+              -70.772828,
+              -33.532994
+            ],
+            [
+              -70.773325,
+              -33.533771
+            ],
+            [
+              -70.773632,
+              -33.534613
+            ],
+            [
+              -70.773736,
+              -33.53549
+            ],
+            [
+              -70.773632,
+              -33.536366
+            ],
+            [
+              -70.773325,
+              -33.537209
+            ],
+            [
+              -70.772828,
+              -33.537985
+            ],
+            [
+              -70.772157,
+              -33.538666
+            ],
+            [
+              -70.771341,
+              -33.539224
+            ],
+            [
+              -70.770409,
+              -33.539639
+            ],
+            [
+              -70.769398,
+              -33.539895
+            ],
+            [
+              -70.768347,
+              -33.539981
+            ],
+            [
+              -70.767296,
+              -33.539895
+            ],
+            [
+              -70.766285,
+              -33.539639
+            ],
+            [
+              -70.765353,
+              -33.539224
+            ],
+            [
+              -70.764537,
+              -33.538666
+            ],
+            [
+              -70.763867,
+              -33.537985
+            ],
+            [
+              -70.763369,
+              -33.537209
+            ],
+            [
+              -70.763062,
+              -33.536366
+            ],
+            [
+              -70.762959,
+              -33.53549
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": 12199452,
+        "geofence_id": "nfz_12199452",
+        "nivel_riesgo": "ALTO",
+        "categoria": "INCENDIO_COLUMNA_TERMICA",
+        "fillColor": "#f77f00",
+        "color": "#f77f00",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 500,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.778661745781,
+          -33.518471732462
+        ]
+      },
+      "properties": {
+        "id": 12199136,
+        "tipo": "Alumbrado público",
+        "categoria": "OBSTACULO_CABLES_POSTES",
+        "nivel_riesgo": "CRITICO",
+        "descripcion": "El día de hoy mi perrita se electrocuto con un poste de alumbrado público. Es el único que se encuentra apagado y se nota intervención de terceros. Ya fue avisado a la municipalidad, pero aviso para que tengan mucha precaución. El alumbrado se encuentra ubicado entre avenida portales con tres poniente, su numeración es 474. Mi perrita está bien!!",
+        "justificacion": "Problemas graves en poste de alumbrado eléctrico con riesgo de electrocución e infraestructura energizada expuesta a baja cota.",
+        "radio_buffer": 300,
+        "marker_color": "#d90429",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.775429,
+              -33.518472
+            ],
+            [
+              -70.775491,
+              -33.517946
+            ],
+            [
+              -70.775675,
+              -33.51744
+            ],
+            [
+              -70.775974,
+              -33.516975
+            ],
+            [
+              -70.776376,
+              -33.516566
+            ],
+            [
+              -70.776866,
+              -33.516231
+            ],
+            [
+              -70.777425,
+              -33.515982
+            ],
+            [
+              -70.778031,
+              -33.515829
+            ],
+            [
+              -70.778662,
+              -33.515777
+            ],
+            [
+              -70.779292,
+              -33.515829
+            ],
+            [
+              -70.779899,
+              -33.515982
+            ],
+            [
+              -70.780458,
+              -33.516231
+            ],
+            [
+              -70.780947,
+              -33.516566
+            ],
+            [
+              -70.781349,
+              -33.516975
+            ],
+            [
+              -70.781648,
+              -33.51744
+            ],
+            [
+              -70.781832,
+              -33.517946
+            ],
+            [
+              -70.781894,
+              -33.518472
+            ],
+            [
+              -70.781832,
+              -33.518997
+            ],
+            [
+              -70.781648,
+              -33.519503
+            ],
+            [
+              -70.781349,
+              -33.519969
+            ],
+            [
+              -70.780947,
+              -33.520377
+            ],
+            [
+              -70.780458,
+              -33.520712
+            ],
+            [
+              -70.779899,
+              -33.520962
+            ],
+            [
+              -70.779292,
+              -33.521115
+            ],
+            [
+              -70.778662,
+              -33.521167
+            ],
+            [
+              -70.778031,
+              -33.521115
+            ],
+            [
+              -70.777425,
+              -33.520962
+            ],
+            [
+              -70.776866,
+              -33.520712
+            ],
+            [
+              -70.776376,
+              -33.520377
+            ],
+            [
+              -70.775974,
+              -33.519969
+            ],
+            [
+              -70.775675,
+              -33.519503
+            ],
+            [
+              -70.775491,
+              -33.518997
+            ],
+            [
+              -70.775429,
+              -33.518472
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": 12199136,
+        "geofence_id": "nfz_12199136",
+        "nivel_riesgo": "CRITICO",
+        "categoria": "OBSTACULO_CABLES_POSTES",
+        "fillColor": "#d90429",
+        "color": "#d90429",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 300,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.728877745569,
+          -33.479829318926
+        ]
+      },
+      "properties": {
+        "id": 12199016,
+        "tipo": "Emergencia de Seguridad",
+        "categoria": "DISPAROS_BALACERA",
+        "nivel_riesgo": "CRITICO",
+        "descripcion": "fueron balazos lo que sonó hace un par de minutos?",
+        "justificacion": "Reporte de detonaciones de bala. Riesgo balístico crítico por proyectiles ascendentes que pueden impactar la estructura o rotores del dron.",
+        "radio_buffer": 400,
+        "marker_color": "#d90429",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.72457,
+              -33.479829
+            ],
+            [
+              -70.724652,
+              -33.479128
+            ],
+            [
+              -70.724898,
+              -33.478454
+            ],
+            [
+              -70.725296,
+              -33.477833
+            ],
+            [
+              -70.725832,
+              -33.477289
+            ],
+            [
+              -70.726484,
+              -33.476842
+            ],
+            [
+              -70.727229,
+              -33.47651
+            ],
+            [
+              -70.728037,
+              -33.476305
+            ],
+            [
+              -70.728878,
+              -33.476236
+            ],
+            [
+              -70.729718,
+              -33.476305
+            ],
+            [
+              -70.730526,
+              -33.47651
+            ],
+            [
+              -70.731271,
+              -33.476842
+            ],
+            [
+              -70.731924,
+              -33.477289
+            ],
+            [
+              -70.73246,
+              -33.477833
+            ],
+            [
+              -70.732858,
+              -33.478454
+            ],
+            [
+              -70.733103,
+              -33.479128
+            ],
+            [
+              -70.733186,
+              -33.479829
+            ],
+            [
+              -70.733103,
+              -33.48053
+            ],
+            [
+              -70.732858,
+              -33.481204
+            ],
+            [
+              -70.73246,
+              -33.481826
+            ],
+            [
+              -70.731924,
+              -33.48237
+            ],
+            [
+              -70.731271,
+              -33.482817
+            ],
+            [
+              -70.730526,
+              -33.483149
+            ],
+            [
+              -70.729718,
+              -33.483354
+            ],
+            [
+              -70.728878,
+              -33.483423
+            ],
+            [
+              -70.728037,
+              -33.483354
+            ],
+            [
+              -70.727229,
+              -33.483149
+            ],
+            [
+              -70.726484,
+              -33.482817
+            ],
+            [
+              -70.725832,
+              -33.48237
+            ],
+            [
+              -70.725296,
+              -33.481826
+            ],
+            [
+              -70.724898,
+              -33.481204
+            ],
+            [
+              -70.724652,
+              -33.48053
+            ],
+            [
+              -70.72457,
+              -33.479829
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": 12199016,
+        "geofence_id": "nfz_12199016",
+        "nivel_riesgo": "CRITICO",
+        "categoria": "DISPAROS_BALACERA",
+        "fillColor": "#d90429",
+        "color": "#d90429",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 400,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.746611505747,
+          -33.511719718987
+        ]
+      },
+      "properties": {
+        "id": 12195341,
+        "tipo": "",
+        "categoria": "OBSTACULO_CABLES_POSTES",
+        "nivel_riesgo": "CRITICO",
+        "descripcion": "Robos de cables;\n¿El robo de cable está ocurriendo ahora?: Sí;\n¿Qué servicio fue interrumpido?: Luz;\n",
+        "justificacion": "Reporte de robo y corte de cables eléctricos. A 20 metros de altitud representa un riesgo fatal de colisión con el tendido dañado o desprendido.",
+        "radio_buffer": 300,
+        "marker_color": "#d90429",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.743379,
+              -33.51172
+            ],
+            [
+              -70.743441,
+              -33.511194
+            ],
+            [
+              -70.743625,
+              -33.510688
+            ],
+            [
+              -70.743924,
+              -33.510222
+            ],
+            [
+              -70.744326,
+              -33.509814
+            ],
+            [
+              -70.744816,
+              -33.509479
+            ],
+            [
+              -70.745375,
+              -33.50923
+            ],
+            [
+              -70.745981,
+              -33.509077
+            ],
+            [
+              -70.746612,
+              -33.509025
+            ],
+            [
+              -70.747242,
+              -33.509077
+            ],
+            [
+              -70.747848,
+              -33.50923
+            ],
+            [
+              -70.748407,
+              -33.509479
+            ],
+            [
+              -70.748897,
+              -33.509814
+            ],
+            [
+              -70.749299,
+              -33.510222
+            ],
+            [
+              -70.749598,
+              -33.510688
+            ],
+            [
+              -70.749782,
+              -33.511194
+            ],
+            [
+              -70.749844,
+              -33.51172
+            ],
+            [
+              -70.749782,
+              -33.512245
+            ],
+            [
+              -70.749598,
+              -33.512751
+            ],
+            [
+              -70.749299,
+              -33.513217
+            ],
+            [
+              -70.748897,
+              -33.513625
+            ],
+            [
+              -70.748407,
+              -33.51396
+            ],
+            [
+              -70.747848,
+              -33.51421
+            ],
+            [
+              -70.747242,
+              -33.514363
+            ],
+            [
+              -70.746612,
+              -33.514415
+            ],
+            [
+              -70.745981,
+              -33.514363
+            ],
+            [
+              -70.745375,
+              -33.51421
+            ],
+            [
+              -70.744816,
+              -33.51396
+            ],
+            [
+              -70.744326,
+              -33.513625
+            ],
+            [
+              -70.743924,
+              -33.513217
+            ],
+            [
+              -70.743625,
+              -33.512751
+            ],
+            [
+              -70.743441,
+              -33.512245
+            ],
+            [
+              -70.743379,
+              -33.51172
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": 12195341,
+        "geofence_id": "nfz_12195341",
+        "nivel_riesgo": "CRITICO",
+        "categoria": "OBSTACULO_CABLES_POSTES",
+        "fillColor": "#d90429",
+        "color": "#d90429",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 300,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    }
+  ]
 }

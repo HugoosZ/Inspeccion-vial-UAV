@@ -1,212 +1,3817 @@
 {
-  "total_analizados": 12,
-  "total_amenazas_confirmadas": 0,
-  "total_ruido_descartado": 12,
-  "amenazas": [],
+  "total_analizados": 224,
+  "total_amenazas_confirmadas": 5,
+  "total_ruido_descartado": 219,
+  "amenazas": [
+    {
+      "id": 12199455,
+      "uuid": "0ae0d06f-959a-5ca4-9085-e6acdad26ec5",
+      "tipo_original": "Emergencia de Bomberos",
+      "descripcion": "Pasto quemándose con peligro",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.530311041188,
+        -70.761391818523
+      ],
+      "fecha": "2026-11-15 02:40:15",
+      "es_amenaza": true,
+      "nivel_riesgo": "ALTO",
+      "categoria": "INCENDIO_COLUMNA_TERMICA",
+      "radio_buffer_metros": 500,
+      "justificacion": "Incendio de pastizal activo genera corrientes térmicas ascendentes y humos densos que afectan la sustentación y sensores del dron."
+    },
+    {
+      "id": 12199452,
+      "uuid": "8642334e-d039-5ea1-b84c-3df12d7d995c",
+      "tipo_original": "Emergencia de Bomberos",
+      "descripcion": "Están quemando neumáticos y cosas frente a la Goodyear",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.535489725951,
+        -70.768347121775
+      ],
+      "fecha": "2026-11-15 02:39:49",
+      "es_amenaza": true,
+      "nivel_riesgo": "ALTO",
+      "categoria": "INCENDIO_COLUMNA_TERMICA",
+      "radio_buffer_metros": 500,
+      "justificacion": "Quema de neumáticos genera fuego y humo denso tóxico, creando riesgo térmico severo y ceguera óptica para la aeronave."
+    },
+    {
+      "id": 12199136,
+      "uuid": "70341c76-2800-5a45-a017-4c0b1f938256",
+      "tipo_original": "Alumbrado público",
+      "descripcion": "El día de hoy mi perrita se electrocuto con un poste de alumbrado público. Es el único que se encuentra apagado y se nota intervención de terceros. Ya fue avisado a la municipalidad, pero aviso para que tengan mucha precaución. El alumbrado se encuentra ubicado entre avenida portales con tres poniente, su numeración es 474. Mi perrita está bien!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.518471732462,
+        -70.778661745781
+      ],
+      "fecha": "2026-11-15 01:57:39",
+      "es_amenaza": true,
+      "nivel_riesgo": "CRITICO",
+      "categoria": "OBSTACULO_CABLES_POSTES",
+      "radio_buffer_metros": 300,
+      "justificacion": "Problemas graves en poste de alumbrado eléctrico con riesgo de electrocución e infraestructura energizada expuesta a baja cota."
+    },
+    {
+      "id": 12199016,
+      "uuid": "40288df7-e5dd-5f61-bf83-838a89990946",
+      "tipo_original": "Emergencia de Seguridad",
+      "descripcion": "fueron balazos lo que sonó hace un par de minutos?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.479829318926,
+        -70.728877745569
+      ],
+      "fecha": "2026-11-15 01:43:51",
+      "es_amenaza": true,
+      "nivel_riesgo": "CRITICO",
+      "categoria": "DISPAROS_BALACERA",
+      "radio_buffer_metros": 400,
+      "justificacion": "Reporte de detonaciones de bala. Riesgo balístico crítico por proyectiles ascendentes que pueden impactar la estructura o rotores del dron."
+    },
+    {
+      "id": 12195341,
+      "uuid": "a2e3d2b7-11ea-58dd-89f5-94cf7de51f80",
+      "tipo_original": "",
+      "descripcion": "Robos de cables;\n¿El robo de cable está ocurriendo ahora?: Sí;\n¿Qué servicio fue interrumpido?: Luz;\n",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.511719718987,
+        -70.746611505747
+      ],
+      "fecha": "2026-11-14 15:36:15",
+      "es_amenaza": true,
+      "nivel_riesgo": "CRITICO",
+      "categoria": "OBSTACULO_CABLES_POSTES",
+      "radio_buffer_metros": 300,
+      "justificacion": "Reporte de robo y corte de cables eléctricos. A 20 metros de altitud representa un riesgo fatal de colisión con el tendido dañado o desprendido."
+    }
+  ],
   "descartados": [
     {
-      "id": 12183273,
-      "uuid": "37d2dc9d-001e-5d2f-9673-2ae19abf03f1",
-      "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "Dos sujetos de 1.75 de altura aproximadamente andan por los pasajes de la Villa Pehuén 3 mirando las casas al ver las camaras de seguridad se tapan la cara, anda uno con una polera roja \nUno es joven  como de 19 años y el otro como de 45, abrieron la puerta del pasaje a la fuerza",
+      "id": 12199641,
+      "uuid": "ab1962cd-9254-5c2e-a738-f064e5d45e0c",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Ninfa cacatúa perdida, escapo como a las 5 de la tarde por el sector de primo de Rivera\nEs muy dócil y le gusta la compañía de los adultos, en especial de hombres, si alguien lo tiene por favor contactarme 973253276 Maipú",
       "location": "Maipú",
       "coordenadas": [
-        -33.522482617465,
-        -70.79817596823
+        -33.493478938739,
+        -70.732705257833
       ],
-      "fecha": "2026-11-12 20:43:22",
+      "fecha": "2026-11-15 03:05:15",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Reporte sobre mascota perdida sin impacto en la navegación del dron."
     },
     {
-      "id": 12183097,
-      "uuid": "bd136027-668f-5899-a79e-c139fda720be",
-      "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "En Borgoño en el 1814 se tomaron esa casa unos pasteros y están peleando y pegándole a una mujer hasta cuando hay que aguantar hay niños que pasan y viven cerca y esos hasta con pistola andan para sacar férianos son buenos pero para venir a ver a esos simios se hacen los hueones",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.510140686374,
-        -70.783040431494
-      ],
-      "fecha": "2026-11-12 20:17:49",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12183082,
-      "uuid": "8783c539-d722-5e7e-8eda-7487386af45b",
+      "id": 12199599,
+      "uuid": "5ecaa78a-fd3a-559f-bb88-aeb6151404c7",
       "tipo_original": "Disturbios",
-      "descripcion": "Gente tomando en la calle, hasta cuabdo",
+      "descripcion": "Personas tamando alcohol y orinando la vía pública",
       "location": "Maipú",
       "coordenadas": [
-        -33.49593996997,
-        -70.73777128011
+        -33.496535785122,
+        -70.767347663641
       ],
-      "fecha": "2026-11-12 20:15:35",
+      "fecha": "2026-11-15 02:59:30",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Incidente social menor sin riesgo cinético, térmico o de espacio aéreo para la aeronave."
     },
     {
-      "id": 12183024,
-      "uuid": "1dba3820-8353-5309-948a-a44c297d22d1",
+      "id": 12199587,
+      "uuid": "c1bd8ffe-5d49-553a-8f57-a32d237d7034",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "cuidado una moto azul con negro tipo ktm el tipo anda con una mochila azul oscuro tipo marino, la patente la tiene oculta posible motochorro cuidado ⚠️",
+      "descripcion": "Un tipo sospechoso estaba sentado frente a esta casa de Simon Bolívar, estaba vestido con polerón con capucha y short",
       "location": "Maipú",
       "coordenadas": [
-        -33.483613980611,
-        -70.746471360326
+        -33.481583527659,
+        -70.735764987767
       ],
-      "fecha": "2026-11-12 20:03:27",
+      "fecha": "2026-11-15 02:58:23",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Persona sospechosa en vía pública, sin representar amenaza física para el vuelo a baja cota."
     },
     {
-      "id": 12183004,
-      "uuid": "2c0c2537-0541-54e1-a9b6-0490e76ef37e",
-      "tipo_original": "Pavimento dañado",
-      "descripcion": "En el paso nivel de ferrocarril direccion hacia mall maipu, algun camion se le cayo escombro, cuidado al pasar esta peligroso",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.502455129906,
-        -70.737365595996
-      ],
-      "fecha": "2026-11-12 20:01:05",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12182973,
-      "uuid": "b44c6627-17e5-5c5b-a4e3-7c9bbeee8034",
-      "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "Grifo abierto",
-      "location": "Maipú",
-      "coordenadas": [
-        -33.518696021094,
-        -70.747594870627
-      ],
-      "fecha": "2026-11-12 19:56:55",
-      "es_amenaza": false,
-      "nivel_riesgo": "NINGUNO",
-      "categoria": "RUIDO_IRRELEVANTE",
-      "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
-    },
-    {
-      "id": 12182957,
-      "uuid": "dc625926-d531-57fc-9163-4a3afdef1ac2",
+      "id": 12199428,
+      "uuid": "462c680e-aa91-52e6-a7cf-fa82a99a7304",
       "tipo_original": "Disturbios",
-      "descripcion": "Grifo abierto!",
+      "descripcion": "Los mismos peruanos de siempre que viven por 4 álamos la frente del Gabriel  carretean y pelean no se aburren de meter ruido y haber disturbios",
       "location": "Maipú",
       "coordenadas": [
-        -33.518708484641,
-        -70.74984817579
+        -33.516410901748,
+        -70.748814940453
       ],
-      "fecha": "2026-11-12 19:54:22",
+      "fecha": "2026-11-15 02:37:45",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Riña y ruidos vecinales sin riesgo operacional para el vuelo."
     },
     {
-      "id": 12182717,
-      "uuid": "9248b202-fee9-5f34-a0a1-b0aefb6db67e",
+      "id": 12199317,
+      "uuid": "67542207-1c7d-5cce-b744-cb3c152a35ef",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "dos sujetos mirando casas y moviendo portones para entrar a robar, uno con polera amarilla  y el otro con polera roja caminan por pajaritos direccion a vespucio",
+      "descripcion": "Semáforo malo",
       "location": "Maipú",
       "coordenadas": [
-        -33.484363620199,
-        -70.747469889452
+        -33.553326564537,
+        -70.794655233622
       ],
-      "fecha": "2026-11-12 19:10:51",
+      "fecha": "2026-11-15 02:24:38",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "INFRAESTRUCTURA_VIAL_DANADA",
+      "radio_buffer_metros": 0,
+      "justificacion": "Semáforo malo. Se clasifica como infraestructura vial dañada, representando una oportunidad de inspección futura y no una amenaza en vuelo."
+    },
+    {
+      "id": 12199280,
+      "uuid": "32415a08-492a-5564-88cc-82c6c3fcfed8",
+      "tipo_original": "Ruidos molestos",
+      "descripcion": "bajenle a la música hijos de la gran perra",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.533159775407,
+        -70.781660266221
+      ],
+      "fecha": "2026-11-15 02:18:59",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Queja por música fuerte, sin afectación al espacio aéreo."
     },
     {
-      "id": 12182640,
-      "uuid": "3657eb4c-2b52-50a3-8c8b-896ef00893d6",
-      "tipo_original": "Disturbios",
-      "descripcion": "persona ahí en pleno conquistador llegando a rinconada tirando agua con el grifo abierto, para tirar agua y mojando autos y mojo a una persona en moto!!! como tanto",
+      "id": 12199269,
+      "uuid": "f5f359dc-101e-5746-b8bb-1a6a6c21687a",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Sigo en busca de mi gatita responde al nombre de ZUMI es muy dócil y amorosa tiene un añito! si alguien la vio por favor avisarnos o si la tienen ??? tiene manchas en su nariz y es tricolor",
       "location": "Maipú",
       "coordenadas": [
-        -33.513599407452,
-        -70.79706313727
+        -33.545753130027,
+        -70.777744483886
       ],
-      "fecha": "2026-11-12 18:54:53",
+      "fecha": "2026-11-15 02:17:18",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Aviso de mascota perdida, irrelevante para la seguridad operacional."
     },
     {
-      "id": 12182609,
-      "uuid": "54b15d1d-2c1a-520b-8cbc-20e00ea9be95",
+      "id": 12199227,
+      "uuid": "a7a9b3b2-3373-5303-b17a-ff75c12b7939",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "¡Ayuda! Tengo una emergencia de seguridad",
+      "descripcion": "Tres sujetos quebrando la pared para tirársela a la autopista a los pedazos de cemento",
       "location": "Maipú",
       "coordenadas": [
-        -33.50418872284,
-        -70.776783546489
+        -33.494097418517,
+        -70.758249945939
       ],
-      "fecha": "2026-11-12 18:49:10",
+      "fecha": "2026-11-15 02:10:52",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Vandalismo en infraestructura terrestre sin interferencia directa en la cota de vuelo de 20 metros."
     },
     {
-      "id": 12182076,
-      "uuid": "581b1aa5-edd1-5a7b-a1ce-ecb8422e0af2",
-      "tipo_original": "Pavimento dañado",
-      "descripcion": "Por favor hagan algún arreglo con los tremendos hoyos en la calle , lican Ray con av el rosal. \nCalle más utilizada para llegar al colegio Alicante.",
+      "id": 12199190,
+      "uuid": "e875ec33-7d86-5a04-a955-f870ef7c8162",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "🚨🚨🚨Dos tipos escondidos detrás de los arbustos a la altura del skatepark intentaron atacar a mi pareja que iba pasando por la ciclovía. \nPor suerte el alcanzo a reaccionar a tiempo y pedaleo muy rapido para arrancar de ellos.\nPero pueden calzar a cualquier persona que pase desprevenida! \n\nMUCHO OJOOIO!! 🚨🚨🚨🚨🚨",
       "location": "Maipú",
       "coordenadas": [
-        -33.492277337702,
-        -70.779805669478
+        -33.488563381102,
+        -70.77295436431
       ],
-      "fecha": "2026-11-12 16:55:50",
+      "fecha": "2026-11-15 02:06:48",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Intento de asalto a transeúnte, incidente delictual sin riesgo cinético o físico para el dron."
     },
     {
-      "id": 12181094,
-      "uuid": "95d1fd7d-818e-5d10-8114-2974e1bdcd62",
+      "id": 12199167,
+      "uuid": "49cd1bf2-6ca3-5eff-b10e-863128238f55",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Se extravió mi mascota, se llama León, si alguien lo ve favor comunicarse !!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.472557,
+        -70.7339026
+      ],
+      "fecha": "2026-11-15 02:03:13",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota extraviada, sin impacto operacional."
+    },
+    {
+      "id": 12199146,
+      "uuid": "09995c72-1495-5a38-a5b2-0143a27019d7",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.50784515031,
+        -70.783874094486
+      ],
+      "fecha": "2026-11-15 01:59:21",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte vacío sin información técnica utilizable."
+    },
+    {
+      "id": 12199102,
+      "uuid": "e267ee3d-4fcf-566e-92b4-4c0d31011805",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "ENCONTRAMOS A ALGODÓN, MUCHAS GRACIAS A TODOS LOS QUE AYUDARON. Estamos muy felices y gracias al vecino que lo recibió en su casa 😭❤️‍🩹",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.557200492552,
+        -70.79623606056
+      ],
+      "fecha": "2026-11-15 01:54:49",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota encontrada, sin impacto en la misión."
+    },
+    {
+      "id": 12199087,
+      "uuid": "43fd1609-ec0c-500b-865e-6fb57c0859f5",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "que paso, tantas sirenas???",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.539292354297,
+        -70.7753463462
+      ],
+      "fecha": "2026-11-15 01:52:57",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta vecinal sobre sirenas, sin confirmación de incidente aeronáutico o amenaza."
+    },
+    {
+      "id": 12198967,
+      "uuid": "f8330d55-71e5-5d14-9c20-7c4c41f74e28",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Se busca a Luna",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.528274696259,
+        -70.767983011901
+      ],
+      "fecha": "2026-11-15 01:37:14",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida, sin relevancia operacional."
+    },
+    {
+      "id": 12198853,
+      "uuid": "1ffc2e45-8795-5a5a-9c68-e4c4e2997b32",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "ES DE ALGUIEN?? anda por aca caminando casi lo atropellan",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.493311176736,
+        -70.783300772309
+      ],
+      "fecha": "2026-11-15 01:20:47",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota en la vía pública, sin riesgo para el vuelo en crucero a 20 metros."
+    },
+    {
+      "id": 12198851,
+      "uuid": "bf592589-0536-534a-9f86-7484cbea0d1b",
+      "tipo_original": "Buena acción",
+      "descripcion": "QUIEN SABE DE ALGUIEN QUE ARREGLE TELES QUEMADAS ?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.519905502645,
+        -70.796282663941
+      ],
+      "fecha": "2026-11-15 01:20:31",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Servicio técnico informal, ruido comercial."
+    },
+    {
+      "id": 12198845,
+      "uuid": "c4fabb3d-00f1-59ee-ba41-2c3130e45d2f",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "TENGO CROPS BRASILEÑOS A LA VENTA! A 15.000C/U\nEspecial para los días con calor después de la lluvia jejeje🔥🇧🇷delivery gratis",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.54080000108,
+        -70.771612711251
+      ],
+      "fecha": "2026-11-15 01:20:17",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Comercio vecinal de alimentos, sin impacto en el espacio aéreo."
+    },
+    {
+      "id": 12198842,
+      "uuid": "ae2f5f15-c15e-5df5-a49e-ab5f0088be19",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Se encontró carnet de identidad, \nLa persona que se le perdió hablar nomás está guardado",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.519236055159,
+        -70.791043974459
+      ],
+      "fecha": "2026-11-15 01:19:46",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de documentos encontrados."
+    },
+    {
+      "id": 12198830,
+      "uuid": "7e2508af-222b-55bc-9501-549cd1c2cf60",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¿Alguien ha visto un estuche rojo con unas llaves dentro?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.533897865372,
+        -70.772107578814
+      ],
+      "fecha": "2026-11-15 01:18:39",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Objeto perdido, sin impacto operacional."
+    },
+    {
+      "id": 12198815,
+      "uuid": "dfadbc99-0293-5bbb-8e6d-536be247aca3",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrito en doctor livingstone",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.474227526014,
+        -70.737437009811
+      ],
+      "fecha": "2026-11-15 01:16:47",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Perrito en la vía pública."
+    },
+    {
+      "id": 12198789,
+      "uuid": "ba264d15-8a0c-5173-9ef5-109f6a8d8fd3",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "2 perritos parecen perdidos lonquen con puerta del sol",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.561651453477,
+        -70.761635899544
+      ],
+      "fecha": "2026-11-15 01:14:50",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascotas perdidas."
+    },
+    {
+      "id": 12198783,
+      "uuid": "3f135099-4a7a-5289-9015-611d80549708",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Buenas noches, ¿alguna farmacia por el sector abierta a esta hora?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.521482806656,
+        -70.794247202575
+      ],
+      "fecha": "2026-11-15 01:13:35",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre farmacias de turno."
+    },
+    {
+      "id": 12198750,
+      "uuid": "ce052553-515a-5f8d-be30-fb0224fd7384",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Ramos coreanos desde $3.000\n Cualquier tipo de flor",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.560186637413,
+        -70.782019682229
+      ],
+      "fecha": "2026-11-15 01:10:08",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Comercio local de flores."
+    },
+    {
+      "id": 12198668,
+      "uuid": "0e4abb22-deda-55bd-8669-b24ca1bbc333",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Se busca a Luna",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.493175848483,
+        -70.780288316309
+      ],
+      "fecha": "2026-11-15 00:58:03",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida."
+    },
+    {
+      "id": 12198655,
+      "uuid": "1cb786a5-f9f1-55a8-a4bf-c7c77a2d8ad9",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "SE BUSCA A LUNA",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.529264367002,
+        -70.766997300088
+      ],
+      "fecha": "2026-11-15 00:56:45",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida."
+    },
+    {
+      "id": 12198652,
+      "uuid": "69a2bd25-2878-5d53-9d2f-057b74da90bc",
       "tipo_original": "Emergencia de Seguridad",
-      "descripcion": "se formo un panal de abejas fuera de mi casa ya llame al sag y dicen q ellos no pueden hacer nada q me comunique con apicultores de la camuna algun dato sobre ellos?",
+      "descripcion": "Persona sospechosa paseando perro, ya ha pasado como 4 veces fuera de casa",
       "location": "Maipú",
       "coordenadas": [
-        -33.50674704475,
-        -70.741145163774
+        -33.475641781485,
+        -70.734364539385
       ],
-      "fecha": "2026-11-12 13:12:27",
+      "fecha": "2026-11-15 00:56:12",
       "es_amenaza": false,
       "nivel_riesgo": "NINGUNO",
       "categoria": "RUIDO_IRRELEVANTE",
       "radio_buffer_metros": 0,
-      "justificacion": "Incidencia sin impacto cinético, térmico o de espacio aéreo para el dron."
+      "justificacion": "Actividad sospechosa leve, sin interferencia con el dron."
+    },
+    {
+      "id": 12198638,
+      "uuid": "84543d8d-333a-5ce5-8524-e1f2c87099d4",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Andaba hombre en situación de calle con un perro amarrado de una correa, no se veía que le hiciera daño ni nada, pero era un perro bastante bien cuidado, quiza es de alguien. El perro era negro mediano-grande, y peludo.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.489957719704,
+        -70.752992857033
+      ],
+      "fecha": "2026-11-15 00:54:53",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Persona en situación de calle con mascota."
+    },
+    {
+      "id": 12198607,
+      "uuid": "e71f6f83-0997-5a7d-b99c-ab044b4ac1e2",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Mini donas a 2.000 🍩🤤",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.521025243312,
+        -70.793961547315
+      ],
+      "fecha": "2026-11-15 00:50:55",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de alimentos."
+    },
+    {
+      "id": 12198534,
+      "uuid": "a8dca561-3b41-59c2-bdb3-a3c907593229",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "perro de color café claro, grande de pelo corto, ojos medio claros y con collar azul perdido, paso al patagonia 2 recién",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.560407378164,
+        -70.778278037217
+      ],
+      "fecha": "2026-11-15 00:41:48",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota extraviada."
+    },
+    {
+      "id": 12198455,
+      "uuid": "4216e493-34af-5bfc-9b71-3664793c9e89",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Venta de Italianos, dinámicos, papas fritas, en la cancha de Guayaquil con Ohiggins 🥰 hacemos deeely",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.505088118532,
+        -70.7729588449
+      ],
+      "fecha": "2026-11-15 00:30:57",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Comercio de comida rápida."
+    },
+    {
+      "id": 12198435,
+      "uuid": "d252f89d-f310-5187-915c-1b538dd10ba8",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola, me encontré este peluche de unicornio en El rosal con Yerbas buenas a las 20:45 aprox, estaba en el paso peatonal, si es de alguien de aquí escríbame, por favor difundir para lograr encontrar a su dueña 🙏🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.485560217789,
+        -70.769164189696
+      ],
+      "fecha": "2026-11-15 00:28:13",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Objeto perdido en vía pública."
+    },
+    {
+      "id": 12198422,
+      "uuid": "5464ce32-dc7b-5f1e-bb7e-b83e1a3d44fa",
+      "tipo_original": "Ruidos molestos",
+      "descripcion": "Alguien sabe porque tanta bulla??",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.504743413493,
+        -70.745745152235
+      ],
+      "fecha": "2026-11-15 00:26:49",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Ruido vecinal general."
+    },
+    {
+      "id": 12198419,
+      "uuid": "5f96ec55-8de3-5d49-a132-cc4626510ae3",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Vecino. Alguien que arriende pieza. Por fin de semana por la zona? Algún dato? Es para visitar familiares.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.481165183003,
+        -70.734892264009
+      ],
+      "fecha": "2026-11-15 00:26:28",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Arriendo de piezas."
+    },
+    {
+      "id": 12198399,
+      "uuid": "b2e0b766-45bc-52cf-a0dc-0643444b5514",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Encontramos a este perrito en Camino Los Talaveras, se ve que es viejito y probablemente era de casa. Busca a sus dueños o un hogar temporal urgente ??",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.554489037951,
+        -70.78549571194
+      ],
+      "fecha": "2026-11-15 00:24:36",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota encontrada."
+    },
+    {
+      "id": 12198303,
+      "uuid": "9075b5d0-09ca-52c3-8410-6c4ee045d0c8",
+      "tipo_original": "Emergencia de Seguridad",
+      "descripcion": "Que fue lo que sucedió?? Por qué tantas sirenas?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.479409567555,
+        -70.743087753654
+      ],
+      "fecha": "2026-11-15 00:14:25",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Pregunta comunitaria sobre sirenas sin confirmación de riesgo."
+    },
+    {
+      "id": 12198288,
+      "uuid": "7a109a44-7b49-536e-bc4d-d5ae1274b1a7",
+      "tipo_original": "Emergencia de Seguridad",
+      "descripcion": "Choque",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.480389450332,
+        -70.742943249643
+      ],
+      "fecha": "2026-11-15 00:12:09",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "INFRAESTRUCTURA_VIAL_DANADA",
+      "radio_buffer_metros": 0,
+      "justificacion": "Choque vehicular en calzada. Se clasifica como infraestructura vial dañada/incidente terrestre, sin aeronaves de emergencia operando activamente ni riesgo directo para el dron en crucero."
+    },
+    {
+      "id": 12198230,
+      "uuid": "c5acc7b1-fdd6-5e9d-9468-e5dee295da85",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "185/65 R15 aro 15 de 4 pernos\nEn venta 20.000",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.515940173642,
+        -70.788890831172
+      ],
+      "fecha": "2026-11-15 00:04:10",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comercial de venta de neumáticos. Sin impacto operativo ni riesgo para el vuelo del dron."
+    },
+    {
+      "id": 12198221,
+      "uuid": "c96bfbb0-d91f-5328-bc80-092d894889cf",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "YA SE LA SABEN VECIS! \nlos mejores moji tos de litro de la villa! \ncon las 3B\ndiversos sabores! \natiendo full hoy! \n\nabajo donde pedir…\n\nA 6.000\ny dos por 10.000\nen toda nuestra variedad de sabores.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.55097826025,
+        -70.762730434559
+      ],
+      "fecha": "2026-11-15 00:02:35",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad de venta de bebestibles y comida. No representa riesgo cinético, térmico ni de espacio aéreo."
+    },
+    {
+      "id": 12198195,
+      "uuid": "0b825605-b664-5c28-b649-a28b14dad71a",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Que pasa con la alarma que no para de sonar?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.552906610803,
+        -70.801114663482
+      ],
+      "fecha": "2026-11-14 23:58:35",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre alarma vecinal sonando. Corresponde a ruido vecinal sin afectación a la navegación a baja cota."
+    },
+    {
+      "id": 12198141,
+      "uuid": "c0670b8b-ef8b-515d-a92a-9606ec608ceb",
+      "tipo_original": "Vehículo mal estacionado",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.497616965263,
+        -70.754725858569
+      ],
+      "fecha": "2026-11-14 23:50:33",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Vehículo mal estacionado. No afecta la trayectoria de vuelo del dron a 20 metros de altitud."
+    },
+    {
+      "id": 12198100,
+      "uuid": "5969fbe0-c3fc-58b6-af11-93ba2596d10f",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Suv blanca dejó una mochila al lado de la cancha y se fué",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.529490192571,
+        -70.769810602069
+      ],
+      "fecha": "2026-11-14 23:45:43",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de objeto abandonado (mochila). Sin riesgo cinético, eléctrico o térmico directo para la aeronave."
+    },
+    {
+      "id": 12198080,
+      "uuid": "e9d2e8b2-87b2-5a4f-99f5-fe166e18318d",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Sigo buscando a mi Beilly!! Por favor no sabemos como estará su salud,si lo tienes devolver comunícate conmigo o dejarlo en una veterinaria,mi BEILLY debe tener sus controles médicos o se enfermara peor 991222105",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.489830601047,
+        -70.766613744199
+      ],
+      "fecha": "2026-11-14 23:43:10",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comunitario por mascota perdida. No interfiere con las operaciones de inspección vial."
+    },
+    {
+      "id": 12198028,
+      "uuid": "909fdeb2-9fe5-5242-ae28-eb18104681fa",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrita desorientada dando vueltas",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.528856034866,
+        -70.766157768667
+      ],
+      "fecha": "2026-11-14 23:35:38",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de mascota perdida (perrita desorientada). Irrelevante para la seguridad operacional del dron."
+    },
+    {
+      "id": 12197987,
+      "uuid": "f2439459-10c7-51c8-ab4f-79307aa1e4fc",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Vi este gatito por los cancilleres no se si sea de alguien",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.485665078464,
+        -70.734101682901
+      ],
+      "fecha": "2026-11-14 23:29:38",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota perdida. Sin implicancias para el vuelo a baja cota."
+    },
+    {
+      "id": 12197956,
+      "uuid": "423e8841-63d7-5a87-a78e-17a81dba20e0",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "AYUDENOS A BUSCAR A LUNA. PERRITA MEDIANA FLAQUITA.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.547505147645,
+        -70.786098316312
+      ],
+      "fecha": "2026-11-14 23:25:01",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comunitario por búsqueda de mascota. No constituye amenaza operativa."
+    },
+    {
+      "id": 12197936,
+      "uuid": "e33dfc66-4c3c-5154-9e2c-83d4566c20cf",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrito perdido si es de alguien porfavor comunicarse por este medio",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.498036348805,
+        -70.774832703173
+      ],
+      "fecha": "2026-11-14 23:21:22",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de mascota perdida. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12197891,
+      "uuid": "306dbc20-41c0-5f15-adbd-a3ce8694eef8",
+      "tipo_original": "Emergencia de Seguridad",
+      "descripcion": "4 adolecentes se metieron a la escuela de lenguaje de Esdras con calle labrador",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.55179398898,
+        -70.76929461211
+      ],
+      "fecha": "2026-11-14 23:16:18",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Incidente de seguridad menor (personas ingresando a un recinto). No representa peligro cinético o estructural para el vuelo."
+    },
+    {
+      "id": 12197886,
+      "uuid": "e13ebd86-6bc2-5888-b2be-10c2690e337a",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "SE BUSCA A LUNA, LA PUBLICARON POR ACÁ Y AUN NO LA ENCONTRAMOS. SI PUDIERAN DIFUNDIRLA POR LOS GRUPOS DE SUS PASAJES LO AGRADECERÍA.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.54410750993,
+        -70.779789425433
+      ],
+      "fecha": "2026-11-14 23:15:49",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Difusión de mascota perdida. Irrelevante para la seguridad operacional."
+    },
+    {
+      "id": 12197883,
+      "uuid": "3d6882c0-96cf-5bab-a5ee-b7f476b250a9",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Volvieron la leche a luka vecina activo todo el dia",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.501836150682,
+        -70.770571343601
+      ],
+      "fecha": "2026-11-14 23:15:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comunitario menor sin especificación de riesgo físico para la aeronave."
+    },
+    {
+      "id": 12197876,
+      "uuid": "32539646-ce73-5266-a069-86bf21db1738",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "✨ Una mirada que lo dice todo… 🌿\n\nDescubre nuestro Lash Lifting Coreano, ideal para realzar y cuidar tus pestañas naturales, elevando su curvatura y destacando tu mirada 🤎\n\nUn servicio que combina belleza y cuidado, incluyendo: \n🌿 Hidratación. \n✨ Keratina. \n🌸 Booster Botox. \n🤎 Tinte.\n\nEl resultado: pestañas con una apariencia más definida, curvada y una mirada naturalmente protagonista.\n\nPorque en DemiBeautyLab creemos que la belleza también está en dedicarte un momento para ti. 💚\n\n📍 Villa Los Héroes, Maipú. \n📲 Reserva tu hora por\n WhatsApp: +56 9 6345 1875\n 📸 Instagram: @DemiBeautyLab",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.539439347522,
+        -70.778261907399
+      ],
+      "fecha": "2026-11-14 23:14:49",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad de servicio de estética (Lash Lifting). Ruido comercial sin relación con la aviación."
+    },
+    {
+      "id": 12197845,
+      "uuid": "3146718e-0e88-53d8-8e01-ff0a1af97b1f",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola buenas, estoy empezando con mi pyme de ramos para las graduaciones quisiera saber si me pueden ayudar dándome fechas de colegios cercanos se los agradecería mucho😁",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.548197289224,
+        -70.795881338418
+      ],
+      "fecha": "2026-11-14 23:11:13",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta de PyME sobre fechas de graduaciones escolares. Sin impacto en el espacio aéreo."
+    },
+    {
+      "id": 12197815,
+      "uuid": "3e994dfa-d87d-51d6-a91e-6e433353b238",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Completada a beneficio",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.493957897471,
+        -70.731869749725
+      ],
+      "fecha": "2026-11-14 23:06:58",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de colecta completada. Irrelevante para el vuelo del dron."
+    },
+    {
+      "id": 12197814,
+      "uuid": "bec7b79a-6873-5782-8266-ac57da091e97",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Haga sus consultas Servicio de Videos Juegos y Notebook",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.478385209071,
+        -70.729503035545
+      ],
+      "fecha": "2026-11-14 23:06:47",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad de servicios técnicos de videojuegos y computación. Sin riesgo operacional."
+    },
+    {
+      "id": 12197813,
+      "uuid": "0b2eef4a-4986-5927-903d-14e9919f863e",
+      "tipo_original": "Ruidos molestos",
+      "descripcion": "Circo, demasiado fuerte el volumen. Por favor fiscalizar para que moderen ruido",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.528185259203,
+        -70.776100382209
+      ],
+      "fecha": "2026-11-14 23:06:43",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Queja por ruidos molestos de un circo. La contaminación acústica no afecta la integridad física ni los sensores del dron."
+    },
+    {
+      "id": 12197791,
+      "uuid": "e9983239-894c-5ee9-b530-22208fbad18b",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrito perdido o recién abandonado. Es tamaño mediano, macho, color blanco con manchas café claro, amistoso (se dejó acariciar) está desesperado corriendo por todos lados, olfatea a cada persona que entra, sale o pasa por un costado del supermercado.\nUbicación: Supermercado Santa Isabel, cerca del metro las parcelas.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.477650281025,
+        -70.741000324488
+      ],
+      "fecha": "2026-11-14 23:03:09",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota en la vía pública. No representa un obstáculo a 20 metros de altitud."
+    },
+    {
+      "id": 12197788,
+      "uuid": "e264d519-4718-54dd-94df-58cf7564ee67",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Esta perrita se encontró el 13 de nov , en calles Argentina y Buenas.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.497491149804,
+        -70.766506120563
+      ],
+      "fecha": "2026-11-14 23:02:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota encontrada. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12197779,
+      "uuid": "5e3f589c-81e0-5694-876c-5d8675e5701e",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Esta perrita se encontró el 13 de nov , en calles Argentina y Buenas.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.496207821681,
+        -70.760632753372
+      ],
+      "fecha": "2026-11-14 23:00:33",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota encontrada repetido. Irrelevante para la operación."
+    },
+    {
+      "id": 12197762,
+      "uuid": "625dd83d-ebff-5ffd-a21e-b91a51a00414",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Esta perrita se encontró el 13 de nov , en calles Argentina y Bueras.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.495274810622,
+        -70.763322003186
+      ],
+      "fecha": "2026-11-14 22:58:44",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota encontrada. Sin impacto en el espacio aéreo."
+    },
+    {
+      "id": 12197751,
+      "uuid": "346ae907-d1c0-5700-86e3-59c7f3fbc092",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Seguimos con los mojitazoss??",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.544919768645,
+        -70.775699111932
+      ],
+      "fecha": "2026-11-14 22:57:38",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comunitario informal sobre venta de bebestibles. Sin riesgo operacional."
+    },
+    {
+      "id": 12197749,
+      "uuid": "a526eed7-af2b-59c6-a8d3-0b59dd369c94",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Caminadora Montessori de Madera\nNUEVA EN SU CAJA \n$30.000\n\nInteresados hablar al +569 96949762",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.504737542592,
+        -70.749794282019
+      ],
+      "fecha": "2026-11-14 22:57:13",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de artículo infantil (caminadora de madera). Ruido comercial sin efecto en el vuelo."
+    },
+    {
+      "id": 12197700,
+      "uuid": "e19df545-2c3b-54a5-bb6f-fb0ee26b5877",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Audífonos 20 mil",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.513044748117,
+        -70.779475606978
+      ],
+      "fecha": "2026-11-14 22:49:20",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de venta de audífonos. Irrelevante para la seguridad operacional."
+    },
+    {
+      "id": 12197677,
+      "uuid": "07fedbd1-2661-5afb-977b-184d0e4d605a",
+      "tipo_original": "Situación de calle",
+      "descripcion": "Persona en situación de calle, ya fue advertido por personal municipal, y aún así sigue acá. Obstaculiza el paso peatonal y entrada de vivienda, por favor venir a realizar retiro.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.52304918111,
+        -70.773446671665
+      ],
+      "fecha": "2026-11-14 22:45:40",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Persona en situación de calle obstaculizando paso peatonal. No representa riesgo cinético ni aéreo para el dron."
+    },
+    {
+      "id": 12197668,
+      "uuid": "a648410a-bf75-537c-91c6-8084ba5a2315",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Estoy buscando a la familia de esta perrita, tiene collar rosa.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.481278717916,
+        -70.737211368978
+      ],
+      "fecha": "2026-11-14 22:44:35",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de familia para mascota. Sin impacto en la navegación."
+    },
+    {
+      "id": 12197658,
+      "uuid": "cff8191a-8a29-54bc-be11-ae2c50ae0d18",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Estoy buscando a la familia de esta perrita, tiene collar rosa.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.477844081149,
+        -70.746925659478
+      ],
+      "fecha": "2026-11-14 22:43:18",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de familia para mascota repetido. Irrelevante."
+    },
+    {
+      "id": 12197648,
+      "uuid": "8cb5ad3a-de4a-5ad0-8d3b-846be62407d4",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Una consulta vecinos, alguien tiene el número de la persona a cargo de la sede vecinal que esta al lado del gimnasio de Hector fuenzalida con cabo de hornos? Se los agradecería un montón.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.539845114595,
+        -70.781409814954
+      ],
+      "fecha": "2026-11-14 22:42:13",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta por número de contacto de sede vecinal. Sin relación con riesgos de vuelo."
+    },
+    {
+      "id": 12197632,
+      "uuid": "1a898a50-51da-5592-832a-1fd9a377798f",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56971025861 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.520226108855,
+        -70.793271549046
+      ],
+      "fecha": "2026-11-14 22:39:37",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad de servicios de internet y televisión por fibra óptica. No representa infraestructura de cables dañados ni riesgo aéreo."
+    },
+    {
+      "id": 12197623,
+      "uuid": "0ed355af-7baf-57cf-b26d-86ce8988e0fd",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56971025861 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.52260616052,
+        -70.778508000076
+      ],
+      "fecha": "2026-11-14 22:38:33",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de fibra óptica. Sin impacto operacional."
+    },
+    {
+      "id": 12197612,
+      "uuid": "0331ca7b-9eb5-5399-b295-e0820a4a5155",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56971025861 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.506213642215,
+        -70.790981948376
+      ],
+      "fecha": "2026-11-14 22:37:25",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de fibra óptica. Sin impacto operacional."
+    },
+    {
+      "id": 12197594,
+      "uuid": "31fe9d9c-2df5-5a2b-8e5f-63238723febe",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56971025861 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.518405597653,
+        -70.76503392309
+      ],
+      "fecha": "2026-11-14 22:35:22",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de fibra óptica. Sin impacto operacional."
+    },
+    {
+      "id": 12197588,
+      "uuid": "f492da22-e99e-57f7-b57a-5e32e21188c1",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Me encontré este carnet botado!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.489378183039,
+        -70.76489277184
+      ],
+      "fecha": "2026-11-14 22:33:49",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Documento de identidad encontrado. Irrelevante para la seguridad del vuelo."
+    },
+    {
+      "id": 12197574,
+      "uuid": "3c3c9c4b-b997-5760-adde-758050d372ec",
+      "tipo_original": "Emergencia de Seguridad",
+      "descripcion": "Persona violenta consumiendo droga en el auto, es pelado con lentes. Favor enviar patrullaje",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.506274586697,
+        -70.760102011263
+      ],
+      "fecha": "2026-11-14 22:32:00",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de persona consumiendo drogas en un vehículo. No genera riesgo físico, térmico ni de colisión para el dron."
+    },
+    {
+      "id": 12197567,
+      "uuid": "3eab769d-fa96-5433-8d42-4d93586f4491",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrito negro, sin collar, es cariñoso.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.473395238324,
+        -70.728553533554
+      ],
+      "fecha": "2026-11-14 22:31:02",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota sin collar. Sin efecto en la navegación a baja cota."
+    },
+    {
+      "id": 12197553,
+      "uuid": "5de40ad0-8f37-5599-983d-e34ae662e4ae",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56945524844 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.530857710305,
+        -70.79615727067
+      ],
+      "fecha": "2026-11-14 22:29:08",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de telecomunicaciones. Sin implicancias para el espacio aéreo."
+    },
+    {
+      "id": 12197547,
+      "uuid": "c2fbaf22-5e98-5cd7-b2e4-c91c06281e02",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56945524844 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.547019220147,
+        -70.795583613217
+      ],
+      "fecha": "2026-11-14 22:28:08",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de telecomunicaciones. Sin implicancias para el espacio aéreo."
+    },
+    {
+      "id": 12197544,
+      "uuid": "06c002e5-b2a6-5ea5-9863-e09e61b0b31a",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "YA ESTAMOS ATENDIENDO!! ??\nPUEDEN PEDIR SU BAJÓN AL +56958629114 ?\nDELIVERY SEGUN SECTOR ?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.497751168217,
+        -70.775799304247
+      ],
+      "fecha": "2026-11-14 22:27:44",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad de servicio de entrega de comida a domicilio (delivery). Irrelevante para el vuelo."
+    },
+    {
+      "id": 12197541,
+      "uuid": "f836fc74-3eb5-5cee-b975-2eeacecf5e0b",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56945524844 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.539779163603,
+        -70.785408318043
+      ],
+      "fecha": "2026-11-14 22:26:53",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de telecomunicaciones. Sin impacto en las operaciones de vuelo."
+    },
+    {
+      "id": 12197537,
+      "uuid": "d1c1efc0-6505-59e9-a0d5-22ba1a93f411",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Jornada veterinaria a bajo costo ?\n\nDomingo 15 de Noviembre\nDe 11:00-14:00\nReserva tu cupo al WhatsApp +569 36943778",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.5391956628,
+        -70.791184455156
+      ],
+      "fecha": "2026-11-14 22:25:42",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comunitario sobre jornada veterinaria. Sin riesgo operacional para el vuelo a baja cota."
+    },
+    {
+      "id": 12197535,
+      "uuid": "924f963c-7841-55bf-9ce1-2e7344e77ea4",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56945524844 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.560013137622,
+        -70.783342681825
+      ],
+      "fecha": "2026-11-14 22:25:41",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de internet. Sin impacto en la navegación del dron."
+    },
+    {
+      "id": 12197531,
+      "uuid": "b89f6288-ba30-5daf-a0ca-df609bf52688",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56945524844 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.547328269234,
+        -70.768160708249
+      ],
+      "fecha": "2026-11-14 22:24:36",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de internet. Sin impacto en la navegación del dron."
+    },
+    {
+      "id": 12197504,
+      "uuid": "bfbd980d-433d-50ad-b981-b2a2815b0cc0",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56945524844 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.524959594065,
+        -70.735478326678
+      ],
+      "fecha": "2026-11-14 22:20:18",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de internet. Sin impacto en la navegación del dron."
+    },
+    {
+      "id": 12197498,
+      "uuid": "60f25885-5f8b-5076-bf70-ff4f7d18a613",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56945524844 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.517830617859,
+        -70.75122255832
+      ],
+      "fecha": "2026-11-14 22:19:03",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de internet. Sin impacto en la navegación del dron."
+    },
+    {
+      "id": 12197483,
+      "uuid": "3748621e-9008-5db8-b9f3-0b91b9e0e456",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Quien vende miel?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.507504929176,
+        -70.790201760828
+      ],
+      "fecha": "2026-11-14 22:16:36",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta de venta de miel. Irrelevante para la seguridad operacional."
+    },
+    {
+      "id": 12197474,
+      "uuid": "2fa8bcbe-980f-5aeb-a3ca-ef8d99d399da",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "¡ATENCIÓN MAIPÚ Y PAC!\n¡¡PROMOCIÓN EXPRESS POR HOY 14 NOV!! 🥳🥳\n\n• Internet Fibra 800 MB a $9.990 mensual.\n• DUO Pack desde $22.990 🥳🏡\n\nWhatsapp: +56945524844 👈🏻📱✅\n\nOFERTA DISPONIBLE PARA VTR Y CLARO SÓLO CON EJECUTIVO COMERCIAL. 😊🙌🏻",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.504835111318,
+        -70.746054947376
+      ],
+      "fecha": "2026-11-14 22:15:35",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad comercial de internet. Sin impacto en la navegación del dron."
+    },
+    {
+      "id": 12197417,
+      "uuid": "7a7f5201-c892-5159-9b6c-d18e9ef53df1",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Mojitazoss NO falla, Hablanos y pide el tuyo✅🥤",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.547699265061,
+        -70.769733077381
+      ],
+      "fecha": "2026-11-14 22:04:16",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de tragos preparados. Sin riesgo para la operación aérea."
+    },
+    {
+      "id": 12197411,
+      "uuid": "0a6edae2-8872-5f73-80a3-35c2d684c5a4",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Hola, estaba esta perrita afuera del unimarc , no se si estaba esperando a sus dueños o estaba perdida, porfavor difundir 🙏🏻🤍🩷🍀🤍🤍",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.545429807383,
+        -70.779442749918
+      ],
+      "fecha": "2026-11-14 22:03:46",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de mascota encontrada. Ruido operativo sin afectación al espacio aéreo."
+    },
+    {
+      "id": 12197387,
+      "uuid": "43a15836-1eaa-519a-95f2-c938066ee6c8",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola a todos!\nMe podrían decir porfavor que días pasa la basura por la calle Volcán Maipo y donde queda alguna feria y que días se instalan.\nMuchas gracias !",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.486941572239,
+        -70.750970095396
+      ],
+      "fecha": "2026-11-14 21:59:37",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre recolección de basura y feria libre. Sin implicancias para el vuelo."
+    },
+    {
+      "id": 12197376,
+      "uuid": "2ac87ef6-f52d-52ce-947f-28fee3959dc1",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Luna sigue sin aparecer, por favor ayuda!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.506055130451,
+        -70.790982954204
+      ],
+      "fecha": "2026-11-14 21:57:45",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota perdida. Sin riesgo cinético o ambiental para el dron."
+    },
+    {
+      "id": 12197281,
+      "uuid": "59e1f579-d494-5f6a-88c3-761b49d768f3",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "PERFECTOS PARA ESTA CALOR! \nricos mojitos de litro\n1 x 6.000\n2 x 10.000\nen nuestra gran variedad de sabores! \nabajo donde pedir",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.549891786503,
+        -70.764909084707
+      ],
+      "fecha": "2026-11-14 21:43:53",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de bebestibles. Sin efecto en la seguridad operacional."
+    },
+    {
+      "id": 12197269,
+      "uuid": "f3782922-1924-50c0-ac10-cb73d41d052f",
+      "tipo_original": "Emergencia de Seguridad",
+      "descripcion": "Intento de portonazo el vecino está herido",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.514501977188,
+        -70.747849009931
+      ],
+      "fecha": "2026-11-14 21:42:35",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Intento de portonazo y persona herida. Delito urbano sin riesgo balístico generalizado activo (disparos/balacera) ni peligro para el espacio aéreo a baja cota."
+    },
+    {
+      "id": 12197258,
+      "uuid": "76beac3f-c35c-56e6-8aa1-5dac49a291d7",
+      "tipo_original": "Ruidos molestos",
+      "descripcion": "Otra vez música a todo chancho,desde el 2115 de General San Martin donde arriendan piezas extranjeros.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.507728015986,
+        -70.764086432755
+      ],
+      "fecha": "2026-11-14 21:40:49",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Queja por ruidos molestos (música alta). No representa amenaza física para la aeronave."
+    },
+    {
+      "id": 12197236,
+      "uuid": "35cc2af0-ce28-55e1-9906-3f54bf9b0bb4",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Aritos acero quirúrgico\n3mil\nA domicilio",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.477478852848,
+        -70.755977444351
+      ],
+      "fecha": "2026-11-14 21:36:58",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de accesorios. Irrelevante para el vuelo."
+    },
+    {
+      "id": 12197185,
+      "uuid": "434b9729-e7f6-5974-ad34-45e29259f665",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "💐💐a #3000 flores coreanas",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.558048458666,
+        -70.790470652282
+      ],
+      "fecha": "2026-11-14 21:28:45",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de artesanías. Sin impacto operacional."
+    },
+    {
+      "id": 12197173,
+      "uuid": "3f964e7a-4cfc-5bf2-9c42-65d2308ad0f4",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "A $3000 flores coreanas , entrega en ciudad satelite \n\nSe hacen todo tipo de flores consulte",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.554495047815,
+        -70.795186981559
+      ],
+      "fecha": "2026-11-14 21:25:54",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de artesanías. Sin impacto operacional."
+    },
+    {
+      "id": 12197142,
+      "uuid": "26457c42-1a45-5ad7-82a7-c0ad567e1080",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien que realice las uñas con las 3 b.... Para hoy o mañana",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.509059815508,
+        -70.781961344182
+      ],
+      "fecha": "2026-11-14 21:21:25",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de servicios estéticos. Sin relación con riesgos aeronáuticos."
+    },
+    {
+      "id": 12197139,
+      "uuid": "ca0b8ed2-0d98-5b8a-aefd-ebc8e5302f2a",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Este perrito anda por acá, parece perdido en almacén guanahani 1785",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.493693953232,
+        -70.734046697617
+      ],
+      "fecha": "2026-11-14 21:20:44",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota extraviada. Sin efecto en la navegación."
+    },
+    {
+      "id": 12197024,
+      "uuid": "13e493b8-c221-5e8f-8287-23adb71b37e9",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Un consulta alguien sabe donde venden cubos de leche porfavor? Gracias",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.526722950223,
+        -70.777595378458
+      ],
+      "fecha": "2026-11-14 21:02:16",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta de abastecimiento comercial. Sin riesgo para el vuelo."
+    },
+    {
+      "id": 12196947,
+      "uuid": "28eae546-c000-5bf0-9304-2af2955081b9",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola!\nAlguien sabe dónde hay taller de bicicleta que esté funcionando ahora?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.48814087203,
+        -70.766425989568
+      ],
+      "fecha": "2026-11-14 20:49:45",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de taller mecánico de bicicletas. Irrelevante para operaciones aéreas."
+    },
+    {
+      "id": 12196918,
+      "uuid": "5c4817ea-f1b8-5287-893d-12cae91ce9af",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Vecinos mi gatito se salió hace poco de mi casa en un descuido. Es negro y anda con collar isabelino por su castración (Está sujeto de su collar verde). Si alguien lo ve puede hablarme por favor!!!!!!!!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.537880807341,
+        -70.786937287457
+      ],
+      "fecha": "2026-11-14 20:45:25",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Gato extraviado. Sin implicancia para la seguridad del dron."
+    },
+    {
+      "id": 12196820,
+      "uuid": "d652b666-3818-5abe-8b4b-eec19d392e3d",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Por mudanza se vende todo lo de la imágenes en muy buenas condiciones (el rack de la tele, la play y el microondas no se venden xD).\nInfo al +56986047240",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.536026581028,
+        -70.78345131129
+      ],
+      "fecha": "2026-11-14 20:26:40",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta por mudanza. Ruido comercial sin afectación al espacio aéreo."
+    },
+    {
+      "id": 12196814,
+      "uuid": "1790532d-3f77-59c9-b159-ac128d6583cb",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Seguimos haciendo pedidos 🥤😉",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.545257385141,
+        -70.762960206484
+      ],
+      "fecha": "2026-11-14 20:25:05",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad de delivery/pedidos. Sin riesgo operacional."
+    },
+    {
+      "id": 12196813,
+      "uuid": "e3d5636b-b663-5ef3-99aa-001ba7dd52c3",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguna heladería? Con helado bkn artesanal",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.508470516317,
+        -70.755854733288
+      ],
+      "fecha": "2026-11-14 20:24:51",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de heladería. Irrelevante para el vuelo."
+    },
+    {
+      "id": 12196751,
+      "uuid": "0993bf42-ae43-5e3a-9c97-83a3dd7691e9",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "A mi mamá se le perdió su monedero en la feria de lumen hoy con todos sus documentos y plata. Apeló a su buen corazón y honradez para devolver por favor 🙏🙏🙏 los documentos están a nombre de margot Infante Pérez",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.482985918304,
+        -70.750400461257
+      ],
+      "fecha": "2026-11-14 20:13:33",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Pérdida de monedero en feria. Sin riesgo cinético ni obstáculo para la aeronave."
+    },
+    {
+      "id": 12196726,
+      "uuid": "355a284b-e7a1-5542-be1f-1b393258c1e6",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien que haga ventanas....",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.514103918202,
+        -70.792855471373
+      ],
+      "fecha": "2026-11-14 20:06:52",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Solicitud de servicios de fabricación de ventanas. Sin riesgo para la operación."
+    },
+    {
+      "id": 12196725,
+      "uuid": "898ae913-dfa0-58a2-ad6b-960c6a363fc6",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Hola buenas ,soy nueva me mude hace una semana y se me perdió mi gatito ,hoy en la madrugada   ,se llama blacky si lo ven por favor llamarme.  +56 954784297",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.487122209269,
+        -70.754589401186
+      ],
+      "fecha": "2026-11-14 20:06:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida. Sin impacto en la navegación a baja cota."
+    },
+    {
+      "id": 12196697,
+      "uuid": "fb95eb54-3210-5cef-9ea6-7db9804d5340",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Alguien si ve a mi gatito porfavor hablarme al wsp porfavor\nSe llama Zeus y tiene 7 meses de edad",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.533299233252,
+        -70.785626247525
+      ],
+      "fecha": "2026-11-14 20:00:45",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida. Sin impacto en la navegación a baja cota."
+    },
+    {
+      "id": 12196637,
+      "uuid": "f2a22112-1284-5c32-bb3c-828b84b9a698",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Algún dato para hacer copia de llaves que no sea ni jumbo ni lider",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.488692840752,
+        -70.762825123966
+      ],
+      "fecha": "2026-11-14 19:48:38",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de cerrajería. Irrelevante para la seguridad operacional."
+    },
+    {
+      "id": 12196608,
+      "uuid": "76c1ecf1-23be-5872-b014-b29bb3354c71",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Sera de alguien esta bebé esta muy flaquita y tímida lo unico que hace es dormir",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.528058929204,
+        -70.767189078033
+      ],
+      "fecha": "2026-11-14 19:43:29",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre mascota. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12196606,
+      "uuid": "db4cd5f7-ad2b-5564-b0be-fabba55bb560",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Sera de alguien esta bebé esta muy flaquita y tímida lo unico que hace es dormir",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.527642486088,
+        -70.766067244112
+      ],
+      "fecha": "2026-11-14 19:43:15",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre mascota. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12196605,
+      "uuid": "23c64078-e67b-5966-ac0c-8eba857bb927",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Sera de alguien esta bebé esta muy flaquita y tímida lo unico que hace es dormir",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.528953296905,
+        -70.767494179308
+      ],
+      "fecha": "2026-11-14 19:42:56",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre mascota. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12196604,
+      "uuid": "a2274116-47e0-581d-89b9-1360853ce54b",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Sera de alguien esta bebé esta muy flaquita y tímida lo unico que hace es dormir",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.528952737928,
+        -70.766405537724
+      ],
+      "fecha": "2026-11-14 19:42:38",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre mascota. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12196593,
+      "uuid": "2ea78b77-497c-5b2c-974d-1818cb6fa1bc",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Como está la fiesta de la primavera?\nHay gente y ambiente o no?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.560993784032,
+        -70.786076188087
+      ],
+      "fecha": "2026-11-14 19:39:55",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre evento barrial (fiesta de la primavera). Sin mención de pirotecnia ni elementos de riesgo directo para el dron."
+    },
+    {
+      "id": 12196584,
+      "uuid": "480298c8-a017-50c3-8e16-9dd557e4797a",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "hermosos kit de yesitos para pintar para sus hijos ..excelente regalo.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.504251654292,
+        -70.771944634616
+      ],
+      "fecha": "2026-11-14 19:38:28",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de kits infantiles. Sin afectación al vuelo."
+    },
+    {
+      "id": 12196577,
+      "uuid": "dbf7e4b5-4151-505a-995e-b332921c1722",
+      "tipo_original": "Robo a persona",
+      "descripcion": "Muertos de hambre apuñalan y no se lograron llevar nada, cuidado!!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.488497946423,
+        -70.778707489371
+      ],
+      "fecha": "2026-11-14 19:36:56",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de asalto con arma blanca. Incidente delictual sin presencia de disparos, balacera o riesgos cinéticos/térmicos para el espacio aéreo."
+    },
+    {
+      "id": 12196547,
+      "uuid": "e64c7432-e527-5203-aed8-6cef0003fa5a",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrita muy amorosa y obediente  alguien que la esté buscando o quiera adoptarla porfavor",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.508487010039,
+        -70.794170089066
+      ],
+      "fecha": "2026-11-14 19:31:14",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de perrita encontrada/en adopción. Sin riesgo operativo."
+    },
+    {
+      "id": 12196516,
+      "uuid": "d471ee9f-6f15-5417-a7a3-e28a924e9728",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "COMPRO PRENDAS DE FUTBOL ORIGINALES DE ADULTOS PAGO DESDE 4 MIL A 10 MIL WHATSAPP +56975117977",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.519957492922,
+        -70.796802006662
+      ],
+      "fecha": "2026-11-14 19:23:54",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Compraventa de indumentaria deportiva. Irrelevante para el vuelo."
+    },
+    {
+      "id": 12196513,
+      "uuid": "b7dc72a8-b927-5009-baad-82d179b0a6dc",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "COMPR0\nPRENDAS DE FUTBOL ORIGINALES DE ADULTOS PA90 DESDE 4.000 A 10.000 DEPENDIENDO DE LA PRENDA AGRÉGAME A WHATSAPP +56975117977",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.524486676456,
+        -70.796373523772
+      ],
+      "fecha": "2026-11-14 19:23:24",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Compraventa de indumentaria deportiva. Irrelevante para el vuelo."
+    },
+    {
+      "id": 12196468,
+      "uuid": "d48b443b-b801-59b7-b271-5d3086d79189",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "vengan vecinos.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.502847091877,
+        -70.773621015251
+      ],
+      "fecha": "2026-11-14 19:13:58",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comunitario genérico sin implicación de riesgos cinéticos, térmicos, electromagnéticos o de espacio aéreo para la aeronave."
+    },
+    {
+      "id": 12196416,
+      "uuid": "3770f57f-50f0-5a7b-aa7a-b8ddf06fabf7",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Busco mecánico confiable. Que sepa de electronica automotriz, quedo atenta.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.491844084165,
+        -70.739245824516
+      ],
+      "fecha": "2026-11-14 19:02:28",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de servicios mecánicos. No representa ninguna amenaza para el vuelo del dron a baja cota."
+    },
+    {
+      "id": 12196400,
+      "uuid": "0043d383-3bb8-590b-8195-650f0d197a50",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Lavados de autos tomicars les ofrece \nFull\nBásico\nEspres\n\nDisponible",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.495711820051,
+        -70.73751848191
+      ],
+      "fecha": "2026-11-14 18:57:48",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad de lavado de autos. Sin impacto operativo ni riesgo para la misión de inspección vial."
+    },
+    {
+      "id": 12196366,
+      "uuid": "6f6c43a3-2b55-51d0-9745-cc1285958318",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Ojo con estos dos que andan votando sacos con escombros en la calle",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.481729780027,
+        -70.732577182353
+      ],
+      "fecha": "2026-11-14 18:52:17",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Acumulación o botadero ilegal de escombros en la calle. No afecta el espacio aéreo ni genera riesgos directos a la aeronave."
+    },
+    {
+      "id": 12196358,
+      "uuid": "3e819bbb-f027-5ce4-b31f-4da955d2c4f0",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Hola, sera de alguien esta bebe esta muy flaquita y es tímida",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.529353802942,
+        -70.766096077859
+      ],
+      "fecha": "2026-11-14 18:51:13",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida. Sin relevancia para la seguridad operacional del vuelo."
+    },
+    {
+      "id": 12196354,
+      "uuid": "7c90a3dc-6287-58e1-bd3e-5dbdc901e553",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Ven a disfrutar de una tarde entretenida y apoyar nuestra fiesta de navidad..en nuestra lota..grandes premios!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.489017197631,
+        -70.734542235732
+      ],
+      "fecha": "2026-11-14 18:50:07",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre evento comunitario y fiesta navideña. Sin afectación al espacio aéreo."
+    },
+    {
+      "id": 12196276,
+      "uuid": "120c1be5-ad68-5ece-8a48-38fefdb5c9a0",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien sabe si aún hay plazo para la inscripción de los niños en los libros que entrega la municipalidad?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.469344433706,
+        -70.757915340364
+      ],
+      "fecha": "2026-11-14 18:37:04",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta administrativa municipal. Irrelevante para la navegación del UAV."
+    },
+    {
+      "id": 12196256,
+      "uuid": "3db76053-8d93-5ae1-8dce-9a2f643970ca",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hay un caballo en el peñadero de isabel riquelme que a estado todo el dia amarrado al sol y a estado relinchando todo el dia, no se si tiene sed, o le molesta estar amarrado pero que alguien haga algo por favor",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.485517434597,
+        -70.734197571874
+      ],
+      "fecha": "2026-11-14 18:32:19",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sobre animal amarrado. No representa un riesgo cinético, térmico ni de colisión para el dron."
+    },
+    {
+      "id": 12196217,
+      "uuid": "c171409e-a488-5e51-8f75-c11f6a66797d",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Buenas tardes vecinos, se realizan reparaciones eléctricas, cambio de enchufes malos, cambio o instalación de toma corriente, reparacion de interruptores, y más, si requiere algún servicio consulte al\n+56951875956",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.491452072375,
+        -70.770109333098
+      ],
+      "fecha": "2026-11-14 18:25:12",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Ofrecimiento de servicios de reparaciones eléctricas domiciliarias. No describe infraestructura caída o cables cortados en vía pública."
+    },
+    {
+      "id": 12196211,
+      "uuid": "de42ce82-0b03-59ab-ad66-1d6493876f9c",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Gran rifa solidaria!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.50136366582,
+        -70.764146782458
+      ],
+      "fecha": "2026-11-14 18:24:28",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Anuncio de rifa solidaria. Sin impacto en la operación aérea."
+    },
+    {
+      "id": 12196162,
+      "uuid": "689a7535-4bdf-531d-acbe-5573706613e1",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "A mi mamá se le callo el monedero en la feria de lumen hace como 30 minutos si alguien la encontró por favor devolver. Los documentos están a nombre de margot Infante Pérez. Apeló a su honradez por favor",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.48293838001,
+        -70.750457122922
+      ],
+      "fecha": "2026-11-14 18:14:39",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Extravío de documentos personales. Irrelevante para la seguridad de vuelo."
+    },
+    {
+      "id": 12196155,
+      "uuid": "5f36f114-ef96-5dfa-a22f-a6c34137f638",
+      "tipo_original": "Emergencia de Ambulancia",
+      "descripcion": "Auto volcado con personas en su interior",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.492601631875,
+        -70.765217425229
+      ],
+      "fecha": "2026-11-14 18:13:38",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Accidente vehicular (auto volcado). A menos que genere incendio con columna térmica o afectación de cables/postes, no califica como amenaza directa al dron según los criterios estrictos."
+    },
+    {
+      "id": 12196103,
+      "uuid": "7b0e9136-1c54-58e0-a418-e0a60d173fbf",
+      "tipo_original": "Local message",
+      "descripcion": "alguna pega (tengo 17)",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.491576498563,
+        -70.776125863194
+      ],
+      "fecha": "2026-11-14 18:03:41",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de empleo juvenil. Sin efecto en la operación del UAV."
+    },
+    {
+      "id": 12196075,
+      "uuid": "20cb7a74-14ba-5b2a-8d20-543c88df3e17",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola vecinos alguien cortará uñas de gatos a domicilio?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.540927430261,
+        -70.785888433456
+      ],
+      "fecha": "2026-11-14 17:57:48",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Servicio de cuidado de mascotas. Irrelevante para la aeronave."
+    },
+    {
+      "id": 12196060,
+      "uuid": "b589612d-a578-51d3-8a02-ae2e0d31a3a1",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguna maquilladora? Urgente!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.526908255654,
+        -70.798549801111
+      ],
+      "fecha": "2026-11-14 17:55:45",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de servicios de maquillaje. Sin riesgo operacional."
+    },
+    {
+      "id": 12196043,
+      "uuid": "379719d3-5114-563d-982b-26eecac0ef33",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Ayer subieron a mi gatito a sosafe,comente para irlo a buscar pero nadie me contesto? es muh regalon lo más probable que sigio a alguien que le hizo cariño,si lo han visto porfavor avisar????",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.546206354297,
+        -70.778026543558
+      ],
+      "fecha": "2026-11-14 17:52:51",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre mascota. Sin impacto en el espacio aéreo."
+    },
+    {
+      "id": 12196023,
+      "uuid": "4573a878-cd6d-5eed-afda-8baa88f99779",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Quien estampa??? Y tiene una de bebé? La necesito con urgencia",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.524016551305,
+        -70.78120496124
+      ],
+      "fecha": "2026-11-14 17:49:23",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de servicios de estampado. Irrelevante para la misión."
+    },
+    {
+      "id": 12196007,
+      "uuid": "97254d9a-013a-5d9a-9c6c-3bf0fd0722e6",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Consultee",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.519238850357,
+        -70.783104635775
+      ],
+      "fecha": "2026-11-14 17:45:32",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mensaje incompleto o sin contenido relevante. Sin impacto."
+    },
+    {
+      "id": 12196002,
+      "uuid": "1a9f2bc9-b6bd-5ac3-b06c-7df31323ab48",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Gatita perdida, responde al nombre de \"Katara\", es una gata pequeña de unos 4 años, de color café oscuro y con manchas claras (Carey). Es miedosa, cualquier información sirve!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.537189709015,
+        -70.781015194952
+      ],
+      "fecha": "2026-11-14 17:44:46",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida. Sin afectación al vuelo."
+    },
+    {
+      "id": 12195988,
+      "uuid": "7d9ca617-3ec2-58c7-a09f-a9d9f22b8c02",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Anda un perrito por la feria trespo caminando hacia nueva San Martín, blanco con café Clarito, tiene rulos y collar como celeste",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.520082157653,
+        -70.783892534673
+      ],
+      "fecha": "2026-11-14 17:42:38",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de animal en la vía pública. No constituye un obstáculo aéreo ni riesgo cinético crítico para la aeronave a 20 metros."
+    },
+    {
+      "id": 12195951,
+      "uuid": "7a9b3ab7-ddc5-5614-a2c2-45840e8aa18f",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola! Alguien ha encontrado una licencia de conducir? ( se perdió desde el finde pasado) creo que fue en la feria:(",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.544236331429,
+        -70.773658230901
+      ],
+      "fecha": "2026-11-14 17:35:59",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Pérdida de documento de identidad. Irrelevante."
+    },
+    {
+      "id": 12195931,
+      "uuid": "65d5e64e-d272-523d-b3be-934bac348255",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrita perdida, llegó a mi negocio asustada, la puedo retener aquí hasta las 21:00 hrs, Calle Roberto duran Valenzuela 2581 villa el sol",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.504737542592,
+        -70.791555270553
+      ],
+      "fecha": "2026-11-14 17:30:22",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Resguardo temporal de mascota. Sin impacto en la operación."
+    },
+    {
+      "id": 12195850,
+      "uuid": "37d46197-e401-5e24-892a-1975f007ca3d",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Encontramos a este perrito corriendo por Millahue",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.494046531108,
+        -70.782747901976
+      ],
+      "fecha": "2026-11-14 17:16:09",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Avistamiento de perrito corriendo. Irrelevante para el vuelo."
+    },
+    {
+      "id": 12195813,
+      "uuid": "76c3150d-285c-56eb-acb9-1895f0a9890e",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Vecinos esta este perrito en paradero de rinconada, parece perdido",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.507367945761,
+        -70.783342011273
+      ],
+      "fecha": "2026-11-14 17:06:00",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota en paradero. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12195794,
+      "uuid": "7f88318c-d963-578b-80b0-8aa3a2ccf8de",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien que haya encontrado una billetera? 🥺",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.466398206953,
+        -70.765161468432
+      ],
+      "fecha": "2026-11-14 17:02:04",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Biciar/billetera perdida. Sin impacto operacional."
+    },
+    {
+      "id": 12195739,
+      "uuid": "4cbb96e5-68f4-5099-a393-3b61eb0c1372",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Estamos en el alicante , vendiendo pastel de papa y de choclo a 4.000",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.490678109507,
+        -70.779572166502
+      ],
+      "fecha": "2026-11-14 16:52:21",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Venta de comida. Irrelevante para la seguridad operacional."
+    },
+    {
+      "id": 12195693,
+      "uuid": "d8b78fd3-d358-5fbb-84b5-8b767e6619b0",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien sabe que paso, que se escuchan tantas sirenas de bomberos!!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.516143112558,
+        -70.793919973075
+      ],
+      "fecha": "2026-11-14 16:44:15",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de sirenas de bomberos sin especificación de incendio activo o aeronave de emergencia. No constituye amenaza confirmada para el dron."
+    },
+    {
+      "id": 12195646,
+      "uuid": "b13e8651-f263-5e67-a27d-ba6c4f1d340d",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien sabe dónde se debe inscribir para el libro de los niños acá en los bosquinos?\nExtendieron el plazo hasta mañana no más, si alguien tiene info se lo agradecería mucho",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.55197924067,
+        -70.798289291561
+      ],
+      "fecha": "2026-11-14 16:37:58",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre inscripción municipal. Sin impacto en el vuelo."
+    },
+    {
+      "id": 12195617,
+      "uuid": "14f3037f-0aa4-5338-8cad-9feda5a2f7c0",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Necesito numero del señor de la vulca",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.543658170095,
+        -70.779749192297
+      ],
+      "fecha": "2026-11-14 16:33:52",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de contacto de vulcanización. Irrelevante."
+    },
+    {
+      "id": 12195606,
+      "uuid": "6868a7d2-826c-5757-ad36-bf2f826c9146",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "alguna peluqueria canina por el sector?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.470215915253,
+        -70.748213119805
+      ],
+      "fecha": "2026-11-14 16:31:33",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda de peluquería canina. Sin riesgo operacional."
+    },
+    {
+      "id": 12195596,
+      "uuid": "30dbc34a-b702-5939-9693-aaf16e83e1a4",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Manojo de llaves, encontradas en los estandartes",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.512583226561,
+        -70.743453875184
+      ],
+      "fecha": "2026-11-14 16:29:58",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Llaves encontradas. Irrelevante."
+    },
+    {
+      "id": 12195568,
+      "uuid": "5e1d33be-b415-5603-b866-e83f280a8482",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Oye que webea con la moto, si ya sabemos que teni moto pero deja de meter tanta bulla ha pasado el mismo wn dos veces por europa, despues por del ferrocaril si ya vimos tu caracha🤦🏼‍♀️",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.536833673903,
+        -70.772961862385
+      ],
+      "fecha": "2026-11-14 16:24:22",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Queja por ruido molesto de motocicleta. No constituye una amenaza cinética ni de espacio aéreo para el dron a baja cota."
+    },
+    {
+      "id": 12195567,
+      "uuid": "01a3dd67-f802-5657-8716-63bef4931b8a",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Vecinos ,consulta para poder postular o ingresar a la feria navideña de lumen, debo pertenecer a una agrupación? Y si es así donde puedo postular ? 🙏",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.486748631342,
+        -70.740308314562
+      ],
+      "fecha": "2026-11-14 16:24:20",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre postulación a feria navideña. Sin afectación al vuelo."
+    },
+    {
+      "id": 12195517,
+      "uuid": "659bccc2-9bb3-5738-9833-554dba40262c",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Reparto gratis para los vecinos desde 1 bandeja de 30 unidades 🥚🍳",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.559909484602,
+        -70.767971947789
+      ],
+      "fecha": "2026-11-14 16:13:31",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Oferta comercial de reparto de huevos. Irrelevante."
+    },
+    {
+      "id": 12195491,
+      "uuid": "753c3bec-c544-5363-b755-1f6f81aec3a6",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Pasé corriendo hace un rato y había una gatita cálico fallecida:( justo afuera del restaurante Casa Werken",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.557564266844,
+        -70.77887210995
+      ],
+      "fecha": "2026-11-14 16:07:49",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre mascota fallecida en la vía pública. No representa un riesgo cinético o estructural para la aeronave."
+    },
+    {
+      "id": 12195481,
+      "uuid": "058f2acf-9ede-5abf-8f49-26a2d79ed69f",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Reparto gratis para los vecinos desde 1 bandeja de 30 unidades.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.559849416083,
+        -70.76788008213
+      ],
+      "fecha": "2026-11-14 16:05:12",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Oferta comercial de reparto. Sin impacto en la misión."
+    },
+    {
+      "id": 12195455,
+      "uuid": "d5111cb1-5d4c-5281-8844-47f574bc5b3e",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "De quien es \nEsta en el mall Arauco Maipú",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.480268923111,
+        -70.750531889498
+      ],
+      "fecha": "2026-11-14 15:59:08",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota en centro comercial. Irrelevante para la navegación del UAV."
+    },
+    {
+      "id": 12195449,
+      "uuid": "fd2deb42-a33c-5468-aa76-32196e32a202",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Vecinos !!!! Harán un operativo de vacunas para perritos y garitos , paso el dato ...ya que esta económico.  Saludos...",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.520986111331,
+        -70.783656835556
+      ],
+      "fecha": "2026-11-14 15:56:58",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre operativo de vacunación para mascotas. Sin impacto en el espacio aéreo."
+    },
+    {
+      "id": 12195440,
+      "uuid": "beb187b9-7e30-57ab-8a78-aafad5d5a9ca",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "HOY DIA!!! Mojitazo Full???\n\n+56961539961",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.548297267071,
+        -70.768556683442
+      ],
+      "fecha": "2026-11-14 15:54:41",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Publicidad de evento o venta de tragos. Irrelevante para la seguridad operacional."
+    },
+    {
+      "id": 12195430,
+      "uuid": "79185bf4-f2ed-50a3-a997-4dd1fe559b2e",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Mall plaza Maipú \nPerdido de quién es",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.479955439693,
+        -70.750795081258
+      ],
+      "fecha": "2026-11-14 15:53:33",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Objeto o mascota perdida en centro comercial. Sin afectación al vuelo del dron."
+    },
+    {
+      "id": 12195394,
+      "uuid": "fd7d7e63-ca68-50f5-96ba-43bb2e1481f6",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Encontramos este perrito en Los Talaveras, es viejito. Buscamos a sus dueños o un nuevo hogar",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.556416221259,
+        -70.790547430515
+      ],
+      "fecha": "2026-11-14 15:46:24",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sobre mascota perdida sin impacto en la navegación del dron."
+    },
+    {
+      "id": 12195388,
+      "uuid": "21a88397-9923-5f2b-8ec1-b01d187cceb1",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Ventiladores portátiles con nebulización (tira agua)\nRECARGABLES\nIDEAL PARA LLEVAR EN EL BOLSO, VIAJE, CARTERA, ETC.\n2 VELOCIDADES\nDEMASIADO PRACTICO Y FRSSCO PARA ESTA CALOR 🔥\nPrecio normal $6990\nPrecio oferta $5990\nfoto en comentarios!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.540793014826,
+        -70.771594941616
+      ],
+      "fecha": "2026-11-14 15:44:56",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comercial de venta de ventiladores, sin implicancias operacionales para el vuelo."
+    },
+    {
+      "id": 12195374,
+      "uuid": "6542267d-4613-54df-a0c3-fbb6d857e9c5",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguna óptica por el sector? Se me rompieron mis lentes 🥲",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.470422597172,
+        -70.743441134691
+      ],
+      "fecha": "2026-11-14 15:42:09",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta comunitaria sobre ópticas, sin riesgo cinético o de espacio aéreo."
+    },
+    {
+      "id": 12195355,
+      "uuid": "0c30ee67-b50c-56b5-8e83-fea173fcf01f",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola ! Algún dato de contacto de Gafiter con las tres B ?",
+      "location": "Pasaje Batalla de Maipú 655–1365",
+      "coordenadas": [
+        -33.489292344527,
+        -70.768997674871
+      ],
+      "fecha": "2026-11-14 15:39:16",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Solicitud de contacto de gasfíter, irrelevante para la seguridad operacional."
+    },
+    {
+      "id": 12195349,
+      "uuid": "6e599a6e-a80a-513c-ba5f-f2f02aa2701c",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien sabe donde venden comida para perritos cerca de rinconada?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.509450908913,
+        -70.781880542636
+      ],
+      "fecha": "2026-11-14 15:37:57",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre venta de comida para mascotas, sin riesgo operativo."
+    },
+    {
+      "id": 12195319,
+      "uuid": "2e4d0cc4-d70f-5d0f-ba0b-e660d7534f6b",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hoy hay feria ? O es los domingos ?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.491099204324,
+        -70.768331363797
+      ],
+      "fecha": "2026-11-14 15:32:28",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre funcionamiento de feria libre, sin efecto en la ruta del dron."
+    },
+    {
+      "id": 12195317,
+      "uuid": "280dd507-9ed4-5ee2-b0a8-d2905a48ff70",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrito perdido o abandonado, aún anda como si tuviera collar, además es bonito y se nota que es educado, nada de bravo.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.530992700153,
+        -70.755994208157
+      ],
+      "fecha": "2026-11-14 15:31:59",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de perrito perdido, sin riesgo para la aeronave."
+    },
+    {
+      "id": 12195240,
+      "uuid": "03cee8a4-8827-58f7-94ef-172d34ab71f3",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perro encontrado en Maipú, Borgoño con Leonora Latorre",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.509196796244,
+        -70.797837674618
+      ],
+      "fecha": "2026-11-14 15:17:12",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de perro encontrado, sin implicancias para la inspección vial."
+    },
+    {
+      "id": 12195236,
+      "uuid": "01d97d11-a205-50cd-97be-4198e50d664d",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Menu a la Carta y Promociones ?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.507177286852,
+        -70.774031728506
+      ],
+      "fecha": "2026-11-14 15:16:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre menú y promociones, totalmente ajeno a la operación de vuelo."
+    },
+    {
+      "id": 12195235,
+      "uuid": "43d934bb-3577-5dca-9fc7-0d9403f10349",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrito perdido , lo tengo en el taller ya comió y bebió favor divulgar\nTaller mecánico",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.48770857796,
+        -70.762606859207
+      ],
+      "fecha": "2026-11-14 15:16:25",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota resguardada en taller, sin impacto operacional."
+    },
+    {
+      "id": 12195151,
+      "uuid": "aad94e30-0da1-5711-aef7-9d51cbdb5080",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.553476048573,
+        -70.794563032687
+      ],
+      "fecha": "2026-11-14 15:01:58",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte vacío sin descripción de amenaza."
+    },
+    {
+      "id": 12195147,
+      "uuid": "be77db91-4710-533e-9881-436f5b2f4b9d",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "SE VENDE POR MUDANZA!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.483323719078,
+        -70.767554529011
+      ],
+      "fecha": "2026-11-14 15:01:41",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de venta por mudanza, sin riesgo para el dron."
+    },
+    {
+      "id": 12195131,
+      "uuid": "bdbbfbb0-f61b-5bbb-82b8-a7c5f06646c3",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola buenas tardes ando buscando cajas de carton grandes como de 60 de largo y 40 de ancho x si alguien tiene y no la va a ocupar entre más mejor gracias",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.492170945707,
+        -70.735167860985
+      ],
+      "fecha": "2026-11-14 14:59:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Búsqueda comunitaria de cajas de cartón, sin impacto en la seguridad de vuelo."
+    },
+    {
+      "id": 12195075,
+      "uuid": "d6866efb-0932-5cf1-8299-9f48396ef96f",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Un perrito tirado a la entrada de un negocio tiene bozal.....",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.521284072966,
+        -70.7567730546
+      ],
+      "fecha": "2026-11-14 14:48:51",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota con bozal en la entrada de un negocio, sin riesgo cinético o de espacio aéreo."
+    },
+    {
+      "id": 12195069,
+      "uuid": "3f2df747-b439-5ece-ab66-4dd75b995bf7",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.467029203641,
+        -70.758945979178
+      ],
+      "fecha": "2026-11-14 14:48:14",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin contenido descriptivo."
+    },
+    {
+      "id": 12195066,
+      "uuid": "31026585-4424-5906-a746-2eba2a0646c2",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.470830925358,
+        -70.75939591974
+      ],
+      "fecha": "2026-11-14 14:47:29",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin contenido descriptivo."
+    },
+    {
+      "id": 12194967,
+      "uuid": "16640980-ffc2-53ee-af01-231ac7cda8cf",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien que realice uber",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.523367819122,
+        -70.788336955011
+      ],
+      "fecha": "2026-11-14 14:29:59",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Solicitud de servicios de transporte, irrelevante para la navegación del UAV."
+    },
+    {
+      "id": 12194917,
+      "uuid": "eff7020e-9e12-5c6a-be19-6121eb7c7071",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "??? **¡HOY ES NUESTRA GRAN VACUNATÓN EN PERRUCAN CHILE!** ??\n\n¡Queridos vecinos de Maipú! ?❤️ Hoy sábado 14 de noviembre estaremos vacunando a sus regalones y **¡NOS QUEDAN MUY POCOS CUPOS DISPONIBLES!** ??\n\n? **Vacunas disponibles a solo $10.000 cada una:**\n- Antirrábica para perros y gatos.\n- Óctuple canina.\n- Triple felina.\n\n⏰ **Horario:** 10:00 a 19:00 hrs.\n? Colación de 13:30 a 14:30 hrs.\n\n? **¿Qué debes traer?**\n✅ Carnet de vacunación de tu mascota (si lo tienes).\n\n✅ Tu teléfono celular con acceso a Instagram y Google.\n\n✅ Bolsitas para recoger las heces de tu regalón.\n\n✅ Correa para perros o transportadora segura para gatos.\n\n✅ Bozal para perros que lo requieran por seguridad.\n\n? **¡IMPORTANTE!** Si deseas acceder a la segunda vacuna de tu mascota, recuerda que **HOY debes subir una historia a Instagram etiquetando a @perrucanchile, dejar tu reseña en Google y mostrarnos ambas desde tu celular.** ⭐?\n\n? **Dirección:** Av. Libertador Bernardo O'Higgins 649, Maipú.\n\n? **Reservas y consultas:** +56 9 64550937.\n\n? **¡No te quedes sin tu cupo!** Te esperamos con mucho cariño para cuidar la salud de quienes nos entregan amor incondicional todos los días. ??❤️\n\n**¡PERRUCAN CHILE, CUIDANDO A TUS REGALONES!** ??",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.501399731323,
+        -70.765295103192
+      ],
+      "fecha": "2026-11-14 14:17:19",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Anuncio de evento comunitario de vacunación de mascotas, sin riesgo para la aeronave."
+    },
+    {
+      "id": 12194915,
+      "uuid": "295f6c77-0a6d-5169-a883-43a5e51de6de",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Hola buenos días está este perrito , llorando y lanzandose a la calle , no sé si es de alguien o lo abandonaron, esta avenida 4 poniente esquina Flavio Josefo , yo estoy esperando la micro y no puedo retenerlo",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.543958289124,
+        -70.777210481465
+      ],
+      "fecha": "2026-11-14 14:16:46",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Animal en vía pública, no califica como amenaza de colisión aérea ni riesgo crítico para el dron."
+    },
+    {
+      "id": 12194752,
+      "uuid": "fcd929d7-4254-5f1d-bd8e-98f229a8e0bb",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien con leches tapa azul ??? Para ahora",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.515883708459,
+        -70.785775110126
+      ],
+      "fecha": "2026-11-14 13:47:24",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Solicitud comunitaria de suministros, sin impacto operacional."
+    },
+    {
+      "id": 12194741,
+      "uuid": "31b58474-c72c-514d-b086-a3d72c0b337e",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "donde puedo imprimir antes de las 12?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.515756242368,
+        -70.770815424621
+      ],
+      "fecha": "2026-11-14 13:45:03",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre servicios de impresión, irrelevante para la seguridad de vuelo."
+    },
+    {
+      "id": 12194719,
+      "uuid": "6a0b2d37-0b0a-526e-b651-ff049043cac8",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Otra vez la misma historia en ese Condominio El Faro 😡 Ya esa gente está  para aplicar Ley Cholito. Perrito no para de aullar!!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.531969483768,
+        -70.778982751071
+      ],
+      "fecha": "2026-11-14 13:39:37",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Queja vecinal por ruidos molestos de mascota, sin riesgo para el UAV."
+    },
+    {
+      "id": 12194697,
+      "uuid": "404e9044-beff-5b9b-9e51-28d2247acf4b",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Boxer blanco perdido por av maipú lo habian atropellado no se deja tomar :( tiene collar!!",
+      "location": "Maipú 1900",
+      "coordenadas": [
+        -33.505534504923,
+        -70.783071865904
+      ],
+      "fecha": "2026-11-14 13:35:36",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre mascota extraviada y atropellada en calzada, sin riesgo cinético o estructural para el dron a baja cota."
+    },
+    {
+      "id": 12194687,
+      "uuid": "9081ad56-46c6-5922-bc30-cc991fcd6c63",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.512032044156,
+        -70.777764904595
+      ],
+      "fecha": "2026-11-14 13:32:39",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin contenido descriptivo."
+    },
+    {
+      "id": 12194682,
+      "uuid": "5cc3d002-9ae7-56af-97c4-081e62b5ea7d",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "perrito perdido, estuvo en metro monte tabor esta mañana y ahora está por la vereda sur de pajaritos \ngracias",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.551348497641,
+        -70.775387152757
+      ],
+      "fecha": "2026-11-14 13:32:10",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota en la vía pública, sin impacto en la seguridad operacional."
+    },
+    {
+      "id": 12194675,
+      "uuid": "fd1efa53-aac7-517e-8112-fd375a620d02",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú 1973",
+      "coordenadas": [
+        -33.505260111607,
+        -70.783485975063
+      ],
+      "fecha": "2026-11-14 13:31:30",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin descripción."
+    },
+    {
+      "id": 12194643,
+      "uuid": "9717274f-f6a8-57e4-a48b-39f8041b01cc",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Tengo a la venta ventiladores 3 en 1, 5 aspas a solo 20.000! Hago delivery a todo Santiago sin costo alguno!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.540770938258,
+        -70.77161539346
+      ],
+      "fecha": "2026-11-14 13:25:39",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comercial de venta de ventiladores, sin riesgo para la aeronave."
+    },
+    {
+      "id": 12194635,
+      "uuid": "a2ce6542-9d91-5b1e-a0e1-f8dba7415e9e",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Donde se puede sacar certificado de residencia hoy?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.514653764648,
+        -70.769021697342
+      ],
+      "fecha": "2026-11-14 13:23:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre trámites administrativos, irrelevante para el vuelo."
+    },
+    {
+      "id": 12194621,
+      "uuid": "89aae699-eb50-5d63-8789-57d8f535ccf4",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Si no estan prestando la cancha para cumpleaños por qué el otro dia habia un juego inflable?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.498505217199,
+        -70.735908485949
+      ],
+      "fecha": "2026-11-14 13:20:36",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Discusión vecinal sobre uso de canchas, sin implicancias para el espacio aéreo."
+    },
+    {
+      "id": 12194613,
+      "uuid": "60103911-6357-555f-ae75-94421c69ff0f",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "En el pasaje arenal hay un auto azul hace dias abandonado y nadie responde por él",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.499220956541,
+        -70.735287554562
+      ],
+      "fecha": "2026-11-14 13:19:08",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "INFRAESTRUCTURA_VIAL_DANADA",
+      "radio_buffer_metros": 0,
+      "justificacion": "Vehículo abandonado en la vía pública; no genera riesgo inminente de colisión en vuelo de crucero a 20m, constituyendo sólo un elemento estático en calzada."
+    },
+    {
+      "id": 12194585,
+      "uuid": "2c868a0c-cac4-507d-a9ec-2bb22da86fdf",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Hola a todos los vecinos espero que tengan un buen día, los dejo cordialmente invitados a la lota. Tendremos juegos con muchos premios, comida deliciosa y mucho más 😉los esperamos. Dirección pasaje los trovadores 590 Maipú",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.503400364705,
+        -70.741014741361
+      ],
+      "fecha": "2026-11-14 13:13:03",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Invitación a evento comunitario/lota, sin riesgo para la operación del dron."
+    },
+    {
+      "id": 12194560,
+      "uuid": "7970821a-4a4d-55e3-946c-f477055ac54a",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien con hora para manicura hoy???",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.545159033855,
+        -70.79228891963
+      ],
+      "fecha": "2026-11-14 13:06:37",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta sobre servicios estéticos, sin impacto operacional."
+    },
+    {
+      "id": 12194456,
+      "uuid": "99054f96-a01a-53ea-9819-36d48ea659d2",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Hace 10 min aprox vi un perrito tipo poodle en calle Isabel Riquelme, a la altura del Boston College. Parecía joven, era bien esponjoso y se veía desorientado, como si estuviera perdido. Se fue hacia el lado del canal 🥺!!! Aviso por si alguien lo está buscando o reconoce que puede ser su mascota. Lamentablemente, no alcancé a retenerlo porque voy camino al médico. 😩! Ojalá puedan encontrarlo y que vuelva pronto con su familia ❤️🐾",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.496685646946,
+        -70.757638402283
+      ],
+      "fecha": "2026-11-14 12:36:53",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota perdida cerca de un canal, sin riesgo cinético o electromagnético para la aeronave."
+    },
+    {
+      "id": 12194448,
+      "uuid": "ddb91c91-7987-5f6d-a3fd-d058c022468d",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.542090212856,
+        -70.754251107574
+      ],
+      "fecha": "2026-11-14 12:32:56",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin contenido."
+    },
+    {
+      "id": 12194442,
+      "uuid": "d52904c2-3cde-5dd5-9416-ae4e84e8a44e",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrito perdido y llora afuera del metro monte tabor",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.482237047321,
+        -70.746062994003
+      ],
+      "fecha": "2026-11-14 12:31:12",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota perdida, sin implicancias para la seguridad de vuelo."
+    },
+    {
+      "id": 12194278,
+      "uuid": "6e9148bb-d024-5d49-8750-19d9a1b3baa4",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "si no tiene dueño el cachorro, se busca dueño!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.482226700664,
+        -70.745854116976
+      ],
+      "fecha": "2026-11-14 11:42:22",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de búsqueda de dueño para cachorro, sin riesgo operacional."
+    },
+    {
+      "id": 12194276,
+      "uuid": "450563cb-41cd-5fd3-9321-8555c4e1a749",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "este cachorrito esta buscando a su dueño, porfavor difundir e informar cualquier cosita!!",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.482226700664,
+        -70.745854116976
+      ],
+      "fecha": "2026-11-14 11:41:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso sobre cachorro extraviado, irrelevante para la navegación del UAV."
+    },
+    {
+      "id": 12194273,
+      "uuid": "5fd5cf09-3bc5-52e7-9aa0-f0ba57f9f75c",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "alguien que reconozca al cachorrito?? lo ví por estos lados en la madrugada como a las 5",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.483734782813,
+        -70.742032639682
+      ],
+      "fecha": "2026-11-14 11:40:48",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de avistamiento de cachorro, sin impacto en la seguridad del dron."
+    },
+    {
+      "id": 12194272,
+      "uuid": "a690d019-3801-524a-8622-f6b171616667",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Anda un gatito negro muy desnutrido por los techos de bambú seis a llorado toda la noche",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.558259959955,
+        -70.793796591461
+      ],
+      "fecha": "2026-11-14 11:40:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de felino en techos; no representa amenaza de colisión en ruta de inspección vial a baja cota."
+    },
+    {
+      "id": 12194217,
+      "uuid": "35a0a060-a785-57ef-9ff6-b77bb6f0db57",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Gatito fallecido en la vereda frente a los albos, en donde está la peluquería canina, por si alguien reconoce este gatito para que lo vengan a buscar 😿",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.521825488431,
+        -70.780380181968
+      ],
+      "fecha": "2026-11-14 11:21:34",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte de mascota fallecida. No representa ningún riesgo operativo cinético, térmico ni de espacio aéreo para la aeronave."
+    },
+    {
+      "id": 12194077,
+      "uuid": "8d59e2da-b504-58c6-8732-9973ef8864bf",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.478111149874,
+        -70.755289793015
+      ],
+      "fecha": "2026-11-14 09:50:22",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin descripción o de mascota perdida. Sin impacto en la navegación a baja cota del dron."
+    },
+    {
+      "id": 12194075,
+      "uuid": "31573dba-aa5c-5b31-b906-60027e52df7b",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.47271760034,
+        -70.760600231588
+      ],
+      "fecha": "2026-11-14 09:49:33",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin descripción o de mascota perdida. Sin impacto en la navegación a baja cota del dron."
+    },
+    {
+      "id": 12194074,
+      "uuid": "4db94c8e-b7fc-5087-b2e7-a117553ff9df",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.469164878331,
+        -70.756972879171
+      ],
+      "fecha": "2026-11-14 09:48:44",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin descripción o de mascota perdida. Sin impacto en la navegación a baja cota del dron."
+    },
+    {
+      "id": 12194071,
+      "uuid": "47fc868b-c280-5cd6-936d-c956fc58afca",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.470219830748,
+        -70.759956166148
+      ],
+      "fecha": "2026-11-14 09:48:04",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin descripción o de mascota perdida. Sin impacto en la navegación a baja cota del dron."
+    },
+    {
+      "id": 12194070,
+      "uuid": "64a0684a-3677-513b-b9d5-16964f101815",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.474456571525,
+        -70.75847055763
+      ],
+      "fecha": "2026-11-14 09:47:16",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Reporte sin descripción o de mascota perdida. Sin impacto en la navegación a baja cota del dron."
+    },
+    {
+      "id": 12194016,
+      "uuid": "c644bfca-c723-5adf-bc45-d1b3f0ed4c5b",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Hay una casa con un gato rubio que anda maullando a esta hora en la calle porque lo dejan tirado TODO EL DIA Y NOCHE afuera ya que supongo que no lo tienen operado \nNo lo entran ni para comer ni si hace calor nada\nLa flojera de operar a su mascota",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.508665924795,
+        -70.797838680446
+      ],
+      "fecha": "2026-11-14 08:57:57",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Queja vecinal por mascota. No genera riesgo para el vuelo de inspección vial."
+    },
+    {
+      "id": 12194006,
+      "uuid": "5088b1c3-0d3a-5ea9-8247-65f315e33a93",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien con venta de copete?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.53005000267,
+        -70.770656503737
+      ],
+      "fecha": "2026-11-14 08:44:45",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso comercial vecinal. Sin afectación al espacio aéreo."
+    },
+    {
+      "id": 12193866,
+      "uuid": "48e11c85-882d-58a2-85e4-122849a36072",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Vecinos\nEs el tercer día seguido que los perritos de Tucan 467 duermen fuera de su casa.\nPasan toda la noche y todo el día en la calle, con hambre y sed\nQue se puede hacer en estos casos? Por un vecino se que la denuncia anónima no se puede hacer por que no es maltrato segun la ley.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.470765760784,
+        -70.746656097472
+      ],
+      "fecha": "2026-11-14 07:11:49",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Queja vecinal por animales en la calle. No representa amenaza operacional para la aeronave."
+    },
+    {
+      "id": 12193847,
+      "uuid": "205ec3f6-abe3-5571-a7cc-133880be5904",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "si vieron a alguien a eso de 2 a 4 de la mañana viendo debajo de un auto, era yo, se escapó mi gato y lo salí a buscar porque lo escuchaba peleando",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.547362359572,
+        -70.761909484863
+      ],
+      "fecha": "2026-11-14 07:00:44",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Incidente doméstico de búsqueda de mascota. Sin riesgo cinético o estructural para el dron."
+    },
+    {
+      "id": 12193760,
+      "uuid": "bc71692d-1a9c-5e57-b5d2-1b50c830c7e6",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Pasaron 2 vehículos rajados, casi chocaron, nose si uno iba siguiendo al otro pero iban mal",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.500553166551,
+        -70.779703259468
+      ],
+      "fecha": "2026-11-14 06:24:43",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Conducción imprudente de vehículos en movimiento (no involucra disparos, pirotecnia, cables ni incendios activos). Evento transitorio sin peligro directo para el vuelo estacionario o en ruta a 20m."
+    },
+    {
+      "id": 12193615,
+      "uuid": "bee893a8-94f8-51d6-b2ac-18e0d6d97ce2",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Dron Con Luz Verde viendo cosas Bajo hasta la altura de mi casa",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.474675268873,
+        -70.727526247501
+      ],
+      "fecha": "2026-11-14 05:36:27",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Avistamiento de otro dron por un vecino. No constituye una amenaza de infraestructura, clima o espacio aéreo crítico para la misión."
+    },
+    {
+      "id": 12193506,
+      "uuid": "a11d66e8-3dd7-53df-a826-21d45cedc4df",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "SEGUIMOS BUSCANDO! Algodón aún no vuelve con nosotros, se perdió por el sector de La Pirámide, hace pocos días se le cortó el pelo, es blanco, pequeño y muy cariñoso. Adjunto foto de cómo luce con el pelo rapado, no estaba con chaqueta al momento de perderse. Por favor, si alguien lo ve comunicarse conmigo.\n+56942847281",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.558151834526,
+        -70.792522877455
+      ],
+      "fecha": "2026-11-14 05:12:41",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Aviso de mascota perdida. Irrelevante para la seguridad operacional."
+    },
+    {
+      "id": 12193396,
+      "uuid": "5ce689b1-f44d-579e-9fb5-33fdbda45bb4",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien más sin luz?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.50778728206,
+        -70.74007127434
+      ],
+      "fecha": "2026-11-14 04:50:42",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Corte de suministro eléctrico. Aunque la falta de energía no afecta la operación autónoma del dron, no se especifica caída de postes o cables en la calzada."
+    },
+    {
+      "id": 12193395,
+      "uuid": "7e79f7d9-4bea-5b73-a471-94a326ab2c4e",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Alguien más sin luz?",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.50778728206,
+        -70.74007127434
+      ],
+      "fecha": "2026-11-14 04:50:40",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Corte de suministro eléctrico sin reporte explícito de infraestructura caída."
+    },
+    {
+      "id": 12193382,
+      "uuid": "ca445d34-3240-5657-8256-1fb8fad4ad07",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Que paso con este perro ?\nFue publicado en La galaxia pero borraron el reporte, aun no encontraban a los dueños.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.508789208028,
+        -70.795035772026
+      ],
+      "fecha": "2026-11-14 04:46:40",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida. Sin impacto operacional."
+    },
+    {
+      "id": 12193379,
+      "uuid": "a0efadf3-6e7c-5d86-a538-b31ab221a6b0",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Que paso con este perro ?\nFue publicado en La galaxia pero borraron el reporte, aun no encontraban a los dueños.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.509965841209,
+        -70.794621035457
+      ],
+      "fecha": "2026-11-14 04:45:27",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida. Sin impacto operacional."
+    },
+    {
+      "id": 12193359,
+      "uuid": "486c0d37-660b-57ab-bba0-fb88d602f143",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "ALGUIEN MAS SIN LUZ",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.554171774611,
+        -70.798342935741
+      ],
+      "fecha": "2026-11-14 04:41:22",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Corte de suministro eléctrico general sin confirmación de daños físicos en la red aérea."
+    },
+    {
+      "id": 12193294,
+      "uuid": "8e830242-f045-5870-8486-dd26a35cbe59",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Buenas noches hace aproximadamente 1h que esta perdida mi gato responde al nombre de yoru es pequeña tiene 6 meses, blanca con manchas naranja y negras. Cualquier avistamiento porfavor todo sirve.",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.510025270156,
+        -70.765509412995
+      ],
+      "fecha": "2026-11-14 04:27:39",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida. Sin relevancia para el vuelo."
+    },
+    {
+      "id": 12193106,
+      "uuid": "75812846-dc4e-5ecf-8160-e2d0d48108c3",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Perrita asustada si alguien la reconoce por favor me hable al 957004143",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.508967003947,
+        -70.794171765447
+      ],
+      "fecha": "2026-11-14 03:58:24",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota perdida. Sin relevancia para el vuelo."
+    },
+    {
+      "id": 12193066,
+      "uuid": "6746a3eb-e84f-5ff0-b908-ac68a74e2ce5",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Algún dato de oftalmólogo por el sector? Se rompieron mis lentes 🥲",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.472483236486,
+        -70.752018168569
+      ],
+      "fecha": "2026-11-14 03:51:39",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Consulta comercial de salud. Ruido operativo."
+    },
+    {
+      "id": 12193048,
+      "uuid": "1e67db13-d7d3-5941-a51f-5329e8c020be",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Anda este perrito por hugo bravo perdido",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.474766718879,
+        -70.746208839118
+      ],
+      "fecha": "2026-11-14 03:47:48",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota en vía pública. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12192960,
+      "uuid": "a113133f-ab81-5d7d-85a3-1d7fd01e1df5",
+      "tipo_original": "Mascota perdida",
+      "descripcion": "Hola vecinos de casualidad es de alguien este perrito parece que anda perdido tiene collar",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.492677592638,
+        -70.736231356859
+      ],
+      "fecha": "2026-11-14 03:32:46",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Mascota en vía pública. Sin riesgo para la aeronave."
+    },
+    {
+      "id": 12192769,
+      "uuid": "cbdff300-0409-5483-baf7-4a7ed3abc9ac",
+      "tipo_original": "Aviso comunitario",
+      "descripcion": "Sin luz",
+      "location": "Maipú",
+      "coordenadas": [
+        -33.515322688531,
+        -70.785995721817
+      ],
+      "fecha": "2026-11-14 03:08:24",
+      "es_amenaza": false,
+      "nivel_riesgo": "NINGUNO",
+      "categoria": "RUIDO_IRRELEVANTE",
+      "radio_buffer_metros": 0,
+      "justificacion": "Corte de suministro eléctrico sin afectación física explícita de cables o postes."
     }
   ]
 }

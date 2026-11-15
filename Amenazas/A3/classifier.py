@@ -18,6 +18,7 @@ Funciona sin dependencias externas (utiliza urllib de la librería estándar).
 
 import os
 import json
+import time
 import math
 import urllib.request
 import urllib.parse
@@ -181,57 +182,66 @@ def classify_with_rule_based_fallback(reports):
 
 def classify_with_gemini(reports, api_key):
     """
-    Envía los reportes a Gemini 3.8 Flash mediante REST para clasificarlos semánticamente
-    siguiendo las directrices del system prompt.
+    Envía los reportes a Gemini mediante REST para clasificarlos semánticamente
+    siguiendo las directrices del system prompt. Procesa en lotes para evitar timeouts.
     """
-    model_name = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
 
-    input_list = [
-        {
-            "id": r.get("id"),
-            "tipo": r.get("title"),
-            "descripcion": r.get("description"),
-            "location": r.get("location"),
-        }
-        for r in reports
-    ]
-
-    prompt_content = (
-        "Analiza la siguiente lista de reportes ciudadanos de SOSAFE. "
-        "Aplica el criterio técnico estricto de seguridad para drones y descarta todo el ruido irrelevante.\n\n"
-        f"REPORTES A ANALIZAR:\n{json.dumps(input_list, ensure_ascii=False)}"
-    )
-
-    payload = {
-        "system_instruction": {
-            "parts": [{"text": SYSTEM_INSTRUCTION}]
-        },
-        "contents": [
-            {"parts": [{"text": prompt_content}]}
-        ],
-        "generationConfig": {
-            "response_mime_type": "application/json",
-            "temperature": 0.1
-        }
-    }
-
-    req_body = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=req_body,
-        headers={"Content-Type": "application/json"},
-        method="POST"
-    )
-
     print(f"[*] Evaluando {len(reports)} reportes con Gemini AI ({model_name})...")
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            body = resp.read().decode("utf-8")
-            res_json = json.loads(body)
+    batch_size = 40
+    ai_classifications = []
 
-        text_response = res_json["candidates"][0]["content"]["parts"][0]["text"]
-        ai_classifications = json.loads(text_response)
+    try:
+        total_batches = (len(reports) - 1) // batch_size + 1
+        for i in range(0, len(reports), batch_size):
+            chunk = reports[i:i + batch_size]
+            input_list = [
+                {
+                    "id": r.get("id"),
+                    "tipo": r.get("title"),
+                    "descripcion": r.get("description"),
+                    "location": r.get("location"),
+                }
+                for r in chunk
+            ]
+
+            prompt_content = (
+                "Analiza la siguiente lista de reportes ciudadanos de SOSAFE. "
+                "Aplica el criterio técnico estricto de seguridad para drones y descarta todo el ruido irrelevante.\n\n"
+                f"REPORTES A ANALIZAR:\n{json.dumps(input_list, ensure_ascii=False)}"
+            )
+
+            payload = {
+                "system_instruction": {
+                    "parts": [{"text": SYSTEM_INSTRUCTION}]
+                },
+                "contents": [
+                    {"parts": [{"text": prompt_content}]}
+                ],
+                "generationConfig": {
+                    "response_mime_type": "application/json",
+                    "temperature": 0.1
+                }
+            }
+
+            req_body = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                url,
+                data=req_body,
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+
+            with urllib.request.urlopen(req, timeout=45) as resp:
+                body = resp.read().decode("utf-8")
+                res_json = json.loads(body)
+
+            text_response = res_json["candidates"][0]["content"]["parts"][0]["text"]
+            batch_res = json.loads(text_response)
+            ai_classifications.extend(batch_res)
+            print(f"    [+] Lote {i // batch_size + 1}/{total_batches} analizado ({len(batch_res)} items)")
+            time.sleep(0.5)
 
         class_map = {item["id"]: item for item in ai_classifications if "id" in item}
 
@@ -253,7 +263,7 @@ def classify_with_gemini(reports, api_key):
                 "radio_buffer_metros": ai_info.get("radio_buffer_metros", 0),
                 "justificacion": ai_info.get("justificacion", "Clasificado por Gemini AI.")
             })
-        print(f"[+] Clasificación semántica de Gemini AI ({model_name}) completada.")
+        print(f"[+] Clasificación semántica de Gemini AI ({model_name}) completada exitosamente.")
         return merged
 
     except Exception as e:
