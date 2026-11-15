@@ -290,6 +290,50 @@ probabilidades se aplica al crear un plan nuevo; los planes existentes conservan
 
 ### C.6 Verificación y calibración
 
+#### Operación simulada: revisión antes de cada salida
+
+El panel **Revisión antes de cada salida** ejecuta una operación paso a paso,
+independiente del experimento congelado P5/P7/P8. Para cada técnica:
+
+1. **Revisar próxima salida** intenta descargar las fuentes seleccionadas
+   mediante el servicio interno `docker/etl/actualizador.py`. Si la descarga
+   falla, conserva y usa los datos locales disponibles; el resultado indica
+   `actualizado`, `local` o `error` por fuente. No hay descargas al calcular
+   todos los vuelos de la campaña ni un temporizador que opere en segundo plano.
+2. Se recalculan las amenazas para la hora de esa salida. El filtro temporal
+   SOSAFE de `escenario.json` conserva su efecto: `false` permite el escenario
+   manual completo, `true` selecciona los reportes vigentes a esa hora.
+3. Se vuelve a rutear con la técnica elegida, conservando la base y la batería.
+   A1/A3 excluyen zonas incluso en T1 operacional. A2 suspende si incumple la
+   política y no permite autorizar un vuelo sin pronóstico suficiente. Si un
+   desvío no cabe en la jornada, se pospone y debe revisarse otra vez.
+4. **Registrar completada** confirma una ejecución simulada; consultar o
+   dibujar la ruta no completa tareas. **Posponer** mantiene las inspecciones
+   pendientes y permite retomarlas en jornadas siguientes, sin repetir las
+   que ya se confirmaron.
+
+A4 incorpora inspecciones nuevas dentro del área y a menos de 1 km del
+recorrido revisado, priorizándolas. Se deduplican por arista. Una nueva alerta
+sobre una arista ya completada no crea automáticamente una reinspección; eso
+requeriría versionar las tareas por incidente. La revisión no inventa reportes
+futuros ni simula una emergencia con el dron en vuelo.
+
+API: `POST /api/flota/revisar-salida` recibe `{plan_id, tecnica}`;
+`POST /api/flota/confirmar-salida` recibe
+`{plan_id, tecnica, revision_id, completada}`. La confirmación es idempotente.
+La campaña y su progreso se guardan en `campanas_operativas` (PostgreSQL).
+`GET /api/flota/campana/{plan_id}` permite recuperarla tras un reinicio;
+el panel **Retomar campaña guardada** acepta ese identificador. El registro
+operativo persistente no depende de los 30 minutos de caché del experimento.
+
+El servicio de actualización solo es accesible dentro de Docker, sin puerto
+publicado. `ACTUALIZACION_TIMEOUT_S` limita cada extractor/cargador a 120 s
+por defecto. Los logs de proveedores y sus credenciales no se devuelven a la
+interfaz. La descarga trae información disponible **ahora**: al simular una
+salida futura no produce pronósticos ni reportes que todavía no existan.
+
+### Validaciones históricas de técnicas
+
 **Exactitud.** `verificar.py` compara T2 y T4 con la fuerza bruta (todas las permutaciones decodificadas con split) en instancias de 5 a 8 calles. T2 y T4 entregan siempre el óptimo, y T2 lo certifica.
 
 | Calles | Óptimo (fuerza bruta) | T3 | T2 (HiGHS) | Cota T2 | Tiempo T2 | T4 | Tiempo T4 |

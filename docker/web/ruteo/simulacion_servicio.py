@@ -75,6 +75,7 @@ def registrar_plan(resultado):
                                 * (1 - float(resultado["preferencias"]["reserva_bateria_pct"]) / 100)),
                 "detalle_tecnicas": {c: t.get("detalle", {}) for c, t in resultado["tecnicas"].items()},
                 "modelo": resultado.pop("_modelo_probabilidades", None),
+                "operacion": {}, "cerrojo_operacion": threading.Lock(),
                 "modelo_preparado": False, "cerrojo": threading.Lock()}
     with _cerrojo:
         ahora = time.monotonic()
@@ -87,14 +88,20 @@ def registrar_plan(resultado):
     return token
 
 
-def _recuperar_plan(plan_id):
+def _recuperar_plan(plan_id, conn=None):
     if not isinstance(plan_id, str):
         raise ValueError("plan_id debe identificar un plan calculado por el servidor.")
     with _cerrojo:
         registro = _planes.get(plan_id)
         if registro is None or time.monotonic() - registro["creado"] > TTL_PLAN_S:
             _planes.pop(plan_id, None)
-            raise PlanNoDisponible("El plan ya no está disponible. Vuelve a planificar antes de simular.")
+            if conn is None:
+                raise PlanNoDisponible("El plan ya no está disponible. Vuelve a planificar antes de simular.")
+            from . import campanas
+            registro = campanas.cargar(conn, plan_id)
+            if registro is None:
+                raise PlanNoDisponible('No existe la campaña guardada. Vuelve a planificar.')
+            _planes[plan_id] = registro
         _planes.move_to_end(plan_id)
         return registro
 

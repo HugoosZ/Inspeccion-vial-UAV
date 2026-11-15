@@ -310,6 +310,11 @@ def _resolver_gurobi(env, mod, x0, info, limite_s, gap):
         else:
             res.update(valor=None, cota=float(m.ObjBound) if m.Status != GRB.INFEASIBLE else None,
                        gap=None, salidas=None)
+        # Antes de certificar una cota, Gurobi puede devolver infinito. No es
+        # una métrica disponible ni un número válido en la respuesta JSON.
+        for clave in ("valor", "cota", "gap"):
+            if res[clave] is not None and not np.isfinite(res[clave]):
+                res[clave] = None
         return res
     finally:
         m.dispose()
@@ -330,7 +335,7 @@ def _resolver_highs(mod, x0, info, inicio, limite_s, gap, t0, t_modelo):
         cota = getattr(r, "mip_dual_bound", None)
         cota = float(cota + mod["const"]) if cota is not None and np.isfinite(cota) else None
         res.update(valor=valor, cota=cota,
-                   gap=float(r.mip_gap) if getattr(r, "mip_gap", None) is not None else None,
+                   gap=float(r.mip_gap) if getattr(r, "mip_gap", None) is not None and np.isfinite(r.mip_gap) else None,
                    salidas=_salidas(mod, r.x))
     else:
         res.update(valor=None, cota=None, gap=None, salidas=None)

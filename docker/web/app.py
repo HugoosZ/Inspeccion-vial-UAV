@@ -35,6 +35,7 @@ import ruteo  # noqa: E402
 from ruteo import flota  # noqa: E402
 from ruteo import milp  # noqa: E402
 from ruteo import simulacion_servicio  # noqa: E402
+from ruteo import operacion, campanas  # noqa: E402
 from ruteo.preferencias import (AMENAZAS_VALIDAS, CATEGORIAS_BASE_VALIDAS, OPCIONES,  # noqa: E402
                                 PREFERENCIAS_DEFECTO, PREFERENCIAS_FLOTA, TECNICAS_VALIDAS,
                                 TIPOS_SENAL_VALIDOS)
@@ -364,6 +365,9 @@ def post_flota(cuerpo: dict = Body(..., examples=[{
         for codigo, tecnica in resultado["tecnicas"].items():
             tecnica["resiliencia"] = metricas[codigo]
         resultado["comparacion_resiliencia"] = comparacion
+        registro = simulacion_servicio._recuperar_plan(resultado['plan_id'])
+        registro['respuesta_plan'] = resultado
+        campanas.guardar(conn, resultado['plan_id'], registro)
         return resultado
     except (flota.ErrorFlota, ValueError) as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -395,6 +399,60 @@ def post_simulacion(cuerpo: dict = Body(..., examples=[{"plan_id": "id devuelto 
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+    finally:
+        conn.close()
+
+
+@app.post('/api/flota/revisar-salida')
+def revisar_salida(cuerpo: dict = Body(...)):
+    """Actualiza fuentes y revalida la próxima salida de una operación simulada.
+
+    La descarga intenta usar las fuentes externas seleccionadas, con respaldo
+    local. No altera el experimento P5/P7/P8 ni marca inspecciones completadas.
+    """
+    conn = get_db_connection()
+    try:
+        registro = simulacion_servicio._recuperar_plan(cuerpo.get('plan_id'), conn)
+        respuesta = operacion.revisar(conn, registro, cuerpo.get('tecnica'))
+        campanas.guardar(conn, cuerpo['plan_id'], registro)
+        return respuesta
+    except simulacion_servicio.PlanNoDisponible as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    finally:
+        conn.close()
+
+
+@app.post('/api/flota/confirmar-salida')
+def confirmar_salida(cuerpo: dict = Body(...)):
+    """Registra completar o posponer una salida, sin inferir ejecución real."""
+    if not isinstance(cuerpo.get('completada'), bool):
+        raise HTTPException(status_code=422, detail='completada debe ser true o false')
+    conn = get_db_connection()
+    try:
+        registro = simulacion_servicio._recuperar_plan(cuerpo.get('plan_id'), conn)
+        respuesta = operacion.confirmar(registro, cuerpo.get('tecnica'), cuerpo.get('revision_id'), cuerpo['completada'])
+        campanas.guardar(conn, cuerpo['plan_id'], registro)
+        return respuesta
+    except simulacion_servicio.PlanNoDisponible as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    finally:
+        conn.close()
+
+
+@app.get('/api/flota/campana/{plan_id}')
+def obtener_campana(plan_id: str):
+    """Permite recuperar el identificador y el progreso guardado tras un reinicio."""
+    conn = get_db_connection()
+    try:
+        r = simulacion_servicio._recuperar_plan(plan_id, conn)
+        return {'plan': r.get('respuesta_plan'), 'plan_id': plan_id, 'preferencias': r['preferencias'],
+                'progreso': {c: operacion._avance(r, e) for c, e in r['operacion'].items()}}
+    except simulacion_servicio.PlanNoDisponible as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
     finally:
         conn.close()
 

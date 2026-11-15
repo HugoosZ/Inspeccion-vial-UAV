@@ -146,6 +146,24 @@ descargas automáticas ni consultas nuevas antes de cada salida.
 
 ## Sorteo y recuperación
 
+### Revisión operativa independiente
+
+Además del sorteo reproducible, el panel operativo permite revisar y confirmar
+una salida a la vez. Cada revisión intenta actualizar las fuentes externas;
+si falla, usa el respaldo local disponible e informa su origen. Recalcula el
+modelo para la hora de despegue de esa salida y aplica el filtro SOSAFE actual.
+Esta actualización no altera las probabilidades congeladas del experimento
+P5/P7/P8. Las inspecciones completadas y las pospuestas se guardan en PostgreSQL
+para retomar la campaña en otro día o tras reiniciar el servidor. El operador
+confirma la ejecución simulada; no hay telemetría ni vuelo autónomo real.
+
+Las zonas vigentes A1/A3 se evitan, A2 suspende si la política no se cumple y
+la falta de pronóstico impide dar por apta una salida. A4 agrega tareas locales
+prioritarias sin repetir las aristas ya completadas. Ver el procedimiento y
+sus límites en [README de ruteo](../docker/web/ruteo/README.md).
+
+### Experimento congelado
+
 Un único sorteo por evento se comparte entre las cuatro técnicas y todos sus
 enlaces/nodos. `U` es uniforme en `[0,100)` y ocurre si `U < 100*p`. Un evento
 activo confirmado no vuelve a sortearse. Las amenazas desactivadas en las

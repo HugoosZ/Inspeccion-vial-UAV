@@ -43,13 +43,15 @@ services:
       DB_PASSWORD: ruteo_pass
       # Indica a main.py que corre dentro del contenedor (modo pipeline)
       RUTEO_EN_CONTENEDOR: "1"
+      ACTUALIZACION_TIMEOUT_S: "120"
       # Las claves (OHSOME, SOSAFE, GEMINI) las lee main.py desde /app/.env
     volumes:
       - .:/app
     networks:
       - ruteo_net
-    # Queda en espera; 'python3 main.py' (en el computador) ejecuta aquí el pipeline
-    command: ["tail", "-f", "/dev/null"]
+    # Servicio interno de actualización previa a salida; sin puerto publicado.
+    # main.py puede seguir ejecutando el pipeline con docker compose exec.
+    command: ["python", "docker/etl/actualizador.py"]
 
   # ----------------------------------------------------------------------------
   # 3. Módulo Web: Servidor y API Geoespacial para Visualizador Leaflet
@@ -69,6 +71,7 @@ services:
       DB_NAME: ruteo_db
       DB_USER: ruteo_user
       DB_PASSWORD: ruteo_pass
+      ACTUALIZADOR_URL: "http://etl:8090/actualizar"
       # Licencia WLS académica de Gurobi para el modelo formal T2 (se leen del .env de la raíz).
       # Sin ellas, T2 se resuelve con HiGHS y el sitio lo indica.
       WLSACCESSID: ${WLSACCESSID:-}

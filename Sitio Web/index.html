@@ -120,6 +120,11 @@
   #resiliencia .detalle-metrica p { margin: 4px 0; }
   #resiliencia .ganadora { color: var(--acento); font-weight: 600; }
   #simulacion { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--borde); font-size: 12px; }
+  #revisionSalidas { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--borde); font-size: 12px; }
+  #revisionSalidas h2 { margin-top: 0; }
+  #revisionSalidas table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+  #revisionSalidas td, #revisionSalidas th { padding: 4px 3px; text-align: left; border-bottom: 1px solid var(--borde); }
+  #revisionSalidas .aviso { color: #b45309; margin: 4px 0; }
   #simulacion h2 { margin-bottom: 6px; }
   #simulacion label { display: inline-flex; align-items: center; gap: 5px; }
   #simulacion .controles-capas { display: flex; flex-wrap: wrap; gap: 5px 12px; margin: 6px 0; }
@@ -180,6 +185,30 @@
       <section id="resiliencia" aria-labelledby="tituloResiliencia" hidden>
         <h2 id="tituloResiliencia">Resiliencia del servicio</h2>
         <div id="resultadoResiliencia" aria-live="polite"></div>
+      </section>
+      <section id="revisionSalidas" aria-labelledby="tituloRevisionSalidas">
+        <h2 id="tituloRevisionSalidas">Revisión antes de cada salida</h2>
+        <p class="ayuda">Operación simulada paso a paso de una técnica. Antes de cada salida se intenta actualizar las amenazas;
+          si no se pueden descargar, se revisan los datos locales según su política de vigencia.
+          Las inspecciones solo se registran como completadas cuando lo confirmas.</p>
+        <div class="form-prefs">
+          <label for="tecnicaOperacion">Técnica que se va a operar</label>
+          <select id="tecnicaOperacion" disabled></select>
+        </div>
+        <div class="fila-botones">
+          <button type="button" class="btn primario" id="btnRevisarSalida" disabled>Revisar próxima salida</button>
+          <button type="button" class="btn" id="btnCompletarSalida" disabled>Registrar completada</button>
+          <button type="button" class="btn" id="btnPosponerSalida" disabled>Posponer salida</button>
+        </div>
+        <p class="ayuda" id="estadoOperacion" role="status" aria-live="polite">Primero planifica una inspección.</p>
+        <div id="resultadoOperacion" aria-live="polite"></div>
+        <details><summary>Retomar campaña guardada</summary>
+          <p class="ayuda">El identificador permite recuperar el plan y las inspecciones confirmadas tras cerrar la página.</p>
+          <label for="idCampanaGuardada">Identificador de campaña</label>
+          <input id="idCampanaGuardada" type="text" autocomplete="off">
+          <button type="button" class="btn" id="btnRetomarCampana">Retomar campaña</button>
+        </details>
+        <p class="ayuda">Este registro representa una ejecución manual simulada; no controla un dron real ni modifica la comparación P7/P8 del plan original.</p>
       </section>
       <section id="simulacion" aria-labelledby="tituloSimulacion">
         <h2 id="tituloSimulacion">Simulación de fallas</h2>
@@ -544,6 +573,8 @@ const ruteo = { area: null, comuna: false, vertices: [], dibujando: false, capaA
                 tecnicas: [], amenazas: [], resultado: null, leyenda: null,
                 calculando: false, peticion: 0, solicitud: null };
 const simulacion = { resultado: null, capas: {}, cargando: false, peticion: 0, solicitud: null, pagina: 0, error: null };
+const operacion = { resultado: null, pendiente: null, tecnica: null, cargando: false,
+                    peticion: 0, solicitud: null, error: null, capa: null, registros: {} };
 
 const CAMPOS = [
   { grupo: "Flota y jornada" },
@@ -656,6 +687,7 @@ function actualizarBotones() {
   document.getElementById("btnDibujar").classList.toggle("activo", ruteo.dibujando);
   document.getElementById("btnComuna").classList.toggle("activo", ruteo.comuna);
   actualizarControlesSimulacion();
+  actualizarControlesOperacion();
 }
 
 function borrarArea() {
@@ -732,6 +764,7 @@ function limpiarRutas(cancelar = true) {
     document.getElementById("btnCalcular").textContent = "Planificar inspección";
   }
   restablecerSimulacion();
+  restablecerOperacion();
   Object.values(ruteo.capas).forEach(c => mapa.removeLayer(c));
   ruteo.capas = {};
   ruteo.resultado = null;
@@ -740,6 +773,7 @@ function limpiarRutas(cancelar = true) {
   actualizarLeyenda();
   document.getElementById("resultado").innerHTML = "";
   actualizarControlesSimulacion();
+  actualizarControlesOperacion();
 }
 
 function limpiarTodo() {
@@ -880,6 +914,7 @@ function actualizarLeyenda() {
 }
 
 function dibujarResultado(r) {
+  document.getElementById('idCampanaGuardada').value = r.plan_id || '';
   limpiarRutas(false);
   ruteo.resultado = r;
   actualizarProbabilidadesPlan();
@@ -1043,6 +1078,138 @@ function dibujarResultado(r) {
     actualizarLeyenda();
   }));
   actualizarControlesSimulacion();
+  actualizarControlesOperacion();
+}
+
+// Revisión operativa: registro independiente de la comparación congelada P7/P8.
+document.getElementById('btnRetomarCampana').addEventListener('click', async () => {
+  const id = document.getElementById('idCampanaGuardada').value.trim();
+  if (!id || operacion.cargando || ruteo.calculando) return;
+  try {
+    const respuesta = await fetch(`${API}/api/flota/campana/${encodeURIComponent(id)}`);
+    const datos = await respuesta.json();
+    if (!respuesta.ok || !datos.plan) throw new Error(datos.detail || 'No se encontró el plan guardado.');
+    limpiarRutas();
+    dibujarResultado(datos.plan);
+    document.getElementById('estadoOperacion').textContent = 'Campaña recuperada. Revisa la próxima salida para continuar con el progreso guardado.';
+  } catch (e) {
+    document.getElementById('estadoOperacion').textContent = e.message;
+  }
+});
+
+function restablecerOperacion() {
+  operacion.peticion++;
+  if (operacion.solicitud) operacion.solicitud.abort();
+  if (operacion.capa) mapa.removeLayer(operacion.capa);
+  Object.assign(operacion, { resultado: null, pendiente: null, tecnica: null, cargando: false,
+    solicitud: null, error: null, capa: null, registros: {} });
+  document.getElementById("resultadoOperacion").innerHTML = "";
+  document.getElementById("tecnicaOperacion").dataset.planId = "";
+}
+
+function actualizarControlesOperacion() {
+  const plan = ruteo.resultado, selector = document.getElementById("tecnicaOperacion");
+  const disponible = !!(plan && plan.plan_id);
+  if (disponible && selector.dataset.planId !== plan.plan_id) {
+    selector.innerHTML = Object.keys(plan.tecnicas).map(c => `<option value="${escapar(c)}">${escapar(NOMBRE_TECNICA[c] || c)}</option>`).join("");
+    selector.dataset.planId = plan.plan_id;
+    operacion.tecnica = selector.value;
+  } else if (!disponible) {
+    selector.innerHTML = "";
+    selector.dataset.planId = "";
+  }
+  const ocupado = operacion.cargando || ruteo.calculando || simulacion.cargando;
+  const pendiente = !!operacion.pendiente;
+  const autorizada = pendiente && operacion.pendiente.autorizada === true;
+  selector.disabled = !disponible || ocupado || pendiente;
+  document.getElementById("btnRevisarSalida").disabled = !disponible || ocupado || pendiente ||
+    (operacion.resultado && ["finalizada", "terminada"].includes(operacion.resultado.estado));
+  document.getElementById("btnCompletarSalida").disabled = !disponible || ocupado || !autorizada;
+  document.getElementById("btnPosponerSalida").disabled = !disponible || ocupado || !pendiente;
+  document.getElementById("btnRevisarSalida").textContent = operacion.cargando ? "Revisando…" : "Revisar próxima salida";
+  const estado = document.getElementById("estadoOperacion");
+  estado.classList.toggle("aviso", !!operacion.error);
+  estado.textContent = operacion.cargando ? "Actualizando amenazas y verificando la próxima salida. La descarga puede tardar unos minutos…" :
+    operacion.error || (!disponible ? "Primero planifica una inspección." : pendiente ?
+      "Revisión lista. Confirma la ejecución simulada o pospón la salida para continuar." :
+      "Puedes revisar la próxima salida de la técnica seleccionada.");
+}
+
+const NOMBRE_ESTADO_OPERACION = {
+  autorizada: "Salida permitida por el modelo", suspendida_A2: "Salida suspendida por clima",
+  requiere_revision_otra_jornada: "El desvío requiere otra jornada y una nueva revisión",
+  inviable: "La salida no cumple las restricciones operativas",
+  sin_pronostico: "Sin pronóstico suficiente para verificar la salida", sin_ruta: "No se encontró un recorrido ejecutable",
+  bloqueada: "Salida afectada por un bloqueo", confirmada: "Salida registrada como completada",
+  postergada: "Salida pospuesta; las inspecciones siguen pendientes", finalizada: "No quedan inspecciones pendientes",
+  terminada: "No quedan salidas por revisar"
+};
+
+function mostrarOperacion(r) {
+  const zona = ruteo.resultado && ruteo.resultado.preferencias.zona_horaria || "America/Santiago";
+  const fuentes = r.actualizacion && r.actualizacion.fuentes || {};
+  const filasFuentes = Object.entries(fuentes).map(([c, f]) => {
+    const info = f && typeof f === "object" ? f : { estado: f };
+    return `<tr><td>${escapar(NOMBRE_AMENAZA[c] || c)}</td><td>${escapar(info.estado || "sin información")}${
+      info.detalle ? `<br><span class="ayuda">${escapar(info.detalle)}</span>` : ""}</td></tr>`;
+  }).join("");
+  const pendientes = Array.isArray(r.pendientes) ? r.pendientes.length : r.pendientes;
+  document.getElementById("resultadoOperacion").innerHTML = `
+    <p><b>${escapar(NOMBRE_ESTADO_OPERACION[r.estado] || r.estado || "Revisión realizada")}</b></p>
+    <table><tr><td>Técnica</td><td>${escapar(r.tecnica || operacion.tecnica || "—")}</td></tr>
+      ${r.dron != null ? `<tr><td>Dron · salida</td><td>${fmt(r.dron)} · ${fmt(r.salida)}</td></tr>` : ""}
+      ${r.inicio ? `<tr><td>Inicio</td><td>${fechaProgramada(r.inicio, zona)}</td></tr>` : ""}
+      ${r.fin ? `<tr><td>Fin</td><td>${fechaProgramada(r.fin, zona)}</td></tr>` : ""}
+      <tr><td>Señales registradas como completadas</td><td>${fmt(r.senales_completadas)}</td></tr>
+      <tr><td>Calles pendientes</td><td>${pendientes == null ? "—" : fmt(pendientes)}</td></tr></table>
+    ${filasFuentes ? `<details open><summary>Actualización de amenazas</summary><table><tr><th>Fuente</th><th>Resultado</th></tr>${filasFuentes}</table></details>` : ""}
+    ${(r.advertencias || []).map(a => `<p class="aviso">${escapar(a)}</p>`).join("")}
+    ${r.autorizada ? `<p class="ayuda">“Registrar completada” confirma esta salida en la simulación manual. Revisar o dibujar una ruta no acredita que se haya ejecutado.</p>` : ""}`;
+  if (operacion.capa) mapa.removeLayer(operacion.capa);
+  operacion.capa = null;
+  if (r.autorizada && r.rutas && r.rutas.features && r.rutas.features.length) {
+    operacion.capa = L.geoJSON(r.rutas, { pane: "simulacion",
+      style: () => ({ color: "#ea580c", weight: 6, opacity: 0.95, dashArray: "10 5" }),
+      onEachFeature: (f, l) => l.bindPopup(popup({ nombre: "Próxima salida revisada · operación simulada" }, {
+        técnica: r.tecnica, dron: r.dron, salida: r.salida,
+        inicio: fechaProgramada(r.inicio, zona), fin: fechaProgramada(r.fin, zona) }))
+    }).addTo(mapa);
+    if (operacion.capa.getBounds().isValid()) mapa.fitBounds(operacion.capa.getBounds(), { padding: [30, 30] });
+  }
+}
+
+async function solicitarOperacion(completada = null) {
+  const plan = ruteo.resultado;
+  if (!plan || !plan.plan_id || operacion.cargando) return;
+  const tecnica = document.getElementById("tecnicaOperacion").value;
+  const confirmando = completada !== null;
+  if (confirmando && (!operacion.pendiente || (completada && !operacion.pendiente.autorizada))) return;
+  const peticion = ++operacion.peticion, planId = plan.plan_id;
+  const controller = new AbortController();
+  operacion.solicitud = controller; operacion.cargando = true; operacion.error = null;
+  actualizarControlesOperacion();
+  try {
+    const cuerpo = { plan_id: planId, tecnica };
+    if (confirmando) Object.assign(cuerpo, { revision_id: operacion.pendiente.revision_id, completada });
+    const respuesta = await fetch(`${API}/api/flota/${confirmando ? "confirmar-salida" : "revisar-salida"}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo), signal: controller.signal
+    });
+    const r = await respuesta.json();
+    if (!respuesta.ok) throw new Error(typeof r.detail === "string" ? r.detail : "No se pudo completar la revisión de la salida.");
+    if (peticion !== operacion.peticion || !ruteo.resultado || ruteo.resultado.plan_id !== planId) return;
+    operacion.tecnica = tecnica;
+    operacion.resultado = r;
+    operacion.pendiente = !confirmando && r.revision_id ? r : null;
+    operacion.registros[tecnica] = r;
+    mostrarOperacion(r);
+  } catch (e) {
+    if (e.name !== "AbortError" && peticion === operacion.peticion) operacion.error = e.message;
+  } finally {
+    if (peticion === operacion.peticion) {
+      operacion.cargando = false; operacion.solicitud = null;
+      actualizarControlesOperacion();
+    }
+  }
 }
 
 // P7: sortea eventos sobre el plan guardado y superpone sus elementos indisponibles.
@@ -1060,6 +1227,7 @@ function actualizarControlesSimulacion() {
     simulacion.cargando ? "Sorteando el escenario y recalculando las técnicas…" :
     simulacion.error || (simulacion.resultado ? `Último sorteo: semilla ${fmt(simulacion.resultado.semilla)}.` :
       disponible ? "Plan listo. Elige una semilla y simula las fallas." : "Primero planifica una inspección.");
+  actualizarControlesOperacion();
 }
 
 function quitarCapasSimulacion() {
@@ -1314,6 +1482,21 @@ async function iniciarRuteo() {
   document.getElementById("btnLimpiar").addEventListener("click", limpiarTodo);
   document.getElementById("btnDefecto").addEventListener("click", aplicarDefecto);
   document.getElementById("btnSimular").addEventListener("click", simularFallas);
+  document.getElementById("btnRevisarSalida").addEventListener("click", () => solicitarOperacion());
+  document.getElementById("btnCompletarSalida").addEventListener("click", () => solicitarOperacion(true));
+  document.getElementById("btnPosponerSalida").addEventListener("click", () => solicitarOperacion(false));
+  document.getElementById("tecnicaOperacion").addEventListener("change", e => {
+    operacion.tecnica = e.target.value;
+    operacion.resultado = operacion.registros[operacion.tecnica] || null;
+    operacion.error = null;
+    if (operacion.resultado) mostrarOperacion(operacion.resultado);
+    else {
+      document.getElementById("resultadoOperacion").innerHTML = "";
+      if (operacion.capa) mapa.removeLayer(operacion.capa);
+      operacion.capa = null;
+    }
+    actualizarControlesOperacion();
+  });
   document.getElementById("mostrarRecuperadas").addEventListener("change", actualizarRutasRecuperadas);
   document.getElementById("btnRestablecerSimulacion").addEventListener("click", () => restablecerSimulacion(true));
   ["mostrarEscenario", "mostrarAristasSimulacion", "mostrarNodosSimulacion"]
