@@ -1,5 +1,6 @@
 [
   {
+    "fecha": "2026-11-15 02:40:15",
     "id": 12199455,
     "uuid": "0ae0d06f-959a-5ca4-9085-e6acdad26ec5",
     "categoria": "INCENDIO_COLUMNA_TERMICA",
@@ -17,6 +18,7 @@
     "justificacion": "Incendio de pastizal activo genera corrientes térmicas ascendentes y humos densos que afectan la sustentación y sensores del dron."
   },
   {
+    "fecha": "2026-11-15 02:39:49",
     "id": 12199452,
     "uuid": "8642334e-d039-5ea1-b84c-3df12d7d995c",
     "categoria": "INCENDIO_COLUMNA_TERMICA",
@@ -34,6 +36,7 @@
     "justificacion": "Quema de neumáticos genera fuego y humo denso tóxico, creando riesgo térmico severo y ceguera óptica para la aeronave."
   },
   {
+    "fecha": "2026-11-15 01:57:39",
     "id": 12199136,
     "uuid": "70341c76-2800-5a45-a017-4c0b1f938256",
     "categoria": "OBSTACULO_CABLES_POSTES",
@@ -51,6 +54,7 @@
     "justificacion": "Problemas graves en poste de alumbrado eléctrico con riesgo de electrocución e infraestructura energizada expuesta a baja cota."
   },
   {
+    "fecha": "2026-11-15 01:43:51",
     "id": 12199016,
     "uuid": "40288df7-e5dd-5f61-bf83-838a89990946",
     "categoria": "DISPAROS_BALACERA",
@@ -68,6 +72,7 @@
     "justificacion": "Reporte de detonaciones de bala. Riesgo balístico crítico por proyectiles ascendentes que pueden impactar la estructura o rotores del dron."
   },
   {
+    "fecha": "2026-11-14 15:36:15",
     "id": 12195341,
     "uuid": "a2e3d2b7-11ea-58dd-89f5-94cf7de51f80",
     "categoria": "OBSTACULO_CABLES_POSTES",
@@ -82,6 +87,60 @@
     "accion_grafo": "BLOQUEAR_ARISTAS",
     "factor_penalizacion": "INF",
     "descripcion": "Robos de cables;\n¿El robo de cable está ocurriendo ahora?: Sí;\n¿Qué servicio fue interrumpido?: Luz;\n",
-    "justificacion": "Reporte de robo y corte de cables eléctricos. A 20 metros de altitud representa un riesgo fatal de colisión con el tendido dañado o desprendido."
+    "justificacion": "A 20m de altitud, cables cortados o postes representan colisión física fatal con rotores."
+  },
+  {
+    "fecha": "2026-11-15 14:54:42",
+    "id": 12202104,
+    "uuid": "808df892-0f5d-5deb-bf92-39e64ee0ed2d",
+    "categoria": "DISPAROS_BALACERA",
+    "nivel_riesgo": "CRITICO",
+    "latitud": -33.503223804584,
+    "longitud": -70.780098217473,
+    "coordenadas": [
+      -33.503223804584,
+      -70.780098217473
+    ],
+    "radio_buffer_metros": 400,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "Fueron balazos???",
+    "justificacion": "Proyectiles balísticos en trayectoria vertical y presencia armada activa."
+  },
+  {
+    "fecha": "2026-11-15 06:32:58",
+    "id": 12200813,
+    "uuid": "e2e24b14-6dce-5f1e-8eb4-849a1f0c7728",
+    "categoria": "INCENDIO_COLUMNA_TERMICA",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.538857241707,
+    "longitud": -70.778848640621,
+    "coordenadas": [
+      -33.538857241707,
+      -70.778848640621
+    ],
+    "radio_buffer_metros": 500,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "Porfa hay fuego en el poste de mi de casa",
+    "justificacion": "Humo denso y columnas térmicas que desestabilizan el control de actitud del dron."
+  },
+  {
+    "fecha": "2026-11-15 22:32:31",
+    "id": 12204670,
+    "uuid": "8711388e-2aca-52ad-8436-719d273e072f",
+    "categoria": "OBSTACULO_CABLES_POSTES",
+    "nivel_riesgo": "ALTO",
+    "latitud": -33.516228928182,
+    "longitud": -70.761255025864,
+    "coordenadas": [
+      -33.516228928182,
+      -70.761255025864
+    ],
+    "radio_buffer_metros": 300,
+    "accion_grafo": "BLOQUEAR_ARISTAS",
+    "factor_penalizacion": "INF",
+    "descripcion": "Sujeto volando volantiles con hilo curado. Siempre lo mismo y nadie hace nada. \n\nEs un peligro total ya que puede afectar a los cables eléctricos y a las personas que transitan.",
+    "justificacion": "Elevación de volantines con hilo curado en zonas urbanas. Representa un riesgo crítico de corte de rotores y enredos con el tendido eléctrico a baja cota."
   }
 ]

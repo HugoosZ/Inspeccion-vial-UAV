@@ -405,7 +405,11 @@ def export_active_threats_for_graph(amenazas_reales):
 
 
 def run_classification():
-    """Ejecuta la clasificación sobre data/filtered_reports.json."""
+    """
+    Ejecuta la clasificación incremental sobre data/filtered_reports.json.
+    Conserva las clasificaciones y amenazas ya detectadas previamente y solo
+    envía a Gemini los reportes nuevos, sumando las nuevas amenazas sin reemplazar.
+    """
     load_env_file()
     filtered_path = DATA_DIR / "filtered_reports.json"
 
@@ -421,20 +425,44 @@ def run_classification():
         print("[!] No hay reportes en filtered_reports.json para clasificar.")
         return None
 
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if api_key and not api_key.startswith("tu_api_key"):
-        classified = classify_with_gemini(reports, api_key)
-    else:
-        print("[*] GEMINI_API_KEY no detectada. Usando clasificador heurístico de amenazas reales...")
-        classified = classify_with_rule_based_fallback(reports)
-
     # Asegurar que el directorio data/ exista
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Guardar JSON con las amenazas clasificadas (auditoría completa: amenazas + descartados)
     classified_path = DATA_DIR / "classified_threats.json"
-    amenazas_reales = [c for c in classified if c["es_amenaza"]]
-    ruido_descartado = [c for c in classified if not c["es_amenaza"]]
+
+    existing_classified = {}
+    if classified_path.exists():
+        try:
+            with open(classified_path, "r", encoding="utf-8") as f:
+                cdata = json.load(f)
+                for item in cdata.get("amenazas", []) + cdata.get("descartados", []):
+                    if "id" in item:
+                        existing_classified[item["id"]] = item
+        except Exception as e:
+            print(f"[!] Aviso al leer {classified_path}: {e}")
+
+    # Identificar reportes nuevos que aún no han sido clasificados
+    unclassified_reports = [r for r in reports if r.get("id") not in existing_classified]
+    print(f"[*] Reportes acumulados en Maipú: {len(reports)} ({len(existing_classified)} ya clasificados, {len(unclassified_reports)} nuevos)")
+
+    if unclassified_reports:
+        api_key = os.getenv("GEMINI_API_KEY", "").strip()
+        if api_key and not api_key.startswith("tu_api_key"):
+            new_classified = classify_with_gemini(unclassified_reports, api_key)
+        else:
+            print("[*] GEMINI_API_KEY no detectada. Usando clasificador heurístico de amenazas reales...")
+            new_classified = classify_with_rule_based_fallback(unclassified_reports)
+
+        for item in new_classified:
+            existing_classified[item["id"]] = item
+    else:
+        print("[+] No hay reportes nuevos pendientes de clasificar. Se conservan todas las clasificaciones existentes.")
+
+    # Lista total acumulada
+    classified = list(existing_classified.values())
+
+    # Guardar JSON con todas las amenazas clasificadas acumuladas
+    amenazas_reales = [c for c in classified if c.get("es_amenaza")]
+    ruido_descartado = [c for c in classified if not c.get("es_amenaza")]
 
     resumen = {
         "total_analizados": len(classified),
@@ -447,8 +475,9 @@ def run_classification():
     with open(classified_path, "w", encoding="utf-8") as f:
         json.dump(resumen, f, indent=2, ensure_ascii=False)
 
-    print(f"[+] Archivo clasificado guardado: {classified_path}")
-    print(f"    - Amenazas reales detectadas: {len(amenazas_reales)}")
+    print(f"[+] Archivo clasificado acumulado guardado: {classified_path}")
+    print(f"    - Total reportes analizados: {len(classified)}")
+    print(f"    - Amenazas reales acumuladas: {len(amenazas_reales)}")
     print(f"    - Eventos descartados (ruido): {len(ruido_descartado)}")
 
     # 1. Exportar GeoJSON para Leaflet y consultas PostGIS espaciales

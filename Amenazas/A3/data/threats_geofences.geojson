@@ -12,6 +12,7 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-15 02:40:15",
         "id": 12199455,
         "tipo": "Emergencia de Bomberos",
         "categoria": "INCENDIO_COLUMNA_TERMICA",
@@ -165,6 +166,7 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-15 02:40:15",
         "id": 12199455,
         "geofence_id": "nfz_12199455",
         "nivel_riesgo": "ALTO",
@@ -187,6 +189,7 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-15 02:39:49",
         "id": 12199452,
         "tipo": "Emergencia de Bomberos",
         "categoria": "INCENDIO_COLUMNA_TERMICA",
@@ -340,6 +343,7 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-15 02:39:49",
         "id": 12199452,
         "geofence_id": "nfz_12199452",
         "nivel_riesgo": "ALTO",
@@ -362,6 +366,7 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-15 01:57:39",
         "id": 12199136,
         "tipo": "Alumbrado público",
         "categoria": "OBSTACULO_CABLES_POSTES",
@@ -515,6 +520,7 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-15 01:57:39",
         "id": 12199136,
         "geofence_id": "nfz_12199136",
         "nivel_riesgo": "CRITICO",
@@ -537,6 +543,7 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-15 01:43:51",
         "id": 12199016,
         "tipo": "Emergencia de Seguridad",
         "categoria": "DISPAROS_BALACERA",
@@ -690,6 +697,7 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-15 01:43:51",
         "id": 12199016,
         "geofence_id": "nfz_12199016",
         "nivel_riesgo": "CRITICO",
@@ -712,12 +720,13 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-14 15:36:15",
         "id": 12195341,
         "tipo": "",
         "categoria": "OBSTACULO_CABLES_POSTES",
         "nivel_riesgo": "CRITICO",
         "descripcion": "Robos de cables;\n¿El robo de cable está ocurriendo ahora?: Sí;\n¿Qué servicio fue interrumpido?: Luz;\n",
-        "justificacion": "Reporte de robo y corte de cables eléctricos. A 20 metros de altitud representa un riesgo fatal de colisión con el tendido dañado o desprendido.",
+        "justificacion": "A 20m de altitud, cables cortados o postes representan colisión física fatal con rotores.",
         "radio_buffer": 300,
         "marker_color": "#d90429",
         "tipo_geometria": "amenaza_punto"
@@ -865,12 +874,544 @@
         ]
       },
       "properties": {
+        "fecha": "2026-11-14 15:36:15",
         "id": 12195341,
         "geofence_id": "nfz_12195341",
         "nivel_riesgo": "CRITICO",
         "categoria": "OBSTACULO_CABLES_POSTES",
         "fillColor": "#d90429",
         "color": "#d90429",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 300,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.780098217473,
+          -33.503223804584
+        ]
+      },
+      "properties": {
+        "fecha": "2026-11-15 14:54:42",
+        "id": 12202104,
+        "tipo": "Aviso comunitario",
+        "categoria": "DISPAROS_BALACERA",
+        "nivel_riesgo": "CRITICO",
+        "descripcion": "Fueron balazos???",
+        "justificacion": "Proyectiles balísticos en trayectoria vertical y presencia armada activa.",
+        "radio_buffer": 400,
+        "marker_color": "#d90429",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.775789,
+              -33.503224
+            ],
+            [
+              -70.775872,
+              -33.502523
+            ],
+            [
+              -70.776117,
+              -33.501849
+            ],
+            [
+              -70.776515,
+              -33.501228
+            ],
+            [
+              -70.777051,
+              -33.500683
+            ],
+            [
+              -70.777704,
+              -33.500236
+            ],
+            [
+              -70.778449,
+              -33.499904
+            ],
+            [
+              -70.779258,
+              -33.4997
+            ],
+            [
+              -70.780098,
+              -33.499631
+            ],
+            [
+              -70.780939,
+              -33.4997
+            ],
+            [
+              -70.781747,
+              -33.499904
+            ],
+            [
+              -70.782492,
+              -33.500236
+            ],
+            [
+              -70.783145,
+              -33.500683
+            ],
+            [
+              -70.783681,
+              -33.501228
+            ],
+            [
+              -70.784079,
+              -33.501849
+            ],
+            [
+              -70.784325,
+              -33.502523
+            ],
+            [
+              -70.784407,
+              -33.503224
+            ],
+            [
+              -70.784325,
+              -33.503925
+            ],
+            [
+              -70.784079,
+              -33.504599
+            ],
+            [
+              -70.783681,
+              -33.50522
+            ],
+            [
+              -70.783145,
+              -33.505765
+            ],
+            [
+              -70.782492,
+              -33.506211
+            ],
+            [
+              -70.781747,
+              -33.506544
+            ],
+            [
+              -70.780939,
+              -33.506748
+            ],
+            [
+              -70.780098,
+              -33.506817
+            ],
+            [
+              -70.779258,
+              -33.506748
+            ],
+            [
+              -70.778449,
+              -33.506544
+            ],
+            [
+              -70.777704,
+              -33.506211
+            ],
+            [
+              -70.777051,
+              -33.505765
+            ],
+            [
+              -70.776515,
+              -33.50522
+            ],
+            [
+              -70.776117,
+              -33.504599
+            ],
+            [
+              -70.775872,
+              -33.503925
+            ],
+            [
+              -70.775789,
+              -33.503224
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "fecha": "2026-11-15 14:54:42",
+        "id": 12202104,
+        "geofence_id": "nfz_12202104",
+        "nivel_riesgo": "CRITICO",
+        "categoria": "DISPAROS_BALACERA",
+        "fillColor": "#d90429",
+        "color": "#d90429",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 400,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.778848640621,
+          -33.538857241707
+        ]
+      },
+      "properties": {
+        "fecha": "2026-11-15 06:32:58",
+        "id": 12200813,
+        "tipo": "Emergencia de Bomberos",
+        "categoria": "INCENDIO_COLUMNA_TERMICA",
+        "nivel_riesgo": "ALTO",
+        "descripcion": "Porfa hay fuego en el poste de mi de casa",
+        "justificacion": "Humo denso y columnas térmicas que desestabilizan el control de actitud del dron.",
+        "radio_buffer": 500,
+        "marker_color": "#f77f00",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.77346,
+              -33.538857
+            ],
+            [
+              -70.773563,
+              -33.537981
+            ],
+            [
+              -70.77387,
+              -33.537138
+            ],
+            [
+              -70.774368,
+              -33.536362
+            ],
+            [
+              -70.775038,
+              -33.535681
+            ],
+            [
+              -70.775855,
+              -33.535123
+            ],
+            [
+              -70.776786,
+              -33.534708
+            ],
+            [
+              -70.777797,
+              -33.534452
+            ],
+            [
+              -70.778849,
+              -33.534366
+            ],
+            [
+              -70.7799,
+              -33.534452
+            ],
+            [
+              -70.780911,
+              -33.534708
+            ],
+            [
+              -70.781842,
+              -33.535123
+            ],
+            [
+              -70.782659,
+              -33.535681
+            ],
+            [
+              -70.783329,
+              -33.536362
+            ],
+            [
+              -70.783827,
+              -33.537138
+            ],
+            [
+              -70.784134,
+              -33.537981
+            ],
+            [
+              -70.784237,
+              -33.538857
+            ],
+            [
+              -70.784134,
+              -33.539734
+            ],
+            [
+              -70.783827,
+              -33.540576
+            ],
+            [
+              -70.783329,
+              -33.541353
+            ],
+            [
+              -70.782659,
+              -33.542033
+            ],
+            [
+              -70.781842,
+              -33.542592
+            ],
+            [
+              -70.780911,
+              -33.543007
+            ],
+            [
+              -70.7799,
+              -33.543262
+            ],
+            [
+              -70.778849,
+              -33.543349
+            ],
+            [
+              -70.777797,
+              -33.543262
+            ],
+            [
+              -70.776786,
+              -33.543007
+            ],
+            [
+              -70.775855,
+              -33.542592
+            ],
+            [
+              -70.775038,
+              -33.542033
+            ],
+            [
+              -70.774368,
+              -33.541353
+            ],
+            [
+              -70.77387,
+              -33.540576
+            ],
+            [
+              -70.773563,
+              -33.539734
+            ],
+            [
+              -70.77346,
+              -33.538857
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "fecha": "2026-11-15 06:32:58",
+        "id": 12200813,
+        "geofence_id": "nfz_12200813",
+        "nivel_riesgo": "ALTO",
+        "categoria": "INCENDIO_COLUMNA_TERMICA",
+        "fillColor": "#f77f00",
+        "color": "#f77f00",
+        "weight": 2,
+        "fillOpacity": 0.35,
+        "radio_metros": 500,
+        "tipo_geometria": "geocerca_exclusion"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.761255025864,
+          -33.516228928182
+        ]
+      },
+      "properties": {
+        "fecha": "2026-11-15 22:32:31",
+        "id": 12204670,
+        "tipo": "Emergencia de Seguridad",
+        "categoria": "OBSTACULO_CABLES_POSTES",
+        "nivel_riesgo": "ALTO",
+        "descripcion": "Sujeto volando volantiles con hilo curado. Siempre lo mismo y nadie hace nada. \n\nEs un peligro total ya que puede afectar a los cables eléctricos y a las personas que transitan.",
+        "justificacion": "Elevación de volantines con hilo curado en zonas urbanas. Representa un riesgo crítico de corte de rotores y enredos con el tendido eléctrico a baja cota.",
+        "radio_buffer": 300,
+        "marker_color": "#f77f00",
+        "tipo_geometria": "amenaza_punto"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -70.758023,
+              -33.516229
+            ],
+            [
+              -70.758085,
+              -33.515703
+            ],
+            [
+              -70.758269,
+              -33.515198
+            ],
+            [
+              -70.758567,
+              -33.514732
+            ],
+            [
+              -70.758969,
+              -33.514323
+            ],
+            [
+              -70.759459,
+              -33.513988
+            ],
+            [
+              -70.760018,
+              -33.513739
+            ],
+            [
+              -70.760624,
+              -33.513586
+            ],
+            [
+              -70.761255,
+              -33.513534
+            ],
+            [
+              -70.761886,
+              -33.513586
+            ],
+            [
+              -70.762492,
+              -33.513739
+            ],
+            [
+              -70.763051,
+              -33.513988
+            ],
+            [
+              -70.763541,
+              -33.514323
+            ],
+            [
+              -70.763943,
+              -33.514732
+            ],
+            [
+              -70.764241,
+              -33.515198
+            ],
+            [
+              -70.764425,
+              -33.515703
+            ],
+            [
+              -70.764487,
+              -33.516229
+            ],
+            [
+              -70.764425,
+              -33.516755
+            ],
+            [
+              -70.764241,
+              -33.51726
+            ],
+            [
+              -70.763943,
+              -33.517726
+            ],
+            [
+              -70.763541,
+              -33.518135
+            ],
+            [
+              -70.763051,
+              -33.51847
+            ],
+            [
+              -70.762492,
+              -33.518719
+            ],
+            [
+              -70.761886,
+              -33.518872
+            ],
+            [
+              -70.761255,
+              -33.518924
+            ],
+            [
+              -70.760624,
+              -33.518872
+            ],
+            [
+              -70.760018,
+              -33.518719
+            ],
+            [
+              -70.759459,
+              -33.51847
+            ],
+            [
+              -70.758969,
+              -33.518135
+            ],
+            [
+              -70.758567,
+              -33.517726
+            ],
+            [
+              -70.758269,
+              -33.51726
+            ],
+            [
+              -70.758085,
+              -33.516755
+            ],
+            [
+              -70.758023,
+              -33.516229
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "fecha": "2026-11-15 22:32:31",
+        "id": 12204670,
+        "geofence_id": "nfz_12204670",
+        "nivel_riesgo": "ALTO",
+        "categoria": "OBSTACULO_CABLES_POSTES",
+        "fillColor": "#f77f00",
+        "color": "#f77f00",
         "weight": 2,
         "fillOpacity": 0.35,
         "radio_metros": 300,
